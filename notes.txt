@@ -1,0 +1,51 @@
+Maintenance OS Development Session - 2026-03-26
+
+=== CONTRACTOR DETAIL PAGE BUILT ===
+
+Created the contractor detail page and edit page for Maintenance OS.
+
+FILES CREATED:
+1. app/contractors/[id]/page.tsx
+   - Server component showing contractor details
+   - Displays name, company, trade, phone, email, notes
+   - Shows preferred badge if applicable
+   - Includes Activity stats (dispatches sent, jobs completed, member since date)
+   - Edit button links to /contractors/[id]/edit
+   - Archive button calls DELETE /api/contractors/[id]
+   - Uses requireDbUser() for authentication with redirect to /sign-in
+   - Verifies contractor belongs to user via ownerUserId check
+   - Imports related dispatches and jobs for stats
+   - Uses existing UI components: Badge, Card, Button from @/components/ui
+
+2. app/contractors/[id]/archive-button.tsx
+   - Client component for archive action
+   - Confirms before archiving with confirm dialog
+   - Shows error state if archive fails
+   - Redirects to /contractors after successful archive
+   - Styled with red text for destructive action
+
+3. app/contractors/[id]/edit/page.tsx
+   - Client component form for editing contractor
+   - Fetches contractor data on mount using id from params
+   - Form fields: name, companyName, trade, phone, email, notes, isPreferred
+   - Submits PATCH to /api/contractors/[id]
+   - Pre-fills form with existing contractor data
+   - Shows loading states and error messages
+   - Cancel button goes back
+   - Same visual style as contractors/new page
+
+IMPLEMENTATION NOTES:
+- Used Next.js 15 App Router with async params: const { id } = await params
+- All pages respect user ownership via ownerUserId check
+- Used straight quotes throughout (never curly/smart quotes)
+- Consistent styling with rest of the application
+- Error handling with try/catch blocks
+- Authentication via requireDbUser() with redirect fallback
+- LayoutShell wrapper applied to all pages
+- Button variants match existing patterns (outline, default)
+- Trade labels properly formatted with underscores replaced by spaces
+- Archive uses DELETE endpoint which soft-archives (sets isArchived: true)
+- Stats include completed jobs count and total dispatches
+- Proper Next.js navigation with router.push and router.refresh
+
+All three pages follow the existing API and UI patterns established in the codebase.

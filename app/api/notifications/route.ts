@@ -1,0 +1,55 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { requireDbUser } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+
+const markAsReadSchema = z.object({
+  notificationIds: z.array(z.string()),
+});
+
+export async function GET(request: NextRequest) {
+  try {
+    const user = await requireDbUser();
+
+    // Check for unreadOnly query parameter
+    const searchParams = request.nextUrl.searchParams;
+    const unreadOnly = searchParams.get('unreadOnly') === 'true';
+
+    const notifications = await prisma.notification.findMany({
+      where: {
+        userId: user.id,
+        ...(unreadOnly && { readAt: null }),
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return NextResponse.json({ notifications });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: message }, { status: 401 });
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const user = await requireDbUser();
+    const body = markAsReadSchema.parse(await request.json());
+
+    const updated = await prisma.notification.updateMany({
+      where: {
+        id: { in: body.notificationIds },
+        userId: user.id,
+      },
+      data: {
+        readAt: new Date(),
+      },
+    });
+
+    return NextResponse.json({
+      count: updated.count,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
+}

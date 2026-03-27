@@ -1,0 +1,104 @@
+# Property Detail Page Implementation - Session Summary
+
+## Completed Tasks
+
+### 1. Created /app/properties/[id]/page.tsx (Server Component)
+- Main property detail page that displays:
+  - Property name, full address, property type
+  - Edit and Delete buttons in header
+  - Property Details card with address and type info
+  - Linked Contractors section with unlink buttons and "Add Contractor" dropdown
+  - Tenant Intake Link section showing current link status and generate/deactivate options
+  - Issues list for the property
+- Uses requireDbUser() for auth with try/catch redirect pattern
+- Fetches property, contractors, intake link status, and issues from database
+- Proper ownership verification before displaying
+
+### 2. Created /app/properties/[id]/property-detail-client.tsx (Client Component)
+- Interactive actions component handling:
+  - Delete property with confirmation dialog
+  - Unlink contractors with confirmation
+  - Add contractors via dropdown selector
+  - Generate/deactivate tenant intake links
+- Manages all API calls to properties endpoints
+- Provides user-friendly dialogs and error handling
+- Copy-to-clipboard functionality for intake links
+- Router refresh after mutations
+
+### 3. Created /app/properties/[id]/edit/page.tsx (Client Component)
+- Edit form pre-filled with existing property data
+- Client component that:
+  - Loads property via GET /api/properties/[id]
+  - Submits changes via PATCH /api/properties/[id]
+  - Redirects back to detail page on success
+  - Shows loading state while fetching initial data
+  - Displays validation errors
+
+### 4. Created /components/ui/alert-dialog.tsx
+- Custom AlertDialog component using @radix-ui/react-dialog
+- Components: AlertDialog, AlertDialogContent, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel
+- Supports controlled open/onOpenChange props
+- Styled with consistent design system
+
+### 5. Updated /components/ui/button.tsx
+- Added "destructive" variant (red-600 background)
+- Added "ghost" variant (hover background only)
+- Added "sm" size variant
+- Maintains existing default, secondary, outline variants
+
+## Design Patterns Used
+
+1. **Next.js 15 App Router**: params as Promise, proper async/await handling
+2. **Auth Pattern**: requireDbUser() from @/lib/auth with try/catch redirect
+3. **API Integration**: RESTful endpoints for CRUD and relationship management
+4. **Component Architecture**: 
+   - Server component for data fetching and UI layout
+   - Client components for interactivity (modals, forms)
+5. **Form Handling**: Controlled components with React state
+6. **Error Handling**: Try/catch blocks, user-friendly error messages
+7. **UI Components**: Consistent use of Card, Button, Input, Select from design system
+8. **Styling**: Tailwind CSS with muted-foreground, borders, spacing utilities
+
+## API Endpoints Used
+
+- GET /api/properties/[id] - Fetch property details
+- PATCH /api/properties/[id] - Update property
+- DELETE /api/properties/[id] - Delete property
+- GET /api/properties/[id]/contractors - List linked contractors
+- POST /api/properties/[id]/contractors - Link contractor
+- DELETE /api/properties/[id]/contractors/[contractorId] - Unlink contractor
+- GET/POST/DELETE /api/properties/[id]/intake-link - Manage tenant intake links
+
+## Files Created
+
+1. /app/properties/[id]/page.tsx (198 lines)
+2. /app/properties/[id]/property-detail-client.tsx (367 lines)
+3. /app/properties/[id]/edit/page.tsx (216 lines)
+4. /components/ui/alert-dialog.tsx (134 lines)
+
+## Files Modified
+
+1. /components/ui/button.tsx - Added destructive, ghost, and sm variants
+
+## Key Features
+
+✓ Property information display with formatted address
+✓ Edit property button links to edit page
+✓ Delete property with confirmation modal
+✓ Link/unlink contractors with confirmation dialogs
+✓ Add contractor via dropdown selector
+✓ Generate tenant intake link with copy-to-clipboard
+✓ Deactivate intake link with confirmation
+✓ Display issues list with status and urgency badges
+✓ Proper auth and ownership verification
+✓ Error handling and loading states
+✓ Consistent styling with design system
+
+## Notes
+
+- All components use straight quotes (') not smart quotes
+- LayoutShell wrapper ensures consistent page layout
+- PropertyDetailClient is reusable for all interactive actions
+- Edit page is client component but loads data from server API
+- Intake link API uses direct database query on server (faster than HTTP fetch)
+- Button component now supports required destructive and ghost variants

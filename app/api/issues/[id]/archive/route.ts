@@ -1,0 +1,56 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { requireDbUser } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { logTimelineEvent } from '@/lib/timeline';
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const user = await requireDbUser();
+    const { id } = await params;
+
+    const issue = await prisma.issue.findFirst({
+      where: { id, property: { ownerUserId: user.id } },
+    });
+
+    if (!issue) {
+      return NextResponse.json({ error: 'Issue not found.' }, { status: 404 });
+    }
+
+    const updatedIssue = await prisma.issue.update({
+      where: { id },
+      data: { status: 'archived' },
+      include: {
+        property: true,
+        photos: true,
+        dispatches: {
+          include: {
+            contractor: true,
+            responses: true,
+          },
+        },
+        jobs: {
+          include: {
+            contractor: true,
+            selectedResponse: true,
+          },
+        },
+        usageMetrics: true,
+      },
+    });
+
+    await logTimelineEvent({
+      propertyId: updatedIssue.propertyId,
+      issueId: updatedIssue.id,
+      actorType: 'user',
+      eventType: 'issue_archived',
+    });
+
+    return NextResponse.json({ issue: updatedIssue });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
+}

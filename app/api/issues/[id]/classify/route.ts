@@ -1,0 +1,82 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { requireDbUser } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { classifyIssue } from '@/lib/ai/classify-issue';
+import { logTimelineEvent } from '@/lib/timeline';
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const user = await requireDbUser();
+    const { id } = await params;
+
+    const issue = await prisma.issue.findFirst({
+      where: { id, property: { ownerUserId: user.id } },
+    });
+
+    if (!issue) {
+      return NextResponse.json({ error: 'Issue not found.' }, { status: 404 });
+    }
+
+    const classification = await classifyIssue({
+      description: issue.description,
+      locationInProperty: issue.locationInProperty,
+    });
+
+    const updatedIssue = await prisma.issue.update({
+      where: { id },
+      data: {
+        title: classification.title,
+        category: classification.category,
+        urgency: classification.urgency,
+        reasoningSummary: classification.reasoningSummary,
+        suggestedTimeframe: classification.suggestedTimeframe,
+        recommendedTrade: classification.recommendedTrade,
+        aiConfidence: classification.confidenceScore,
+        status: 'classified',
+        usageMetrics: {
+          upsert: {
+            create: { aiRequestCount: 1 },
+            update: { aiRequestCount: { increment: 1 } },
+          },
+        },
+      },
+      include: {
+        property: true,
+        photos: true,
+        dispatches: {
+          include: {
+            contractor: true,
+            responses: true,
+          },
+        },
+        jobs: {
+          include: {
+            contractor: true,
+            selectedResponse: true,
+          },
+        },
+        usageMetrics: true,
+      },
+    });
+
+    await logTimelineEvent({
+      propertyId: updatedIssue.propertyId,
+      issueId: updatedIssue.id,
+      actorType: 'system',
+      eventType: 'issue_classified',
+      payload: {
+        category: classification.category,
+        urgency: classification.urgency,
+        confidenceScore: classification.confidenceScore,
+      },
+    });
+
+    return NextResponse.json({ issue: updatedIssue });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
+}
