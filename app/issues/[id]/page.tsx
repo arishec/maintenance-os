@@ -13,7 +13,7 @@ import { ClassifyButton } from './classify-button';
 
 function urgencyColor(urgency: string) {
   switch (urgency.toLowerCase()) {
-    case 'critical':
+    case 'emergency':
       return 'bg-red-100 text-red-800';
     case 'high':
       return 'bg-orange-100 text-orange-800';

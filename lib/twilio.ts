@@ -22,3 +22,20 @@ export async function sendRepairRequestSms(to: string, body: string) {
     body,
   });
 }
+
+/**
+ * Validate that an incoming request is actually from Twilio.
+ * Uses Twilio's built-in signature validation with the auth token.
+ */
+export function validateTwilioSignature(
+  url: string,
+  params: Record<string, string>,
+  signature: string
+): boolean {
+  const token = process.env.TWILIO_AUTH_TOKEN;
+  if (!token || token === 'REPLACE_ME') {
+    console.warn('TWILIO_AUTH_TOKEN not set — skipping signature validation');
+    return false;
+  }
+  return Twilio.validateRequest(token, signature, url, params);
+}

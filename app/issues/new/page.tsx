@@ -203,7 +203,7 @@ export default function NewIssuePage() {
   // Show classification result
   if (classification && issueId) {
     const urgencyColor =
-      classification.urgency === 'critical'
+      classification.urgency === 'emergency'
         ? 'bg-red-100 text-red-800'
         : classification.urgency === 'high'
           ? 'bg-orange-100 text-orange-800'

@@ -44,6 +44,21 @@ export async function POST(
       );
     }
 
+    // Guard: prevent creating multiple active jobs for the same issue
+    const existingActiveJob = await prisma.job.findFirst({
+      where: {
+        issueId,
+        status: { notIn: ['canceled'] },
+      },
+    });
+
+    if (existingActiveJob) {
+      return NextResponse.json(
+        { error: 'This issue already has an active job. Cancel it first before selecting a new contractor.' },
+        { status: 409 }
+      );
+    }
+
     let selectedResponse = null;
     let selectedEstimate = null;
 

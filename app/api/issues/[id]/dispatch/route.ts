@@ -173,11 +173,20 @@ export async function POST(
       }
     }
 
-    // Update issue status
-    await prisma.issue.update({
-      where: { id: issueId },
-      data: { status: 'awaiting_quotes' },
-    });
+    // Only move to awaiting_quotes if at least one dispatch succeeded
+    const successfulDispatches = dispatchRecords.filter(
+      (d) => d.status === 'sent'
+    );
+
+    if (successfulDispatches.length > 0) {
+      await prisma.issue.update({
+        where: { id: issueId },
+        data: { status: 'awaiting_quotes' },
+      });
+    } else {
+      // All dispatches failed — keep current status so user can retry
+      console.error(`All ${dispatchRecords.length} dispatches failed for issue ${issueId}`);
+    }
 
     // Update or create usage metrics
     const existingMetrics = await prisma.usageMetricsIssueCost.findUnique({

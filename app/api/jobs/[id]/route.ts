@@ -83,6 +83,27 @@ export async function PATCH(
       },
     });
 
+    // Sync issue status when job status changes
+    if (body.status) {
+      const jobToIssueStatusMap: Record<string, string> = {
+        scheduled: 'scheduled',
+        in_progress: 'in_progress',
+        completed: 'completed',
+        canceled: 'canceled',
+      };
+
+      const newIssueStatus = jobToIssueStatusMap[body.status];
+      if (newIssueStatus) {
+        await prisma.issue.update({
+          where: { id: job.issueId },
+          data: {
+            status: newIssueStatus as any,
+            ...(body.status === 'completed' ? { completedAt: new Date() } : {}),
+          },
+        });
+      }
+    }
+
     await logTimelineEvent({
       propertyId: job.issue.propertyId,
       issueId: job.issueId,

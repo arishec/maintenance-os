@@ -14,6 +14,7 @@ const optional = [
   'TWILIO_PHONE_NUMBER',
   'RESEND_API_KEY',
   'RESEND_FROM_EMAIL',
+  'RESEND_WEBHOOK_SECRET',
 ] as const;
 
 export function validateEnv(): void {

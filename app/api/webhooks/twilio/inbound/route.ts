@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { parseContractorReply } from '@/lib/ai/parse-contractor-reply';
 import { logTimelineEvent } from '@/lib/timeline';
+import { validateTwilioSignature } from '@/lib/twilio';
 
 function normalizePhone(phone: string): string {
   return phone.replace(/\D/g, '');
@@ -18,6 +19,20 @@ export async function POST(request: NextRequest) {
   try {
     // Parse form data from Twilio
     const formData = await request.formData();
+
+    // Validate Twilio signature to prevent spoofed requests
+    const twilioSignature = request.headers.get('x-twilio-signature') || '';
+    const url = request.url;
+    const params: Record<string, string> = {};
+    formData.forEach((value, key) => {
+      params[key] = value.toString();
+    });
+
+    if (!validateTwilioSignature(url, params, twilioSignature)) {
+      console.error('Invalid Twilio signature — rejecting webhook');
+      return getTwiMLResponse();
+    }
+
     const from = formData.get('From') as string | null;
     const body = formData.get('Body') as string | null;
 

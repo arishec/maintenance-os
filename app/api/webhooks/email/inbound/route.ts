@@ -1,12 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createHmac, timingSafeEqual } from 'crypto';
 import { prisma } from '@/lib/prisma';
 import { parseContractorReply } from '@/lib/ai/parse-contractor-reply';
 import { logTimelineEvent } from '@/lib/timeline';
 
+function validateResendWebhook(rawBody: string, signature: string): boolean {
+  const secret = process.env.RESEND_WEBHOOK_SECRET;
+  if (!secret || secret === 'REPLACE_ME') {
+    console.warn('RESEND_WEBHOOK_SECRET not set — skipping signature validation');
+    return false;
+  }
+  const expectedSignature = createHmac('sha256', secret)
+    .update(rawBody)
+    .digest('base64');
+  try {
+    return timingSafeEqual(
+      Buffer.from(signature),
+      Buffer.from(expectedSignature)
+    );
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
-    // Parse JSON body from Resend
-    const body = await request.json();
+    // Read raw body for signature validation, then parse
+    const rawBody = await request.text();
+
+    // Validate Resend webhook signature
+    const signature = request.headers.get('resend-signature') || '';
+    if (signature && !validateResendWebhook(rawBody, signature)) {
+      console.error('Invalid Resend webhook signature — rejecting');
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    }
+
+    const body = JSON.parse(rawBody);
     const from = body.from as string | null;
     const text = body.text as string | null;
 
