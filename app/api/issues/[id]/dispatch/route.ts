@@ -1,10 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { z } from 'zod';
 import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { sendRepairRequestSms } from '@/lib/twilio';
 import { sendRepairRequestEmail } from '@/lib/resend';
 import { logTimelineEvent } from '@/lib/timeline';
+
+/** Generate a short, unique dispatch reply token like MNT-7F4K2Q */
+function generateReplyToken(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I ambiguity
+  let token = '';
+  const bytes = crypto.randomBytes(6);
+  for (let i = 0; i < 6; i++) {
+    token += chars[bytes[i] % chars.length];
+  }
+  return `MNT-${token}`;
+}
 
 const dispatchSchema = z.object({
   contractors: z.array(
@@ -105,16 +117,25 @@ export async function POST(
     for (const reqContractor of body.contractors) {
       const contractor = contractors.find(c => c.id === reqContractor.contractorId)!;
 
-      // Create dispatch with queued status
+      // Generate unique reply token for correlation
+      const replyToken = generateReplyToken();
+
+      // Create dispatch with queued status and reply token
       const dispatch = await prisma.dispatch.create({
         data: {
           issueId,
           contractorId: contractor.id,
           channel: reqContractor.channel,
           outboundMessage: messageWithPhotos,
+          replyToken,
           status: 'queued',
         },
       });
+
+      // Build channel-specific messages with embedded reply token
+      const smsMessage = `[Ref: ${replyToken}] ${messageWithPhotos}`;
+      const emailSubject = `Repair request [Ref: ${replyToken}] — ${issue.title}`;
+      const emailBody = `<div style="font-family: sans-serif; line-height: 1.6;"><p><strong>Reference: ${replyToken}</strong></p>${messageWithPhotos.replace(/\n/g, '<br>')}</div>`;
 
       let sentSuccessfully = false;
       let providerMessageId: string | null = null;
@@ -122,16 +143,15 @@ export async function POST(
       // Send based on channel
       try {
         if (reqContractor.channel === 'sms') {
-          const response = await sendRepairRequestSms(contractor.phone!, messageWithPhotos);
+          const response = await sendRepairRequestSms(contractor.phone!, smsMessage);
           providerMessageId = response.sid;
           smsCount++;
           sentSuccessfully = true;
         } else if (reqContractor.channel === 'email') {
-          const htmlBody = `<div style="font-family: sans-serif; line-height: 1.6;">${messageWithPhotos.replace(/\n/g, '<br>')}</div>`;
           const response = await sendRepairRequestEmail(
             contractor.email!,
-            `Repair request: ${issue.title}`,
-            htmlBody
+            emailSubject,
+            emailBody
           );
           if (response.data?.id) {
             providerMessageId = response.data.id;

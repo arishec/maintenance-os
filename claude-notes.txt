@@ -728,8 +728,54 @@ FIXES APPLIED:
    Problem: Job status changes didn't sync to parent issue
    Fix: Auto-sync issue status when job status changes
 
+========================================
+SESSION 14: PRODUCTION HARDENING ROUND 2
+Date: March 27, 2026
+========================================
+
+CONTEXT: Engineer sent second round of detailed fix instructions.
+4 items: reply correlation, defensive metrics, tenant intake, .env hygiene.
+
+FIXES APPLIED:
+
+1. DETERMINISTIC REPLY CORRELATION (HIGHEST PRIORITY)
+   Schema: Added replyToken (String? @unique) to Dispatch model
+   Schema: Added UnresolvedInboundMessage table for ambiguous replies
+   File: app/api/issues/[id]/dispatch/route.ts
+   - Generates MNT-XXXXXX token per dispatch using crypto.randomBytes
+   - Token embedded in SMS body: [Ref: MNT-7F4K2Q] ...
+   - Token embedded in email subject + body
+   File: app/api/webhooks/twilio/inbound/route.ts (full rewrite)
+   - Parses MNT-XXXXXX from SMS body first
+   - If token found → direct dispatch lookup by replyToken
+   - If no token → phone-based fallback ONLY if exactly 1 candidate
+   - If multiple candidates → stores in UnresolvedInboundMessage, does NOT guess
+   File: app/api/webhooks/email/inbound/route.ts (full rewrite)
+   - Same token-first logic: checks subject + body for token
+   - Single-candidate fallback or unresolved storage
+
+2. DEFENSIVE WEBHOOK METRICS (upsert pattern)
+   Both webhook handlers now use prisma.usageMetricsIssueCost.upsert()
+   Wrapped in try/catch — metrics failure never breaks reply processing
+
+3. TENANT INTAKE CLASSIFICATION FAILURE HANDLING
+   File: app/api/intake/[token]/route.ts
+   - Issue creation + timeline + notification happen BEFORE classification
+   - Classification wrapped in try/catch
+   - If classification fails: issue stays as 'new', tenant still gets 201 success
+   - Response always includes success: true + message
+
+4. .ENV PACKAGING HYGIENE
+   - .gitignore confirmed: .env and .env*.local excluded
+   - .env.example updated: added RESEND_WEBHOOK_SECRET placeholder
+   - .env exists locally but is gitignored (correct)
+
+SCHEMA CHANGES (need prisma db push):
+   - Dispatch.replyToken: String? @unique
+   - New table: UnresolvedInboundMessage
+
 REMAINING ITEMS:
 - [ ] Switch Clerk from development to production keys
-- [ ] Set RESEND_WEBHOOK_SECRET env var on Vercel
-- [ ] Test webhook signature validation end-to-end
-- [ ] Consider reply correlation IDs for multi-issue contractor scenarios
+- [x] Set RESEND_WEBHOOK_SECRET env var on Vercel (done in session 13)
+- [ ] Run prisma db push after deploying schema changes
+- [ ] Test token-based reply correlation end-to-end

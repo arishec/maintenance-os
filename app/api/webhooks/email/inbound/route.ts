@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma';
 import { parseContractorReply } from '@/lib/ai/parse-contractor-reply';
 import { logTimelineEvent } from '@/lib/timeline';
 
+const REPLY_TOKEN_PATTERN = /MNT-[A-Z0-9]{6}/;
+
 function validateResendWebhook(rawBody: string, signature: string): boolean {
   const secret = process.env.RESEND_WEBHOOK_SECRET;
   if (!secret || secret === 'REPLACE_ME') {
@@ -38,6 +40,7 @@ export async function POST(request: NextRequest) {
     const body = JSON.parse(rawBody);
     const from = body.from as string | null;
     const text = body.text as string | null;
+    const subject = body.subject as string | null;
 
     if (!from || !text) {
       return NextResponse.json({ success: true }, { status: 200 });
@@ -45,40 +48,76 @@ export async function POST(request: NextRequest) {
 
     const normalizedIncomingEmail = from.toLowerCase();
 
-    // Find the most recent matching dispatch
-    const dispatches = await prisma.dispatch.findMany({
-      where: {
-        channel: 'email',
-        status: {
-          in: ['sent', 'delivered'],
-        },
-      },
-      include: {
-        contractor: true,
-        issue: {
-          include: {
-            property: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    // --- DETERMINISTIC REPLY CORRELATION ---
 
-    // Filter by email match (case-insensitive)
-    const matchingDispatch = dispatches.find((dispatch) => {
-      if (!dispatch.contractor.email) return false;
-      return dispatch.contractor.email.toLowerCase() === normalizedIncomingEmail;
-    });
+    // Step 1: Try token-based matching from subject or body
+    const searchText = `${subject || ''} ${text}`;
+    const tokenMatch = searchText.match(REPLY_TOKEN_PATTERN);
+    let matchingDispatch = null;
+
+    if (tokenMatch) {
+      const token = tokenMatch[0];
+      matchingDispatch = await prisma.dispatch.findUnique({
+        where: { replyToken: token },
+        include: {
+          contractor: true,
+          issue: { include: { property: true } },
+        },
+      });
+    }
+
+    // Step 2: If no token match, fall back to email-based lookup
+    if (!matchingDispatch) {
+      const candidateDispatches = await prisma.dispatch.findMany({
+        where: {
+          channel: 'email',
+          status: { in: ['sent', 'delivered'] },
+        },
+        include: {
+          contractor: true,
+          issue: { include: { property: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      const emailCandidates = candidateDispatches.filter((dispatch) => {
+        if (!dispatch.contractor.email) return false;
+        return dispatch.contractor.email.toLowerCase() === normalizedIncomingEmail;
+      });
+
+      if (emailCandidates.length === 1) {
+        matchingDispatch = emailCandidates[0];
+      } else if (emailCandidates.length > 1) {
+        // AMBIGUOUS — do NOT guess
+        await prisma.unresolvedInboundMessage.create({
+          data: {
+            provider: 'resend',
+            sender: from,
+            subject: subject || null,
+            rawBody: text,
+            matchedToken: tokenMatch?.[0] || null,
+          },
+        });
+        console.warn(`Ambiguous email reply from ${from} — ${emailCandidates.length} active dispatches, storing as unresolved`);
+        return NextResponse.json({ success: true }, { status: 200 });
+      }
+    }
 
     if (!matchingDispatch) {
+      await prisma.unresolvedInboundMessage.create({
+        data: {
+          provider: 'resend',
+          sender: from,
+          subject: subject || null,
+          rawBody: text,
+        },
+      });
       return NextResponse.json({ success: true }, { status: 200 });
     }
 
     const { issue, contractor } = matchingDispatch;
 
-    // Check for idempotency: if response already exists with same raw message
+    // Idempotency check
     const existingResponse = await prisma.contractorResponse.findFirst({
       where: {
         dispatchId: matchingDispatch.id,
@@ -114,15 +153,13 @@ export async function POST(request: NextRequest) {
       console.error('Error parsing contractor reply:', error);
     }
 
-    // Update contractor response with extracted fields
     if (parsedReply) {
-      // Parse availabilityDate if it's a string
       let availabilityDateObj: Date | null = null;
       if (parsedReply.availabilityDate) {
         try {
           availabilityDateObj = new Date(parsedReply.availabilityDate);
         } catch {
-          // Invalid date, leave as null
+          // Invalid date
         }
       }
 
@@ -141,12 +178,9 @@ export async function POST(request: NextRequest) {
         },
       });
     } else if (parseError) {
-      // AI parsing failed, mark for review
       await prisma.contractorResponse.update({
         where: { id: contractorResponse.id },
-        data: {
-          requiresReview: true,
-        },
+        data: { requiresReview: true },
       });
     }
 
@@ -159,15 +193,21 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Update usage metrics
-    await prisma.usageMetricsIssueCost.update({
-      where: { issueId: issue.id },
-      data: {
-        aiRequestCount: {
-          increment: 1,
+    // Defensive usage metrics — never let this break reply processing
+    try {
+      await prisma.usageMetricsIssueCost.upsert({
+        where: { issueId: issue.id },
+        create: {
+          issueId: issue.id,
+          aiRequestCount: 1,
         },
-      },
-    });
+        update: {
+          aiRequestCount: { increment: 1 },
+        },
+      });
+    } catch (metricsError) {
+      console.error('Failed to update usage metrics (non-fatal):', metricsError);
+    }
 
     // Check if issue should move to 'quotes_received'
     const allDispatches = await prisma.dispatch.findMany({
@@ -181,9 +221,7 @@ export async function POST(request: NextRequest) {
     if (allRepliedOrFailed) {
       await prisma.issue.update({
         where: { id: issue.id },
-        data: {
-          status: 'quotes_received',
-        },
+        data: { status: 'quotes_received' },
       });
     }
 
@@ -197,6 +235,7 @@ export async function POST(request: NextRequest) {
       payload: {
         contractorName: contractor.name,
         channel: 'email',
+        replyToken: matchingDispatch.replyToken,
       },
     });
 

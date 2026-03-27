@@ -4,6 +4,8 @@ import { parseContractorReply } from '@/lib/ai/parse-contractor-reply';
 import { logTimelineEvent } from '@/lib/timeline';
 import { validateTwilioSignature } from '@/lib/twilio';
 
+const REPLY_TOKEN_PATTERN = /MNT-[A-Z0-9]{6}/;
+
 function normalizePhone(phone: string): string {
   return phone.replace(/\D/g, '');
 }
@@ -42,35 +44,69 @@ export async function POST(request: NextRequest) {
 
     const normalizedIncomingPhone = normalizePhone(from);
 
-    // Find the most recent matching dispatch
-    const dispatches = await prisma.dispatch.findMany({
-      where: {
-        channel: 'sms',
-        status: {
-          in: ['sent', 'delivered'],
-        },
-      },
-      include: {
-        contractor: true,
-        issue: {
-          include: {
-            property: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    // --- DETERMINISTIC REPLY CORRELATION ---
 
-    // Filter in JS by normalized phone match
-    const matchingDispatch = dispatches.find((dispatch) => {
-      if (!dispatch.contractor.phone) return false;
-      const normalizedContractorPhone = normalizePhone(dispatch.contractor.phone);
-      return normalizedContractorPhone === normalizedIncomingPhone;
-    });
+    // Step 1: Try token-based matching first
+    const tokenMatch = body.match(REPLY_TOKEN_PATTERN);
+    let matchingDispatch = null;
+
+    if (tokenMatch) {
+      const token = tokenMatch[0];
+      matchingDispatch = await prisma.dispatch.findUnique({
+        where: { replyToken: token },
+        include: {
+          contractor: true,
+          issue: { include: { property: true } },
+        },
+      });
+    }
+
+    // Step 2: If no token match, fall back to phone-based lookup
+    if (!matchingDispatch) {
+      const candidateDispatches = await prisma.dispatch.findMany({
+        where: {
+          channel: 'sms',
+          status: { in: ['sent', 'delivered'] },
+        },
+        include: {
+          contractor: true,
+          issue: { include: { property: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      const phoneCandidates = candidateDispatches.filter((dispatch) => {
+        if (!dispatch.contractor.phone) return false;
+        return normalizePhone(dispatch.contractor.phone) === normalizedIncomingPhone;
+      });
+
+      if (phoneCandidates.length === 1) {
+        // Exactly one candidate — safe to use
+        matchingDispatch = phoneCandidates[0];
+      } else if (phoneCandidates.length > 1) {
+        // AMBIGUOUS — do NOT guess. Store as unresolved.
+        await prisma.unresolvedInboundMessage.create({
+          data: {
+            provider: 'twilio',
+            sender: from,
+            rawBody: body,
+            matchedToken: tokenMatch?.[0] || null,
+          },
+        });
+        console.warn(`Ambiguous SMS reply from ${from} — ${phoneCandidates.length} active dispatches, storing as unresolved`);
+        return getTwiMLResponse();
+      }
+    }
 
     if (!matchingDispatch) {
+      // No match at all — store as unresolved
+      await prisma.unresolvedInboundMessage.create({
+        data: {
+          provider: 'twilio',
+          sender: from,
+          rawBody: body,
+        },
+      });
       return getTwiMLResponse();
     }
 
@@ -114,7 +150,6 @@ export async function POST(request: NextRequest) {
 
     // Update contractor response with extracted fields
     if (parsedReply) {
-      // Parse availabilityDate if it's a string
       let availabilityDateObj: Date | null = null;
       if (parsedReply.availabilityDate) {
         try {
@@ -139,12 +174,9 @@ export async function POST(request: NextRequest) {
         },
       });
     } else if (parseError) {
-      // AI parsing failed, mark for review
       await prisma.contractorResponse.update({
         where: { id: contractorResponse.id },
-        data: {
-          requiresReview: true,
-        },
+        data: { requiresReview: true },
       });
     }
 
@@ -157,18 +189,23 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Update usage metrics
-    await prisma.usageMetricsIssueCost.update({
-      where: { issueId: issue.id },
-      data: {
-        inboundSmsCount: {
-          increment: 1,
+    // Defensive usage metrics — never let this break reply processing
+    try {
+      await prisma.usageMetricsIssueCost.upsert({
+        where: { issueId: issue.id },
+        create: {
+          issueId: issue.id,
+          inboundSmsCount: 1,
+          aiRequestCount: 1,
         },
-        aiRequestCount: {
-          increment: 1,
+        update: {
+          inboundSmsCount: { increment: 1 },
+          aiRequestCount: { increment: 1 },
         },
-      },
-    });
+      });
+    } catch (metricsError) {
+      console.error('Failed to update usage metrics (non-fatal):', metricsError);
+    }
 
     // Check if issue should move to 'quotes_received'
     const allDispatches = await prisma.dispatch.findMany({
@@ -182,9 +219,7 @@ export async function POST(request: NextRequest) {
     if (allRepliedOrFailed) {
       await prisma.issue.update({
         where: { id: issue.id },
-        data: {
-          status: 'quotes_received',
-        },
+        data: { status: 'quotes_received' },
       });
     }
 
@@ -198,6 +233,7 @@ export async function POST(request: NextRequest) {
       payload: {
         contractorName: contractor.name,
         channel: 'sms',
+        replyToken: matchingDispatch.replyToken,
       },
     });
 

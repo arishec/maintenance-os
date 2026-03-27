@@ -90,34 +90,7 @@ export async function POST(
       },
     });
 
-    // Run AI classification
-    const classification = await classifyIssue({
-      description: body.description,
-      locationInProperty: body.locationInProperty,
-      signals: body.signals,
-    });
-
-    // Update issue with classification results
-    const classifiedIssue = await prisma.issue.update({
-      where: { id: issue.id },
-      data: {
-        title: classification.title,
-        category: classification.category,
-        urgency: classification.urgency,
-        reasoningSummary: classification.reasoningSummary,
-        suggestedTimeframe: classification.suggestedTimeframe,
-        recommendedTrade: classification.recommendedTrade,
-        aiConfidence: classification.confidenceScore,
-        status: 'classified',
-        usageMetrics: {
-          create: {
-            aiRequestCount: 1,
-          },
-        },
-      },
-    });
-
-    // Log timeline event
+    // Log timeline event (do this right after issue creation, before classification)
     await logTimelineEvent({
       propertyId: intakeLink.property.id,
       issueId: issue.id,
@@ -139,14 +112,50 @@ export async function POST(
       body: `Tenant reported: ${descriptionPreview}${body.description.length > 100 ? '...' : ''}`,
     });
 
-    // Return sanitized issue (don't expose owner data)
+    // Run AI classification — treat as secondary enrichment
+    // If this fails, the issue is still created and the submitter gets success
+    let classifiedIssue = issue;
+    try {
+      const classification = await classifyIssue({
+        description: body.description,
+        locationInProperty: body.locationInProperty,
+        signals: body.signals,
+      });
+
+      classifiedIssue = await prisma.issue.update({
+        where: { id: issue.id },
+        data: {
+          title: classification.title,
+          category: classification.category,
+          urgency: classification.urgency,
+          reasoningSummary: classification.reasoningSummary,
+          suggestedTimeframe: classification.suggestedTimeframe,
+          recommendedTrade: classification.recommendedTrade,
+          aiConfidence: classification.confidenceScore,
+          status: 'classified',
+          usageMetrics: {
+            create: {
+              aiRequestCount: 1,
+            },
+          },
+        },
+      });
+    } catch (classificationError) {
+      // Classification failed — issue stays as 'new' with no enrichment
+      // This is fine: owner can see and manually classify it
+      console.error('Tenant intake classification failed (non-fatal):', classificationError);
+    }
+
+    // Always return success to the tenant once the issue is created
     return NextResponse.json(
       {
+        success: true,
+        message: 'Your issue has been submitted. The property owner has been notified.',
         issue: {
           id: classifiedIssue.id,
-          title: classifiedIssue.title,
-          category: classifiedIssue.category,
-          urgency: classifiedIssue.urgency,
+          title: classifiedIssue.title || null,
+          category: classifiedIssue.category || null,
+          urgency: classifiedIssue.urgency || null,
           status: classifiedIssue.status,
           createdAt: classifiedIssue.createdAt,
         },
