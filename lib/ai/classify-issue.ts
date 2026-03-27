@@ -34,7 +34,7 @@ Location: ${input.locationInProperty ?? 'unknown'}
 Signals: ${(input.signals ?? []).join(', ') || 'none provided'}`;
 
   const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250514',
+    model: 'claude-sonnet-4-5-latest',
     max_tokens: 500,
     temperature: 0,
     messages: [{ role: 'user', content: prompt }],
