@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find dispatch by provider message ID
-    const dispatch = await prisma.dispatch.findUnique({
+    const dispatch = await prisma.dispatch.findFirst({
       where: { providerMessageId: messageSid },
     });
 
