@@ -16,7 +16,7 @@ Contractor trade: ${input.contractorTrade ?? 'unknown'}
 Raw reply: ${input.rawReply}`;
 
   const response = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-latest',
+    model: 'claude-3-5-sonnet-20241022',
     max_tokens: 500,
     temperature: 0,
     messages: [{ role: 'user', content: prompt }],
