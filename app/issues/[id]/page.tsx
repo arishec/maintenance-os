@@ -320,7 +320,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
                   </div>
                   {job.selectedEstimate && (
                     <p className="text-sm">
-                      <span className="font-medium">Estimate:</span> ${job.selectedEstimate}
+                      <span className="font-medium">Estimate:</span> ${String(job.selectedEstimate)}
                     </p>
                   )}
                   {job.notes && (
