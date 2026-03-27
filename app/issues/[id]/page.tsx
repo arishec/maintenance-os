@@ -291,7 +291,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
                           </div>
                           {(response.flatEstimate || response.estimateLow || response.estimateHigh) && (
                             <p className="mt-2 text-lg font-semibold">
-                              ${response.flatEstimate || response.estimateLow || response.estimateHigh}
+                              ${String(response.flatEstimate || response.estimateLow || response.estimateHigh)}
                             </p>
                           )}
                           {response.notes && (
