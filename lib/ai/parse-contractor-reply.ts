@@ -22,10 +22,13 @@ Raw reply: ${input.rawReply}`;
     messages: [{ role: 'user', content: prompt }],
   });
 
-  const text = response.content
+  let text = response.content
     .map((block) => ('text' in block ? block.text : ''))
     .join('')
     .trim();
+
+  // Strip markdown code fences if present
+  text = text.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
 
   const parsed = contractorReplySchema.parse(JSON.parse(text));
   return parsed;
