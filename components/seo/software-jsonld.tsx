@@ -1,8 +1,10 @@
 export function SoftwareJsonLd() {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ifbids.com';
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
     name: 'Maintenance OS',
+    url: siteUrl,
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Web',
     description:

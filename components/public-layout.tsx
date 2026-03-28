@@ -1,58 +1,50 @@
 import Link from 'next/link';
 import { auth } from '@clerk/nextjs/server';
+import { headers } from 'next/headers';
 
 export async function PublicLayout({ children }: { children: React.ReactNode }) {
   const { userId } = await auth();
   const isSignedIn = !!userId;
+  const headersList = await headers();
+  const pathname = headersList.get('x-next-pathname') ?? headersList.get('x-invoke-path') ?? '';
+
+  const navLinks = [
+    { href: '/features', label: 'Features' },
+    { href: '/how-it-works', label: 'How It Works' },
+    { href: '/pricing', label: 'Pricing' },
+    { href: '/for-homeowners', label: 'Homeowners' },
+    { href: '/for-landlords', label: 'Landlords' },
+    { href: '/guides', label: 'Guides' },
+  ];
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
       {/* Header */}
       <header className="border-b border-gray-200">
-        <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-between">
+        <div className="mx-auto max-w-6xl px-8 py-4 flex items-center justify-between">
           {/* Logo */}
-          <div className="text-2xl font-bold text-gray-900">
-            <Link href="/">Maintenance OS</Link>
-          </div>
+          <Link href="/" className="text-2xl font-bold text-gray-900 hover:opacity-80 cursor-pointer transition-opacity">
+            Maintenance OS
+          </Link>
 
           {/* Nav Links */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link
-              href="/features"
-              className="text-gray-700 hover:text-gray-900 transition-colors"
-            >
-              Features
-            </Link>
-            <Link
-              href="/how-it-works"
-              className="text-gray-700 hover:text-gray-900 transition-colors"
-            >
-              How It Works
-            </Link>
-            <Link
-              href="/pricing"
-              className="text-gray-700 hover:text-gray-900 transition-colors"
-            >
-              Pricing
-            </Link>
-            <Link
-              href="/for-homeowners"
-              className="text-gray-700 hover:text-gray-900 transition-colors"
-            >
-              Homeowners
-            </Link>
-            <Link
-              href="/for-landlords"
-              className="text-gray-700 hover:text-gray-900 transition-colors"
-            >
-              Landlords
-            </Link>
-            <Link
-              href="/guides/how-to-track-home-repairs"
-              className="text-gray-700 hover:text-gray-900 transition-colors"
-            >
-              Guides
-            </Link>
+            {navLinks.map((link) => {
+              const isActive = pathname === link.href || pathname.startsWith(link.href + '/');
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href === '/guides' ? '/guides/how-to-track-home-repairs' : link.href}
+                  className={`text-sm transition-colors ${
+                    isActive
+                      ? 'font-semibold text-gray-900'
+                      : 'text-gray-700 hover:text-gray-900'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Buttons */}
@@ -89,7 +81,7 @@ export async function PublicLayout({ children }: { children: React.ReactNode }) 
 
       {/* Footer */}
       <footer className="border-t border-gray-200 bg-gray-50 mt-16">
-        <div className="mx-auto max-w-6xl px-6 py-12">
+        <div className="mx-auto max-w-6xl px-8 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             {/* Product Column */}
             <div>

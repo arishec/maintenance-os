@@ -1634,16 +1634,120 @@ Date: March 28, 2026
 - NEXT_PUBLIC_APP_URL (should be https://ifbids.com or the Vercel domain)
 
 ### Remaining items before pricing is live:
-- Run migration SQL on Supabase (hzrsvulgncadxhwykmsd) via SQL Editor
-- Add Stripe env vars to Vercel
-- Run `npm install` (stripe package added to package.json)
-- Create Stripe product + price ($19/mo recurring) in Stripe Dashboard
-- Set up Stripe webhook endpoint in Stripe Dashboard pointing to /api/stripe/webhook
-- Deploy to Vercel
-- Test full flow: free user → hit limit → paywall → checkout → plan upgrade
+- ✅ Run migration SQL on Supabase — DONE
+- ✅ Add Stripe env vars to Vercel — DONE
+- ✅ Run `npm install` (stripe package added to package.json) — DONE
+- ✅ Create Stripe product + price ($19/mo recurring) — DONE (price_1TFycJBdEEUS9wjpZnURAphO)
+- ✅ Set up Stripe webhook endpoint pointing to /api/stripe/webhook — DONE
+- ✅ Deploy to Vercel — DONE
+- Test full paywall flow: free user → hit limit → paywall → checkout → plan upgrade
 
 ### Remaining items (non-blocking for launch):
 - Build remaining 5 guide pages (content only, not blocking launch)
-- Upgrade Twilio from trial to paid account for real SMS sending
-- Complete A2P 10DLC registration for US SMS compliance
 - Google OAuth consent screen verification (if >100 users needed)
+
+========================================
+SESSION 22 — March 28, 2026
+========================================
+Focus: Stripe hardening, homepage rewrite, production verification
+
+### What was done:
+
+1. **Stripe webhook consolidation** (3 endpoints → 1):
+   - Single endpoint: `/api/stripe/webhook/route.ts`
+   - Single signing secret: STRIPE_WEBHOOK_SECRET on Vercel
+   - Added `/api/stripe/webhook` to Clerk middleware public routes (was returning 404 before)
+
+2. **Stripe webhook hardening** (`app/api/stripe/webhook/route.ts`):
+   - Added `resolveUserForSubscription()` with 3-tier fallback: metadata userId → stripeSubscriptionId → stripeCustomerId
+   - `subscription.updated` and `subscription.deleted` handlers use fallback resolution
+   - Stores `stripeCustomerId` on checkout completion
+
+3. **Already-pro guard** (`app/api/stripe/checkout/route.ts`):
+   - Returns 400 ALREADY_PRO if user.plan === 'pro'
+   - Consistent URL handling via siteUrl fallback chain
+
+4. **Pricing copy fix** (`app/pricing/page.tsx`):
+   - Changed "unlimited SMS and email dispatches" → "SMS and email dispatch" to avoid abuse risk
+
+5. **Homepage rewrite** (`app/page.tsx`):
+   - New hero: "Stop chasing contractors and losing track of repairs"
+   - Quote comparison visual (Plumber A/B/C with pricing)
+   - Sections: problem, core value, how it works (5 steps), "stop doing this the hard way", homeowners/landlords, features grid, final CTA
+   - Auth-aware CTAs (dashboard vs sign-up)
+
+6. **Secrets cleanup**:
+   - Redacted Resend API key, Clerk keys from claude-notes.txt
+   - Force-pushed to clear secrets from git history
+   - GitHub push protection no longer blocking
+
+7. **Twilio upgrade**:
+   - ✅ Upgraded from trial to paid
+   - ✅ A2P 10DLC brand registered, campaign approved
+   - 3000 SMS/day limit
+
+8. **Stripe product created**:
+   - "Maintenance OS Pro" — $19/month recurring
+   - Price ID: price_1TFycJBdEEUS9wjpZnURAphO
+   - STRIPE_PRO_PRICE_ID set on Vercel
+
+### Production verification (all passed):
+- Homepage (/) → 200, new copy live ✓
+- Pricing (/pricing) → 200, Free + Pro tiers ✓
+- Stripe webhook (/api/stripe/webhook) → 405 on GET (correct, POST-only route exists) ✓
+
+### Vercel env vars (all confirmed set):
+- STRIPE_SECRET_KEY
+- STRIPE_WEBHOOK_SECRET
+- STRIPE_PRO_PRICE_ID
+- NEXT_PUBLIC_SITE_URL (https://ifbids.com)
+- TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER
+- RESEND_API_KEY
+- Clerk keys (NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY)
+
+### Still remaining:
+- Test full paywall flow end-to-end (create 3 issues → hit wall → checkout → upgrade)
+- Build remaining 5 guide pages (content only)
+
+========================================
+SESSION 22b — March 28, 2026 (continued)
+========================================
+Focus: Final review fixes from launch checklist
+
+### Applied from final_full_review_launch_ready.txt:
+
+**Already done (confirmed):**
+- ✅ #3 Webhook fallback (resolveUserForSubscription 3-tier)
+- ✅ #4 Already-pro guard (400 ALREADY_PRO)
+- ✅ #5 Paywall error handling (both issue creation + dispatch pages catch PAYWALL_REQUIRED, show modal)
+- ✅ #6-10 Homepage copy (headline, subheadline, CTAs, core value, specific language)
+- ✅ Pricing page: "unlimited SMS" removed
+
+**Fixed this session:**
+
+1. **Domain consistency** — Stripe checkout route (`app/api/stripe/checkout/route.ts`):
+   - Removed triple fallback chain (`NEXT_PUBLIC_SITE_URL || NEXT_PUBLIC_APP_URL || 'https://ifbids.com'`)
+   - Now uses consistent pattern: `process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ifbids.com'`
+   - All files now use the same `?? 'https://ifbids.com'` fallback pattern
+
+2. **Software JSON-LD** (`components/seo/software-jsonld.tsx`):
+   - Added `url: siteUrl` field using NEXT_PUBLIC_SITE_URL
+   - Was missing URL in structured data
+
+3. **Public layout UX polish** (`components/public-layout.tsx`):
+   - Nav active states: current page highlighted with `font-semibold text-gray-900`
+   - Logo: now a Link with `hover:opacity-80 cursor-pointer transition-opacity`
+   - Header spacing: `px-6` → `px-8` (header + footer)
+   - DRY nav links array (was 6 separate Link blocks, now data-driven map)
+
+4. **Middleware** (`middleware.ts`):
+   - Added `x-next-pathname` header for server component pathname detection
+   - Supports active state highlighting in PublicLayout (server component)
+
+5. **TypeScript check**: Only errors are missing `stripe` module (not installed in sandbox, but in package.json — Vercel builds fine)
+
+### Items NOT touched (by design):
+- Email addresses (support@ifbids.com, feedback@ifbids.com) in contact/privacy/terms — these are correct, they're email addresses not URLs
+- Layout shell active states — already working
+- "Dashboard" duplication — already fixed in previous session
+- No new features added per review doc advice
