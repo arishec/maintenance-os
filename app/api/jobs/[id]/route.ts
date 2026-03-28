@@ -4,6 +4,7 @@ import { Prisma, IssueStatus } from '@prisma/client';
 import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { logTimelineEvent } from '@/lib/timeline';
+import { createNotification } from '@/lib/notifications';
 
 const updateJobSchema = z.object({
   scheduledFor: z.string().datetime().optional(),
@@ -113,6 +114,16 @@ export async function PATCH(
       eventType: 'job_updated',
       payload: body,
     });
+
+    // Create notification for job completion
+    if (body.status === 'completed') {
+      await createNotification({
+        userId: user.id,
+        type: 'job_completed',
+        title: 'Job completed',
+        body: `${job.issue.title || 'A maintenance issue'} was marked completed`,
+      });
+    }
 
     return NextResponse.json({ job: updatedJob });
   } catch (error) {

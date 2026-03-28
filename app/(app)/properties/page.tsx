@@ -17,8 +17,9 @@ export default async function PropertiesPage() {
   const properties = await prisma.property.findMany({
     where: { ownerUserId: user.id },
     include: {
-      issues: { where: { status: { notIn: ['completed', 'canceled', 'archived'] } } },
-      _count: { select: { issues: true } },
+      issues: {
+        select: { id: true, status: true },
+      },
     },
     orderBy: { createdAt: 'desc' },
   });
@@ -52,16 +53,62 @@ export default async function PropertiesPage() {
         <Card>
           <CardContent className="p-0">
             <div className="space-y-3 p-6">
-              {properties.map((property) => (
-                <Link key={property.id} href={`/properties/${property.id}`}>
-                  <div className="grid gap-2 rounded-xl border border-border p-4 md:grid-cols-[220px_minmax(0,1fr)_140px_140px] md:items-center hover:bg-muted/50 transition-colors">
-                    <div className="font-medium">{property.nickname || 'Unnamed Property'}</div>
-                    <div className="text-sm text-muted-foreground">{formatAddress(property)}</div>
-                    <div className="text-sm">{property.issues.length} open issue{property.issues.length !== 1 ? 's' : ''}</div>
-                    <div className="text-sm text-muted-foreground">{property._count.issues} total</div>
-                  </div>
-                </Link>
-              ))}
+              {properties.map((property) => {
+                const openIssues = property.issues.filter(
+                  (i) => !['completed', 'canceled', 'archived'].includes(i.status)
+                ).length;
+                const awaitingQuotes = property.issues.filter(
+                  (i) => i.status === 'awaiting_quotes'
+                ).length;
+                const quotesReceived = property.issues.filter(
+                  (i) => i.status === 'quotes_received'
+                ).length;
+                const activeJobs = property.issues.filter(
+                  (i) => ['contractor_selected', 'scheduled', 'in_progress'].includes(i.status)
+                ).length;
+                const totalIssues = property.issues.length;
+
+                // Build summary parts
+                const summaryParts: string[] = [];
+                if (openIssues > 0) summaryParts.push(`${openIssues} open`);
+                if (awaitingQuotes > 0) summaryParts.push(`${awaitingQuotes} awaiting quotes`);
+                if (quotesReceived > 0) summaryParts.push(`${quotesReceived} ready to review`);
+                if (activeJobs > 0) summaryParts.push(`${activeJobs} active job${activeJobs !== 1 ? 's' : ''}`);
+
+                return (
+                  <Link key={property.id} href={`/issues?property=${property.id}`}>
+                    <div className="rounded-xl border border-border p-4 hover:bg-muted/50 hover:shadow-sm transition-all cursor-pointer space-y-2">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium">{property.nickname || 'Unnamed Property'}</div>
+                          <div className="text-sm text-muted-foreground truncate">{formatAddress(property)}</div>
+                        </div>
+                        <div className="text-sm text-muted-foreground flex-shrink-0">
+                          {totalIssues} total issue{totalIssues !== 1 ? 's' : ''}
+                        </div>
+                      </div>
+                      {summaryParts.length > 0 && (
+                        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                          {summaryParts.map((part, idx) => (
+                            <span
+                              key={idx}
+                              className={
+                                part.includes('ready to review')
+                                  ? 'text-green-700 font-medium'
+                                  : part.includes('active')
+                                    ? 'text-blue-700 font-medium'
+                                    : 'text-muted-foreground'
+                              }
+                            >
+                              {part}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           </CardContent>
         </Card>

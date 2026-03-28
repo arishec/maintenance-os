@@ -8,31 +8,34 @@ interface SelectContractorButtonProps {
   issueId: string;
   responseId: string;
   contractorId: string;
+  contractorName: string;
+  companyName?: string | null;
+  price?: string | null;
+  availability?: string | null;
 }
 
 export function SelectContractorButton({
   issueId,
   responseId,
-  contractorId,
+  contractorName,
+  companyName,
+  price,
+  availability,
 }: SelectContractorButtonProps) {
   const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSelect = async () => {
+  const handleConfirm = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
       const response = await fetch(`/api/issues/${issueId}/select-contractor`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contractorId,
-          responseId,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ responseId }),
       });
 
       if (!response.ok) {
@@ -40,6 +43,7 @@ export function SelectContractorButton({
         throw new Error(data.error || 'Failed to select contractor');
       }
 
+      setIsOpen(false);
       router.refresh();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An error occurred';
@@ -50,18 +54,73 @@ export function SelectContractorButton({
   };
 
   return (
-    <div>
-      <Button
-        size="default"
-        variant="secondary"
-        onClick={handleSelect}
-        disabled={isLoading}
-      >
-        {isLoading ? 'Selecting...' : 'Select'}
+    <>
+      <Button size="sm" onClick={() => setIsOpen(true)}>
+        Select Contractor
       </Button>
-      {error && (
-        <p className="mt-2 text-sm text-red-600">{error}</p>
+
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => !isLoading && setIsOpen(false)}
+          />
+
+          {/* Modal */}
+          <div className="relative z-10 w-full max-w-md mx-4 rounded-xl bg-white p-6 shadow-xl space-y-4">
+            <h3 className="text-lg font-semibold">
+              Hire {contractorName}?
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              This will mark {contractorName} as the selected contractor for this issue and start the job workflow.
+            </p>
+
+            {(price || availability) && (
+              <div className="rounded-lg bg-muted/50 p-3 space-y-1 text-sm">
+                {price && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Quote</span>
+                    <span className="font-medium">${Number(price).toLocaleString()}</span>
+                  </div>
+                )}
+                {availability && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Availability</span>
+                    <span className="font-medium">{availability}</span>
+                  </div>
+                )}
+                {companyName && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Company</span>
+                    <span className="font-medium">{companyName}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {error && (
+              <p className="text-sm text-red-600">{error}</p>
+            )}
+
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setIsOpen(false)}
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleConfirm}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Confirming...' : 'Confirm Selection'}
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
-    </div>
+    </>
   );
 }

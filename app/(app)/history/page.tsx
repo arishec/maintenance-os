@@ -72,8 +72,8 @@ export default async function HistoryPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center py-8">
-              <p className="text-muted-foreground mb-2">No completed jobs yet.</p>
-              <p className="text-muted-foreground/70 text-xs">Once you finish a repair, it will appear here with full history.</p>
+              <p className="text-muted-foreground mb-2">No completed or canceled issues yet.</p>
+              <p className="text-muted-foreground/70 text-xs">Once a repair is finished or canceled, it will appear here with its final details.</p>
             </div>
           </CardContent>
         </Card>

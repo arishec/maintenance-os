@@ -3,10 +3,10 @@ import { z } from 'zod';
 import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { logTimelineEvent } from '@/lib/timeline';
+import { createNotification } from '@/lib/notifications';
 
 const selectContractorSchema = z.object({
-  contractorId: z.string().uuid(),
-  responseId: z.string().uuid().optional(),
+  responseId: z.string().uuid(),
 });
 
 export async function POST(
@@ -18,7 +18,7 @@ export async function POST(
     const { id: issueId } = await params;
     const body = selectContractorSchema.parse(await request.json());
 
-    // Verify issue exists and user owns it (through property)
+    // 1. Verify issue exists, user owns it, and it's in the right state
     const issue = await prisma.issue.findFirst({
       where: { id: issueId, property: { ownerUserId: user.id } },
       include: { property: true },
@@ -28,23 +28,35 @@ export async function POST(
       return NextResponse.json({ error: 'Issue not found.' }, { status: 404 });
     }
 
-    // Verify the contractor was dispatched for this issue
-    const dispatch = await prisma.dispatch.findFirst({
-      where: {
-        issueId,
-        contractorId: body.contractorId,
-      },
-      include: { contractor: true, responses: true },
-    });
-
-    if (!dispatch) {
+    if (issue.status !== 'quotes_received') {
       return NextResponse.json(
-        { error: 'Contractor was not dispatched for this issue.' },
+        { error: 'Issue must be in quotes_received status to select a contractor.' },
         { status: 400 }
       );
     }
 
-    // Guard: prevent creating multiple active jobs for the same issue
+    // 2. Verify the response exists and belongs to this issue
+    const selectedResponse = await prisma.contractorResponse.findFirst({
+      where: {
+        id: body.responseId,
+        dispatch: { issueId },
+      },
+      include: {
+        dispatch: { include: { contractor: true } },
+      },
+    });
+
+    if (!selectedResponse) {
+      return NextResponse.json(
+        { error: 'Response not found for this issue.' },
+        { status: 400 }
+      );
+    }
+
+    const contractorId = selectedResponse.dispatch.contractorId;
+    const contractor = selectedResponse.dispatch.contractor;
+
+    // 3. Guard: no existing active job
     const existingActiveJob = await prisma.job.findFirst({
       where: {
         issueId,
@@ -54,56 +66,56 @@ export async function POST(
 
     if (existingActiveJob) {
       return NextResponse.json(
-        { error: 'This issue already has an active job. Cancel it first before selecting a new contractor.' },
+        { error: 'CONTRACTOR_ALREADY_SELECTED' },
         { status: 409 }
       );
     }
 
-    let selectedResponse = null;
-    let selectedEstimate = null;
+    // 4. Determine agreed price from response
+    const agreedPrice = selectedResponse.flatEstimate
+      || selectedResponse.estimateLow
+      || null;
 
-    // If responseId provided, validate it belongs to a dispatch for this issue
-    if (body.responseId) {
-      selectedResponse = await prisma.contractorResponse.findFirst({
-        where: {
-          id: body.responseId,
-          dispatch: { issueId },
+    // 5. Perform all writes atomically via transaction
+    const job = await prisma.$transaction(async (tx) => {
+      // Create job
+      const newJob = await tx.job.create({
+        data: {
+          issueId,
+          contractorId,
+          selectedResponseId: body.responseId,
+          selectedEstimate: agreedPrice,
+          status: 'contractor_selected',
         },
+        include: { contractor: true, selectedResponse: true },
       });
 
-      if (!selectedResponse) {
-        return NextResponse.json(
-          { error: 'Response does not belong to a dispatch for this issue.' },
-          { status: 400 }
-        );
-      }
+      // Update issue status
+      await tx.issue.update({
+        where: { id: issueId },
+        data: { status: 'contractor_selected' },
+      });
 
-      // Set selectedEstimate from response
-      selectedEstimate = selectedResponse.flatEstimate || selectedResponse.estimateLow || null;
-    }
+      // Update dispatch for selected contractor → accepted
+      await tx.dispatch.updateMany({
+        where: { issueId, contractorId },
+        data: { status: 'accepted' },
+      });
 
-    // Create Job record
-    const job = await prisma.job.create({
-      data: {
-        issueId,
-        contractorId: body.contractorId,
-        selectedResponseId: body.responseId || null,
-        selectedEstimate,
-        status: 'contractor_selected',
-      },
-      include: {
-        contractor: true,
-        selectedResponse: true,
-      },
+      // Close all other open dispatches
+      await tx.dispatch.updateMany({
+        where: {
+          issueId,
+          contractorId: { not: contractorId },
+          status: { in: ['sent', 'delivered', 'replied'] },
+        },
+        data: { status: 'closed' },
+      });
+
+      return newJob;
     });
 
-    // Update issue status
-    await prisma.issue.update({
-      where: { id: issueId },
-      data: { status: 'contractor_selected' },
-    });
-
-    // Log timeline event
+    // 6. Log timeline event
     await logTimelineEvent({
       propertyId: issue.propertyId,
       issueId,
@@ -111,13 +123,26 @@ export async function POST(
       actorType: 'user',
       eventType: 'contractor_selected',
       payload: {
-        contractorName: dispatch.contractor.name,
-        selectedEstimate: selectedEstimate?.toString() || null,
+        contractorName: contractor.name,
+        agreedPrice: agreedPrice?.toString() || null,
+        availability: selectedResponse.availabilityText || null,
       },
+    });
+
+    // 7. Create notification
+    const priceStr = agreedPrice ? `$${Number(agreedPrice).toLocaleString()}` : '';
+    await createNotification({
+      userId: user.id,
+      type: 'contractor_selected',
+      title: 'Contractor selected',
+      body: `You selected ${contractor.name}${priceStr ? ` (${priceStr})` : ''} for ${issue.title || 'a maintenance issue'}`,
     });
 
     return NextResponse.json({ job }, { status: 201 });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.errors[0]?.message || 'Invalid input' }, { status: 400 });
+    }
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({ error: message }, { status: 400 });
   }

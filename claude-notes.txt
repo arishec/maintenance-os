@@ -2037,3 +2037,124 @@ FILES MODIFIED:
 - app/(app)/history/page.tsx
 - app/(app)/settings/page.tsx
 - components/issue-summary-card.tsx
+
+========================================
+SESSION 20: HIRING + JOB LIFECYCLE (March 28, 2026)
+========================================
+
+SPEC: paid_user_site_improvements_spec.txt
+"QUOTE RECEIVED → SELECT CONTRACTOR → CREATE JOB → TRACK JOB → COMPLETE JOB"
+
+CHANGES IMPLEMENTED:
+
+1. SCHEMA UPDATE (prisma/schema.prisma)
+   - Added `accepted` and `closed` to DispatchStatus enum
+   - On contractor selection: winner's dispatch → accepted, all others → closed
+
+2. SELECT CONTRACTOR FLOW (complete rewrite)
+   API: app/api/issues/[id]/select-contractor/route.ts
+   - Now accepts only `responseId` (contractorId derived from response)
+   - Validates issue is in `quotes_received` state
+   - Creates Job atomically via $transaction:
+     * Job created with agreed price from response
+     * Issue status → contractor_selected
+     * Winner's dispatch → accepted
+     * All other dispatches → closed
+   - Creates notification ("You selected X for Y")
+   - Logs timeline event with price + availability
+
+   UI: app/(app)/issues/[id]/select-contractor-button.tsx
+   - Now shows confirmation modal before selecting:
+     * "Hire Test Plumber?"
+     * Shows quote price, availability, company
+     * Confirm / Cancel buttons
+   - Props expanded: contractorName, companyName, price, availability
+
+3. ISSUE DETAIL PAGE (complete overhaul)
+   app/(app)/issues/[id]/page.tsx
+   - Status banner per state:
+     * quotes_received → "You have N responses ready to review"
+     * active_job → "Test Plumber has been selected for this job"
+     * completed → "This repair is complete"
+   - Quote cards: selected card highlighted green with "Selected" badge
+   - Non-selected cards grayed out with "Not selected" badge
+   - Source channel badge (SMS / Email) on each response
+   - Raw message toggle (expandable)
+   - Reply button with in-app modal
+   - Select Contractor button only visible on quotes_received state
+   - Imports new components: JobLifecyclePanel, RawMessageToggle, ReplyToContractorButton
+
+4. JOB LIFECYCLE PANEL (NEW component)
+   app/(app)/issues/[id]/job-lifecycle-panel.tsx
+   - Shows job status, contractor, agreed price, dates
+   - Progress bar: contractor_selected → scheduled → in_progress → completed
+   - Action buttons per state:
+     * contractor_selected → "Mark as Scheduled" / "Mark In Progress"
+     * scheduled → "Mark In Progress"
+     * in_progress → "Mark Completed"
+   - Cancel job button with confirm dialog
+   - Calls PATCH /api/jobs/[id] to advance status
+
+5. RAW MESSAGE TOGGLE (NEW component)
+   app/(app)/issues/[id]/raw-message-toggle.tsx
+   - "View raw message" / "Hide raw message" toggle
+   - Shows full rawMessage in monospaced pre block
+
+6. REPLY TO CONTRACTOR (NEW feature)
+   API: app/api/issues/[id]/reply-to-contractor/route.ts
+   - Sends reply via email (Resend) or SMS (Twilio)
+   - Channel selection (preselects original dispatch channel)
+   - Logs timeline event for the reply
+
+   UI: app/(app)/issues/[id]/reply-to-contractor-button.tsx
+   - Modal with textarea + channel selector
+   - Email / SMS toggle buttons
+   - Sends via existing Resend/Twilio providers
+   - Success confirmation before closing
+
+7. PROPERTIES PAGE (app/(app)/properties/page.tsx)
+   - Each property card now shows issue breakdown:
+     * "3 open · 2 awaiting quotes · 1 ready to review"
+   - "Ready to review" highlighted green
+   - "Active jobs" highlighted blue
+   - Cards link to issues filtered by property
+   - Total lifetime issues shown
+
+8. DISPLAY LABEL UNIFICATION
+   - contractor_selected / scheduled / in_progress all display as "Active job"
+   - Applied across: issues table, issue detail, issue summary cards, dashboard
+   - Blue color scheme for all active job states
+   - Issues table contractor column shows contractor name after selection
+
+9. NOTIFICATIONS
+   - Contractor selection creates notification
+   - Job completion creates notification (via jobs PATCH route)
+
+10. HISTORY PAGE empty state updated:
+    "No completed or canceled issues yet. Once a repair is finished or canceled..."
+
+FILES CREATED:
+- app/(app)/issues/[id]/job-lifecycle-panel.tsx
+- app/(app)/issues/[id]/raw-message-toggle.tsx
+- app/(app)/issues/[id]/reply-to-contractor-button.tsx
+- app/api/issues/[id]/reply-to-contractor/route.ts
+
+FILES MODIFIED:
+- prisma/schema.prisma (DispatchStatus enum)
+- app/api/issues/[id]/select-contractor/route.ts (complete rewrite)
+- app/api/jobs/[id]/route.ts (completion notification)
+- app/(app)/issues/[id]/page.tsx (complete overhaul)
+- app/(app)/issues/[id]/select-contractor-button.tsx (confirmation modal)
+- app/(app)/issues/page.tsx (Active job labels)
+- app/(app)/properties/page.tsx (issue count breakdown)
+- app/(app)/history/page.tsx (empty state text)
+- components/issue-summary-card.tsx (Active job labels)
+- claude-notes.txt
+
+SCHEMA CHANGE REQUIRED:
+- prisma db push needed for DispatchStatus enum (added: accepted, closed)
+
+REMAINING ITEMS:
+- [ ] prisma db push for new DispatchStatus values
+- [ ] Settings page: notification preferences + billing sections (placeholder for now)
+- [ ] Switch Clerk from development to production keys

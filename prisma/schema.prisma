@@ -91,6 +91,8 @@ enum DispatchStatus {
   delivered
   failed
   replied
+  accepted
+  closed
   expired
 }
 

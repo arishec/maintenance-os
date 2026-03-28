@@ -10,6 +10,9 @@ import { Badge } from '@/components/ui/badge';
 import { PhotoUploadButton } from './photo-upload-button';
 import { SelectContractorButton } from './select-contractor-button';
 import { ClassifyButton } from './classify-button';
+import { JobLifecyclePanel } from './job-lifecycle-panel';
+import { RawMessageToggle } from './raw-message-toggle';
+import { ReplyToContractorButton } from './reply-to-contractor-button';
 
 function urgencyColor(urgency: string) {
   switch (urgency.toLowerCase()) {
@@ -29,10 +32,13 @@ function urgencyColor(urgency: string) {
 function statusColor(status: string) {
   switch (status.toLowerCase()) {
     case 'quotes_received':
-    case 'completed':
       return 'bg-green-100 text-green-800';
+    case 'contractor_selected':
+    case 'scheduled':
     case 'in_progress':
       return 'bg-blue-100 text-blue-800';
+    case 'completed':
+      return 'bg-green-100 text-green-800';
     case 'awaiting_quotes':
       return 'bg-yellow-100 text-yellow-800';
     case 'awaiting_dispatch':
@@ -45,6 +51,22 @@ function statusColor(status: string) {
       return 'bg-gray-100 text-gray-800';
   }
 }
+
+const STATUS_LABELS: Record<string, string> = {
+  new: 'New',
+  classified: 'Classified',
+  awaiting_dispatch: 'Ready to Send',
+  awaiting_quotes: 'Awaiting Quotes',
+  quotes_received: 'Quotes Received',
+  contractor_selected: 'Active Job',
+  scheduled: 'Active Job',
+  in_progress: 'Active Job',
+  completed: 'Completed',
+  canceled: 'Canceled',
+  archived: 'Archived',
+};
+
+const ACTIVE_JOB_STATUSES = ['contractor_selected', 'scheduled', 'in_progress'];
 
 export default async function IssuePage({ params }: { params: Promise<{ id: string }> }) {
   let user;
@@ -64,7 +86,10 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
         include: { contractor: true, responses: true },
         orderBy: { createdAt: 'desc' },
       },
-      jobs: { include: { contractor: true } },
+      jobs: {
+        include: { contractor: true, selectedResponse: true },
+        orderBy: { createdAt: 'desc' },
+      },
     },
   });
 
@@ -72,33 +97,34 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
     redirect('/issues');
   }
 
-  // Generate signed URLs for photos (handles private buckets)
+  // Generate signed URLs for photos
   const photosWithUrls = await Promise.all(
     (issue.photos || []).map(async (photo) => {
       if (photo.filePath) {
         const { data } = await supabaseAdmin.storage
           .from('issue-photos')
-          .createSignedUrl(photo.filePath, 60 * 60); // 1 hour
+          .createSignedUrl(photo.filePath, 60 * 60);
         return { ...photo, signedUrl: data?.signedUrl || photo.fileUrl };
       }
       return { ...photo, signedUrl: photo.fileUrl };
     })
   );
 
-  const statusLabels: Record<string, string> = {
-    new: 'New',
-    classified: 'Classified',
-    awaiting_dispatch: 'Awaiting Dispatch',
-    awaiting_quotes: 'Awaiting Quotes',
-    quotes_received: 'Quotes Received',
-    contractor_selected: 'Contractor Selected',
-    scheduled: 'Scheduled',
-    in_progress: 'In Progress',
-    completed: 'Completed',
-    canceled: 'Canceled',
-    archived: 'Archived',
-  };
-  const displayStatus = statusLabels[issue.status] || issue.status;
+  const displayStatus = STATUS_LABELS[issue.status] || issue.status;
+  const isActiveJob = ACTIVE_JOB_STATUSES.includes(issue.status);
+  const activeJob = issue.jobs?.find((j) => j.status !== 'canceled');
+  const hasResponses = issue.dispatches?.some((d) => d.responses?.length > 0);
+
+  // Flatten and sort responses by lowest price
+  const allResponses = issue.dispatches
+    .flatMap((dispatch) =>
+      (dispatch.responses || []).map((response) => ({ dispatch, response }))
+    )
+    .sort((a, b) => {
+      const priceA = Number(a.response.flatEstimate || a.response.estimateLow || a.response.estimateHigh) || Infinity;
+      const priceB = Number(b.response.flatEstimate || b.response.estimateLow || b.response.estimateHigh) || Infinity;
+      return priceA - priceB;
+    });
 
   return (
     <LayoutShell>
@@ -117,14 +143,14 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
 
-        {/* Decision Banner */}
-        {issue.status === 'quotes_received' && issue.dispatches?.some(d => d.responses?.length > 0) && (() => {
-          const totalResponses = issue.dispatches.reduce((sum, d) => sum + (d.responses?.length ?? 0), 0);
+        {/* Status Banners */}
+        {issue.status === 'quotes_received' && hasResponses && (() => {
+          const totalResponses = allResponses.length;
           return (
             <div className="rounded-lg border border-green-200 bg-green-50 p-4 flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-green-800">
-                  You have {totalResponses} contractor response{totalResponses !== 1 ? 's' : ''} — choose who to hire
+                  You have {totalResponses} contractor response{totalResponses !== 1 ? 's' : ''} ready to review
                 </p>
                 <p className="text-xs text-green-700 mt-0.5">Review the quotes below and select a contractor to get started.</p>
               </div>
@@ -134,6 +160,47 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
             </div>
           );
         })()}
+
+        {isActiveJob && activeJob && (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+            <p className="text-sm font-semibold text-blue-800">
+              {activeJob.contractor.name} has been selected for this job
+            </p>
+            <p className="text-xs text-blue-700 mt-0.5">
+              {activeJob.selectedEstimate
+                ? `Agreed price: $${Number(activeJob.selectedEstimate).toLocaleString()}`
+                : 'Track scheduling and progress below.'}
+            </p>
+          </div>
+        )}
+
+        {issue.status === 'completed' && (
+          <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+            <p className="text-sm font-semibold text-green-800">This repair is complete</p>
+            {issue.completedAt && (
+              <p className="text-xs text-green-700 mt-0.5">
+                Completed on {new Date(issue.completedAt).toLocaleDateString()}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Job Lifecycle Panel */}
+        {activeJob && (
+          <JobLifecyclePanel
+            job={{
+              id: activeJob.id,
+              status: activeJob.status,
+              contractorName: activeJob.contractor.name,
+              companyName: activeJob.contractor.companyName,
+              agreedPrice: activeJob.selectedEstimate ? String(activeJob.selectedEstimate) : null,
+              scheduledFor: activeJob.scheduledFor ? activeJob.scheduledFor.toISOString() : null,
+              startedAt: activeJob.startedAt ? activeJob.startedAt.toISOString() : null,
+              completedAt: activeJob.completedAt ? activeJob.completedAt.toISOString() : null,
+              notes: activeJob.notes,
+            }}
+          />
+        )}
 
         {/* AI Classification Section */}
         {(issue.category || issue.reasoningSummary) ? (
@@ -241,185 +308,185 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {issue.dispatches.map((dispatch) => (
-                  <div key={dispatch.id} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="font-medium truncate">{dispatch.contractor.name}</div>
-                      {dispatch.contractor.companyName && (
-                        <div className="text-xs text-muted-foreground truncate">
-                          {dispatch.contractor.companyName}
-                        </div>
-                      )}
+                {issue.dispatches.map((dispatch) => {
+                  const dispatchLabel =
+                    dispatch.status === 'accepted' ? 'Accepted' :
+                    dispatch.status === 'closed' ? 'Closed' :
+                    dispatch.status === 'sent' ? 'Sent' :
+                    dispatch.status === 'delivered' ? 'Delivered' :
+                    dispatch.status === 'replied' ? 'Replied' :
+                    dispatch.status === 'failed' ? 'Failed' :
+                    dispatch.status === 'expired' ? 'Expired' : 'Queued';
+
+                  const dispatchColor =
+                    dispatch.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                    dispatch.status === 'closed' ? 'bg-gray-100 text-gray-600' :
+                    dispatch.status === 'replied' ? 'bg-blue-100 text-blue-800' :
+                    dispatch.status === 'failed' ? 'bg-red-100 text-red-800' :
+                    '';
+
+                  return (
+                    <div key={dispatch.id} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium truncate">{dispatch.contractor.name}</div>
+                        {dispatch.contractor.companyName && (
+                          <div className="text-xs text-muted-foreground truncate">
+                            {dispatch.contractor.companyName}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <Badge className={`text-xs ${dispatchColor}`}>
+                          {dispatchLabel}
+                        </Badge>
+                        <Badge className="text-xs bg-muted text-muted-foreground capitalize">
+                          {dispatch.channel}
+                        </Badge>
+                        {dispatch.responses && dispatch.responses.length > 0 && (
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            {dispatch.responses.length} response{dispatch.responses.length !== 1 ? 's' : ''}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <Badge className="capitalize text-xs">
-                        {dispatch.status === 'sent'
-                          ? 'Sent'
-                          : dispatch.status === 'delivered'
-                            ? 'Delivered'
-                            : dispatch.status === 'replied'
-                              ? 'Replied'
-                              : dispatch.status === 'failed'
-                                ? 'Failed'
-                                : dispatch.status === 'expired'
-                                  ? 'Expired'
-                                  : 'Queued'}
-                      </Badge>
-                      {dispatch.responses && dispatch.responses.length > 0 && (
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {dispatch.responses.length} response{dispatch.responses.length !== 1 ? 's' : ''}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
         )}
 
         {/* Responses/Quotes Section */}
-        {issue.dispatches &&
-          issue.dispatches.some((d) => d.responses && d.responses.length > 0) && (() => {
-            // Flatten and sort by lowest price first
-            const allResponses = issue.dispatches
-              .flatMap((dispatch) =>
-                (dispatch.responses || []).map((response) => ({ dispatch, response }))
-              )
-              .sort((a, b) => {
-                const priceA = Number(a.response.flatEstimate || a.response.estimateLow || a.response.estimateHigh) || Infinity;
-                const priceB = Number(b.response.flatEstimate || b.response.estimateLow || b.response.estimateHigh) || Infinity;
-                return priceA - priceB;
-              });
-
-            return (
-            <Card id="quotes">
-              <CardHeader>
-                <CardTitle className="text-lg">Quote Responses</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {allResponses.map(({ dispatch, response }) => (
-                        <div
-                          key={response.id}
-                          className="rounded-xl border border-border p-4 space-y-3"
-                        >
-                          {/* Header: name + select button */}
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <h4 className="font-semibold text-base">{dispatch.contractor.name}</h4>
-                              {dispatch.contractor.companyName && (
-                                <p className="text-sm text-muted-foreground">{dispatch.contractor.companyName}</p>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {response.receivedAt && (
-                                <span className="text-xs text-muted-foreground">
-                                  {new Date(response.receivedAt).toLocaleDateString()} at{' '}
-                                  {new Date(response.receivedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                                </span>
-                              )}
-                              {issue.status === 'quotes_received' && (
-                                <SelectContractorButton
-                                  issueId={issue.id}
-                                  responseId={response.id}
-                                  contractorId={dispatch.contractorId}
-                                />
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Price */}
-                          {(response.flatEstimate || response.estimateLow || response.estimateHigh) && (
-                            <div className="flex items-baseline gap-1">
-                              <span className="text-2xl font-bold">
-                                {response.flatEstimate
-                                  ? `$${Number(response.flatEstimate).toLocaleString()}`
-                                  : response.estimateLow && response.estimateHigh
-                                    ? `$${Number(response.estimateLow).toLocaleString()} – $${Number(response.estimateHigh).toLocaleString()}`
-                                    : response.estimateLow
-                                      ? `From $${Number(response.estimateLow).toLocaleString()}`
-                                      : `Up to $${Number(response.estimateHigh).toLocaleString()}`}
-                              </span>
-                            </div>
-                          )}
-
-                          {/* Availability */}
-                          {(response.availabilityText || response.availabilityDate) && (
-                            <div className="flex items-center gap-2 text-sm">
-                              <span className="font-medium text-muted-foreground">Available:</span>
-                              <span>
-                                {response.availabilityText || new Date(response.availabilityDate!).toLocaleDateString()}
-                              </span>
-                            </div>
-                          )}
-
-                          {/* Follow-up question */}
-                          {response.followUpQuestion && (
-                            <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
-                              <p className="text-sm font-medium text-amber-800">Contractor question:</p>
-                              <p className="text-sm text-amber-900 mt-1">{response.followUpQuestion}</p>
-                            </div>
-                          )}
-
-                          {/* Notes */}
-                          {response.notes && (
-                            <p className="text-sm text-muted-foreground">{response.notes}</p>
-                          )}
-
-                          {/* Reply actions */}
-                          <div className="flex items-center gap-2 pt-1">
-                            {dispatch.contractor.email && (
-                              <a
-                                href={`mailto:${dispatch.contractor.email}?subject=Re: ${issue.title || 'Maintenance request'}`}
-                                className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline"
-                              >
-                                Reply by email
-                              </a>
-                            )}
-                            {dispatch.contractor.phone && (
-                              <a
-                                href={`sms:${dispatch.contractor.phone}`}
-                                className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline"
-                              >
-                                Reply by text
-                              </a>
-                            )}
-                          </div>
-
-                          {/* Confidence indicator */}
-                          {response.requiresReview && (
-                            <p className="text-xs text-amber-600">This response needs manual review</p>
-                          )}
-                        </div>
-                      ))}
-              </CardContent>
-            </Card>
-            );
-          })()}
-
-        {/* Jobs Section */}
-        {issue.jobs && issue.jobs.length > 0 && (
-          <Card>
+        {allResponses.length > 0 && (
+          <Card id="quotes">
             <CardHeader>
-              <CardTitle className="text-lg">Job</CardTitle>
+              <CardTitle className="text-lg">Quote Responses</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {issue.jobs.map((job) => (
-                <div key={job.id} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="font-medium">{job.contractor.name}</div>
-                    <Badge className={statusColor(job.status)}>{job.status}</Badge>
+              {allResponses.map(({ dispatch, response }) => {
+                // Determine if this response was selected
+                const isSelected = activeJob?.selectedResponse?.id === response.id;
+                const isNotSelected = activeJob && !isSelected;
+
+                return (
+                  <div
+                    key={response.id}
+                    className={`rounded-xl border p-4 space-y-3 ${
+                      isSelected
+                        ? 'border-green-300 bg-green-50'
+                        : isNotSelected
+                          ? 'border-gray-200 bg-gray-50/50 opacity-60'
+                          : 'border-border'
+                    }`}
+                  >
+                    {/* Header: name + badges + select button */}
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold text-base">{dispatch.contractor.name}</h4>
+                          {isSelected && (
+                            <Badge className="bg-green-100 text-green-800 text-xs">Selected</Badge>
+                          )}
+                          {isNotSelected && (
+                            <Badge className="bg-gray-100 text-gray-500 text-xs">Not selected</Badge>
+                          )}
+                        </div>
+                        {dispatch.contractor.companyName && (
+                          <p className="text-sm text-muted-foreground">{dispatch.contractor.companyName}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge className="text-xs bg-muted text-muted-foreground capitalize">
+                          {dispatch.channel === 'sms' ? 'SMS' : 'Email'}
+                        </Badge>
+                        {response.receivedAt && (
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(response.receivedAt).toLocaleDateString()} at{' '}
+                            {new Date(response.receivedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Price */}
+                    {(response.flatEstimate || response.estimateLow || response.estimateHigh) && (
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-sm font-medium text-muted-foreground">Quote:</span>
+                        <span className="text-2xl font-bold">
+                          {response.flatEstimate
+                            ? `$${Number(response.flatEstimate).toLocaleString()}`
+                            : response.estimateLow && response.estimateHigh
+                              ? `$${Number(response.estimateLow).toLocaleString()} – $${Number(response.estimateHigh).toLocaleString()}`
+                              : response.estimateLow
+                                ? `From $${Number(response.estimateLow).toLocaleString()}`
+                                : `Up to $${Number(response.estimateHigh).toLocaleString()}`}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Availability */}
+                    {(response.availabilityText || response.availabilityDate) && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="font-medium text-muted-foreground">Available:</span>
+                        <span>
+                          {response.availabilityText || new Date(response.availabilityDate!).toLocaleDateString()}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Follow-up question */}
+                    {response.followUpQuestion && (
+                      <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
+                        <p className="text-sm font-medium text-amber-800">Contractor question:</p>
+                        <p className="text-sm text-amber-900 mt-1">{response.followUpQuestion}</p>
+                      </div>
+                    )}
+
+                    {/* Notes */}
+                    {response.notes && (
+                      <p className="text-sm text-muted-foreground">{response.notes}</p>
+                    )}
+
+                    {/* Raw message toggle */}
+                    {response.rawMessage && (
+                      <RawMessageToggle rawMessage={response.rawMessage} />
+                    )}
+
+                    {/* Confidence indicator */}
+                    {response.requiresReview && (
+                      <p className="text-xs text-amber-600">This response needs manual review</p>
+                    )}
+
+                    {/* Actions */}
+                    {!isNotSelected && (
+                      <div className="flex items-center gap-2 pt-1">
+                        {issue.status === 'quotes_received' && (
+                          <SelectContractorButton
+                            issueId={issue.id}
+                            responseId={response.id}
+                            contractorId={dispatch.contractorId}
+                            contractorName={dispatch.contractor.name}
+                            companyName={dispatch.contractor.companyName}
+                            price={response.flatEstimate ? String(response.flatEstimate) : response.estimateLow ? String(response.estimateLow) : null}
+                            availability={response.availabilityText || null}
+                          />
+                        )}
+                        {isSelected && (
+                          <Badge className="bg-green-100 text-green-800">Selected</Badge>
+                        )}
+                        <ReplyToContractorButton
+                          issueId={issue.id}
+                          contractorName={dispatch.contractor.name}
+                          contractorEmail={dispatch.contractor.email}
+                          contractorPhone={dispatch.contractor.phone}
+                          dispatchChannel={dispatch.channel}
+                          issueTitle={issue.title || 'Maintenance request'}
+                        />
+                      </div>
+                    )}
                   </div>
-                  {job.selectedEstimate && (
-                    <p className="text-sm">
-                      <span className="font-medium">Estimate:</span> ${String(job.selectedEstimate)}
-                    </p>
-                  )}
-                  {job.notes && (
-                    <p className="text-sm text-muted-foreground">{job.notes}</p>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </CardContent>
           </Card>
         )}

@@ -7,9 +7,9 @@ const STATUS_LABELS: Record<string, string> = {
   awaiting_dispatch: 'Awaiting dispatch',
   awaiting_quotes: 'Awaiting quotes',
   quotes_received: 'Quotes received',
-  contractor_selected: 'Contractor selected',
-  scheduled: 'Scheduled',
-  in_progress: 'In progress',
+  contractor_selected: 'Active job',
+  scheduled: 'Active job',
+  in_progress: 'Active job',
   completed: 'Completed',
   canceled: 'Canceled',
   archived: 'Archived',
@@ -21,8 +21,8 @@ const NEXT_ACTION: Record<string, string> = {
   awaiting_dispatch: 'Send to contractors for quotes',
   awaiting_quotes: 'Waiting for contractor responses',
   quotes_received: 'Review quotes and select a contractor',
-  contractor_selected: 'Contractor selected — awaiting schedule',
-  scheduled: 'Job is scheduled',
+  contractor_selected: 'Track scheduling and progress',
+  scheduled: 'Job is scheduled — waiting for work to begin',
   in_progress: 'Work is in progress',
   completed: 'Job complete',
 };
@@ -62,6 +62,8 @@ function statusColor(status: string) {
   switch (status) {
     case 'quotes_received': return 'bg-green-100 text-green-800 border-green-200';
     case 'awaiting_quotes': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+    case 'contractor_selected':
+    case 'scheduled':
     case 'in_progress': return 'bg-blue-100 text-blue-800 border-blue-200';
     case 'completed': return 'bg-green-100 text-green-800 border-green-200';
     case 'canceled':
