@@ -1,4 +1,4 @@
-import { anthropic } from '@/lib/ai/client';
+import { getAnthropicClient } from '@/lib/ai/client';
 import { issueClassificationSchema, type IssueClassification } from '@/types/ai';
 
 export async function classifyIssue(input: {
@@ -33,6 +33,7 @@ Issue description: ${input.description}
 Location: ${input.locationInProperty ?? 'unknown'}
 Signals: ${(input.signals ?? []).join(', ') || 'none provided'}`;
 
+  const anthropic = getAnthropicClient();
   const response = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 500,

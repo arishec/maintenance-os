@@ -860,45 +860,75 @@ URL EXAMPLES:
    /issues?view=all&search=leak     → Search across all issues
 
 ========================================
-SESSION 16: FIX ALL TYPESCRIPT ERRORS
+SESSION 16: PROPER TYPESCRIPT CLEANUP (ENGINEER SPEC)
 ========================================
 Date: March 27, 2026
 
-Engineer flagged 6 files with TypeScript errors blocking clean type-check.
-Ran `npx tsc --noEmit` — found 12 errors across 6 files. All fixed.
+Engineer provided file-by-file TypeScript fix instructions.
+Goal: Clean type-check with no hacks, no `as never`, proper Prisma typing, no proxy.
 
-ERRORS AND FIXES:
+CHANGES MADE (following engineer's spec exactly):
 
-1. Next.js typed routes — Link `href` rejecting dynamic strings
-   Files: app/dashboard/page.tsx, app/issues/page.tsx, components/layout-shell.tsx
-   Fix: Cast dynamic href strings as `never` to satisfy Next.js typed route system
-   - dashboard: `href={stat.href as never}`
-   - issues: `buildFilterUrl()` returns `as never`
-   - layout-shell: `href={item.href as never}` in both mobile and desktop nav
+1. lib/ai/client.ts — REMOVED PROXY
+   - Deleted the `anthropic` Proxy export entirely
+   - Now only exports `getAnthropicClient()` directly
+   - No more `as unknown as Record<string, unknown>` hack
 
-2. Button ref forwarding — alert-dialog passing ref to Button
-   File: components/ui/alert-dialog.tsx (used Button), components/ui/button.tsx (root cause)
-   Fix: Changed Button from plain function to React.forwardRef so it accepts ref prop
-   - `export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(...)`
+2. lib/ai/classify-issue.ts + lib/ai/parse-contractor-reply.ts — UPDATED IMPORTS
+   - Changed `import { anthropic }` → `import { getAnthropicClient }`
+   - Call `const anthropic = getAnthropicClient()` before API calls
 
-3. Anthropic proxy type cast
-   File: lib/ai/client.ts
-   Fix: Added intermediate `unknown` cast: `as unknown as Record<string, unknown>`
+3. lib/timeline.ts — PROPER PRISMA JSON TYPING
+   - Changed `payload?: Record<string, unknown>` → `payload?: Prisma.InputJsonValue`
+   - Removed `JSON.parse(JSON.stringify(...))` hack
+   - Now passes payload directly to Prisma
 
-4. Prisma Json type mismatch
-   File: lib/timeline.ts
-   Fix: Changed `input.payload ?? undefined` to `JSON.parse(JSON.stringify(input.payload))`
-   to satisfy Prisma's InputJsonValue type
+4. lib/auth.ts — NEW CENTRALIZED AUTH HELPER
+   - Added `requireDbUserOrRedirect()` that wraps requireDbUser + redirect
+   - Eliminates repeated `let user; try/catch/redirect` in all pages
 
-RESULT: `npx tsc --noEmit` passes with 0 errors.
+5. app/dashboard/page.tsx — CLEAN TYPING
+   - Uses `requireDbUserOrRedirect()` (no more try/catch)
+   - Stats array typed as `Array<{ label: string; value: number; href: Route }>`
+   - Removed `as never` — uses `Route` type from `next`
+
+6. app/issues/page.tsx — MAJOR TYPING IMPROVEMENTS
+   - Uses `requireDbUserOrRedirect()` (no more try/catch)
+   - VIEW_STATUS_MAP now `as const` with `IssueView` type
+   - Prisma where clause typed as `Prisma.IssueWhereInput` (not Record<string, unknown>)
+   - Category filter cast as `IssueCategory`, urgency as `Urgency` (Prisma enums)
+   - Property search uses `{ property: { is: { ... } } }` for proper Prisma relation filter
+   - buildFilterUrl returns `Route` type (not string, not `as never`)
+   - Removed all `as never` casts
+
+7. components/layout-shell.tsx — CLEAN NAV TYPING
+   - Imported `type ReactNode` and `type Route`
+   - Nav array typed with `href: Route`
+   - Removed all `as never` from Link hrefs
+   - children param uses `ReactNode` (not `React.ReactNode`)
+
+8. components/ui/alert-dialog.tsx — SAFER PROP TYPES
+   - AlertDialogAction/Cancel use `React.ComponentPropsWithoutRef<typeof Button>`
+   - Instead of raw `React.ButtonHTMLAttributes<HTMLButtonElement>`
+   - Better compatibility with Button's variant props
+
+9. components/ui/button.tsx — forwardRef (kept from initial fix)
+   - Button uses `React.forwardRef<HTMLButtonElement, ButtonProps>`
+   - Required for alert-dialog ref forwarding
+
+RESULT: `npx tsc --noEmit` passes with 0 errors. No `as never` hacks remaining.
 
 FILES MODIFIED:
-   - app/dashboard/page.tsx (Link href cast)
-   - app/issues/page.tsx (buildFilterUrl return cast)
-   - components/layout-shell.tsx (nav Link href casts)
-   - components/ui/button.tsx (added forwardRef)
-   - lib/ai/client.ts (proxy cast fix)
-   - lib/timeline.ts (JSON payload type fix)
+   - lib/ai/client.ts (removed proxy)
+   - lib/ai/classify-issue.ts (updated import)
+   - lib/ai/parse-contractor-reply.ts (updated import)
+   - lib/auth.ts (added requireDbUserOrRedirect)
+   - lib/timeline.ts (Prisma.InputJsonValue)
+   - app/dashboard/page.tsx (Route type, requireDbUserOrRedirect)
+   - app/issues/page.tsx (Prisma.IssueWhereInput, Route, as const, enums)
+   - components/layout-shell.tsx (Route type, ReactNode, typed nav)
+   - components/ui/alert-dialog.tsx (ComponentPropsWithoutRef)
+   - components/ui/button.tsx (forwardRef)
 
 NEXT STEPS:
    - Push from local terminal: git add -A && git commit && git push origin main

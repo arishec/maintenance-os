@@ -1,18 +1,13 @@
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import type { Route } from 'next';
 import { prisma } from '@/lib/prisma';
-import { requireDbUser } from '@/lib/auth';
+import { requireDbUserOrRedirect } from '@/lib/auth';
 import { LayoutShell } from '@/components/layout-shell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { IssueSummaryCard } from '@/components/issue-summary-card';
 
 export default async function DashboardPage() {
-  let user;
-  try {
-    user = await requireDbUser();
-  } catch {
-    redirect('/sign-in');
-  }
+  const user = await requireDbUserOrRedirect();
 
   const properties = await prisma.property.findMany({ where: { ownerUserId: user.id } });
   const propertyIds = properties.map((p) => p.id);
@@ -34,7 +29,7 @@ export default async function DashboardPage() {
     }),
   ]);
 
-  const stats = [
+  const stats: Array<{ label: string; value: number; href: Route }> = [
     { label: 'Open issues', value: openIssues, href: '/issues?view=open' },
     { label: 'Awaiting quotes', value: awaitingQuotes, href: '/issues?view=awaiting_quotes' },
     { label: 'Active jobs', value: activeJobs, href: '/issues?view=active_jobs' },
@@ -55,7 +50,7 @@ export default async function DashboardPage() {
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {stats.map((stat) => (
-            <Link key={stat.label} href={stat.href as never}>
+            <Link key={stat.label} href={stat.href}>
               <Card className="cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5">
                 <CardHeader>
                   <CardTitle className="text-sm text-muted-foreground">{stat.label}</CardTitle>

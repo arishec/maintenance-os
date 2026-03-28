@@ -1,7 +1,8 @@
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import type { Route } from 'next';
+import { Prisma, IssueCategory, Urgency } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { requireDbUser } from '@/lib/auth';
+import { requireDbUserOrRedirect } from '@/lib/auth';
 import { LayoutShell } from '@/components/layout-shell';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,7 +12,7 @@ import { Button } from '@/components/ui/button';
 // View → DB status mapping (per spec)
 // ──────────────────────────────────────────────
 
-const VIEW_STATUS_MAP: Record<string, string[] | undefined> = {
+const VIEW_STATUS_MAP = {
   all: undefined,
   open: [
     'new',
@@ -28,7 +29,9 @@ const VIEW_STATUS_MAP: Record<string, string[] | undefined> = {
   completed: ['completed'],
   canceled: ['canceled'],
   archived: ['archived'],
-};
+} as const;
+
+type IssueView = keyof typeof VIEW_STATUS_MAP;
 
 const VIEW_LABELS: Record<string, string> = {
   all: 'All',
@@ -102,14 +105,14 @@ function urgencyLabel(urgency: string | null): string {
 function buildFilterUrl(
   base: Record<string, string | undefined>,
   overrides: Record<string, string | undefined>,
-) {
+): Route {
   const merged = { ...base, ...overrides };
   const params = new URLSearchParams();
   for (const [k, v] of Object.entries(merged)) {
     if (v) params.set(k, v);
   }
   const qs = params.toString();
-  return `/issues${qs ? `?${qs}` : ''}` as never;
+  return `/issues${qs ? `?${qs}` : ''}` as Route;
 }
 
 // ──────────────────────────────────────────────
@@ -127,15 +130,12 @@ export default async function IssuesPage({
     search?: string;
   }>;
 }) {
-  let user;
-  try {
-    user = await requireDbUser();
-  } catch {
-    redirect('/sign-in');
-  }
+  const user = await requireDbUserOrRedirect();
 
   const params = await searchParams;
-  const currentView = params.view && VIEW_STATUS_MAP[params.view] !== undefined ? params.view : 'all';
+  const rawView = params.view;
+  const currentView: IssueView =
+    rawView && rawView in VIEW_STATUS_MAP ? (rawView as IssueView) : 'all';
   const propertyFilter = params.property || undefined;
   const urgencyFilter = params.urgency || undefined;
   const categoryFilter = params.category || undefined;
@@ -157,13 +157,11 @@ export default async function IssuesPage({
 
   // Build Prisma where clause
   const statuses = VIEW_STATUS_MAP[currentView];
-  const where: Record<string, unknown> = {
-    propertyId: propertyFilter
-      ? propertyFilter
-      : { in: propertyIds },
-    ...(statuses ? { status: { in: statuses } } : {}),
-    ...(urgencyFilter ? { urgency: urgencyFilter } : {}),
-    ...(categoryFilter ? { category: categoryFilter } : {}),
+  const where: Prisma.IssueWhereInput = {
+    propertyId: propertyFilter ? propertyFilter : { in: propertyIds },
+    ...(statuses ? { status: { in: [...statuses] } } : {}),
+    ...(urgencyFilter ? { urgency: urgencyFilter as Urgency } : {}),
+    ...(categoryFilter ? { category: categoryFilter as IssueCategory } : {}),
   };
 
   // Text search across title, description, property name
@@ -171,8 +169,16 @@ export default async function IssuesPage({
     where.OR = [
       { title: { contains: searchFilter, mode: 'insensitive' } },
       { description: { contains: searchFilter, mode: 'insensitive' } },
-      { property: { nickname: { contains: searchFilter, mode: 'insensitive' } } },
-      { property: { addressLine1: { contains: searchFilter, mode: 'insensitive' } } },
+      {
+        property: {
+          is: { nickname: { contains: searchFilter, mode: 'insensitive' } },
+        },
+      },
+      {
+        property: {
+          is: { addressLine1: { contains: searchFilter, mode: 'insensitive' } },
+        },
+      },
     ];
   }
 

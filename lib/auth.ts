@@ -1,4 +1,5 @@
 import { auth, currentUser } from '@clerk/nextjs/server';
+import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 
 export async function requireDbUser() {
@@ -24,4 +25,12 @@ export async function requireDbUser() {
   });
 
   return user;
+}
+
+export async function requireDbUserOrRedirect() {
+  try {
+    return await requireDbUser();
+  } catch {
+    redirect('/sign-in');
+  }
 }

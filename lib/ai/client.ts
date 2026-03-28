@@ -12,10 +12,3 @@ export function getAnthropicClient(): Anthropic {
   }
   return _anthropic;
 }
-
-// Keep backward-compatible export (lazy getter)
-export const anthropic = new Proxy({} as Anthropic, {
-  get(_, prop) {
-    return (getAnthropicClient() as unknown as Record<string, unknown>)[prop as string];
-  },
-});

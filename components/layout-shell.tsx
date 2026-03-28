@@ -1,14 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import Link from 'next/link';
+import type { Route } from 'next';
 import { usePathname } from 'next/navigation';
 import { UserButton } from '@clerk/nextjs';
 import { ClipboardList, Clock, HardHat, House, LayoutDashboard, Menu, Plus, Settings, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NotificationsBell } from '@/components/notifications-bell';
 
-const nav = [
+const nav: Array<{
+  href: Route;
+  label: string;
+  icon: typeof LayoutDashboard;
+}> = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/properties', label: 'Properties', icon: House },
   { href: '/issues', label: 'Issues', icon: ClipboardList },
@@ -17,7 +22,7 @@ const nav = [
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
-export function LayoutShell({ children }: { children: React.ReactNode }) {
+export function LayoutShell({ children }: { children: ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
@@ -84,7 +89,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
                 return (
                   <Link
                     key={item.href}
-                    href={item.href as never}
+                    href={item.href}
                     onClick={() => setMobileMenuOpen(false)}
                     className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
                       isActive ? 'bg-primary/10 font-medium text-primary' : 'hover:bg-muted'
@@ -126,7 +131,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
               return (
                 <Link
                   key={item.href}
-                  href={item.href as never}
+                  href={item.href}
                   className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors ${
                     isActive ? 'bg-primary/10 font-medium text-primary' : 'hover:bg-muted'
                   }`}

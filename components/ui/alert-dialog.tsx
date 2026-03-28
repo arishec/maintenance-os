@@ -108,22 +108,17 @@ AlertDialogDescription.displayName = DialogPrimitive.Description.displayName;
 
 const AlertDialogAction = React.forwardRef<
   HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement>
+  React.ComponentPropsWithoutRef<typeof Button>
 >(({ className, ...props }, ref) => (
-  <Button ref={ref} className={cn('', className)} {...props} />
+  <Button ref={ref} className={cn(className)} {...props} />
 ));
 AlertDialogAction.displayName = 'AlertDialogAction';
 
 const AlertDialogCancel = React.forwardRef<
   HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement>
+  React.ComponentPropsWithoutRef<typeof Button>
 >(({ className, ...props }, ref) => (
-  <Button
-    ref={ref}
-    variant="outline"
-    className={cn('', className)}
-    {...props}
-  />
+  <Button ref={ref} variant="outline" className={cn(className)} {...props} />
 ));
 AlertDialogCancel.displayName = 'AlertDialogCancel';
 

@@ -1,4 +1,4 @@
-import { anthropic } from '@/lib/ai/client';
+import { getAnthropicClient } from '@/lib/ai/client';
 import { contractorReplySchema, type ContractorReplyParse } from '@/types/ai';
 
 export async function parseContractorReply(input: {
@@ -15,6 +15,7 @@ Issue category: ${input.issueCategory ?? 'unknown'}
 Contractor trade: ${input.contractorTrade ?? 'unknown'}
 Raw reply: ${input.rawReply}`;
 
+  const anthropic = getAnthropicClient();
   const response = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 500,

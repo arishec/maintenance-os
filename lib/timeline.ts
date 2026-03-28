@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
 
 type ActorType = 'user' | 'tenant' | 'system' | 'contractor';
 
@@ -9,7 +10,7 @@ interface LogTimelineEventInput {
   actorType: ActorType;
   actorLabel?: string;
   eventType: string;
-  payload?: Record<string, unknown>;
+  payload?: Prisma.InputJsonValue;
 }
 
 export async function logTimelineEvent(input: LogTimelineEventInput) {
@@ -21,7 +22,7 @@ export async function logTimelineEvent(input: LogTimelineEventInput) {
       actorType: input.actorType,
       actorLabel: input.actorLabel,
       eventType: input.eventType,
-      eventPayloadJson: input.payload ? JSON.parse(JSON.stringify(input.payload)) : undefined,
+      eventPayloadJson: input.payload,
     },
   });
 }
