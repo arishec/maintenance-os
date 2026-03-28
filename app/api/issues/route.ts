@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { classifyIssue } from '@/lib/ai/classify-issue';
+import { logTimelineEvent } from '@/lib/timeline';
 
 const issueSchema = z.object({
   propertyId: z.string().uuid(),
@@ -49,6 +50,16 @@ export async function POST(request: NextRequest) {
         locationInProperty: body.locationInProperty,
         status: 'new',
       },
+    });
+
+    // Log timeline event for issue creation
+    await logTimelineEvent({
+      propertyId: property.id,
+      issueId: issue.id,
+      actorType: 'user',
+      actorLabel: user.email,
+      eventType: 'issue_created',
+      payload: { sourceType: 'owner_app' },
     });
 
     // Try AI classification — if it fails (missing API key, etc), still return the issue

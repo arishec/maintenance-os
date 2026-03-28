@@ -1,12 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { validateTwilioSignature } from '@/lib/twilio';
 
 export async function POST(request: NextRequest) {
   try {
-    // Parse form data from Twilio
+    // Validate Twilio signature
+    const signature = request.headers.get('x-twilio-signature') ?? '';
+    const url = request.url;
     const formData = await request.formData();
-    const messageSid = formData.get('MessageSid') as string | null;
-    const messageStatus = formData.get('MessageStatus') as string | null;
+    const params: Record<string, string> = {};
+    formData.forEach((value, key) => {
+      params[key] = value.toString();
+    });
+
+    if (!validateTwilioSignature(url, params, signature)) {
+      console.warn('Twilio status callback: invalid signature');
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 403 });
+    }
+
+    const messageSid = params.MessageSid;
+    const messageStatus = params.MessageStatus;
 
     if (!messageSid || !messageStatus) {
       return NextResponse.json({ success: true }, { status: 200 });

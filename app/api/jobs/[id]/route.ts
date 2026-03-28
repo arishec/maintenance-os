@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { Prisma, IssueStatus } from '@prisma/client';
 import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { logTimelineEvent } from '@/lib/timeline';
@@ -59,7 +60,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Not found.' }, { status: 404 });
     }
 
-    const updateData: any = {};
+    const updateData: Prisma.JobUpdateInput = {};
     if (body.scheduledFor !== undefined) {
       updateData.scheduledFor = new Date(body.scheduledFor);
     }
@@ -97,7 +98,7 @@ export async function PATCH(
         await prisma.issue.update({
           where: { id: job.issueId },
           data: {
-            status: newIssueStatus as any,
+            status: newIssueStatus as IssueStatus,
             ...(body.status === 'completed' ? { completedAt: new Date() } : {}),
           },
         });

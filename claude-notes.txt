@@ -930,9 +930,100 @@ FILES MODIFIED:
    - components/ui/alert-dialog.tsx (ComponentPropsWithoutRef)
    - components/ui/button.tsx (forwardRef)
 
+========================================
+SESSION 16c: FINAL PERFECTION AUDIT
+========================================
+Date: March 27, 2026
+
+Ran comprehensive audit against engineer's Final Perfection Checklist.
+Audited all 29 API routes, all 20 pages, all webhook handlers, all workflow paths.
+
+AUDIT RESULTS:
+
+1. Code Correctness (Section 2) — PASS
+   - All 29 API routes serve real purposes, no dead/placeholder routes
+   - All authenticated routes use requireDbUser()
+   - All ownership checks enforced (ownerUserId validation)
+   - Zod validation on all inputs
+   - No remaining `any` types in core logic (fixed)
+
+2. Workflow Correctness (Section 3) — PASS
+   - Issue creation → classification → dispatch → reply → select → job lifecycle all verified
+   - Reply token format MNT-[A-Z2-9]{6} with 32 safe chars, no ambiguous 0/O/1/I
+   - Dispatch creates rows BEFORE sending, handles partial failures
+   - Inbound SMS/email: token match first, phone/email fallback with ambiguity guard
+   - Ambiguous matches stored as unresolved — never attached to wrong issue
+   - Job status transitions sync to issue status correctly
+   - Cancel archives data, doesn't delete
+   - Tenant intake creates issue even if classification fails
+
+3. Data Integrity (Section 4) — PASS
+   - Contractor replies deterministically matched (token > fallback > unresolved)
+   - Duplicate job prevention on select-contractor
+   - Idempotency checks on webhook replies (existing response check)
+   - Raw contractor reply always stored before AI parsing
+   - Metrics failures don't block webhook processing
+
+4. Security (Section 7) — PASS (after fixes)
+   - Twilio inbound webhook: signature validated ✓
+   - Twilio status webhook: signature validated ✓ (FIXED — was missing)
+   - Resend email webhook: HMAC-SHA256 validated ✓
+   - Intake tokens: SHA256 hashed in DB ✓
+   - .env: gitignored, NOT tracked ✓
+   - .env.example: complete with all 13 required vars ✓
+
+5. Timeline Events (Section 8) — PASS (after fix)
+   - issue_created (FIXED — was missing for owner-created issues)
+   - issue_submitted_by_tenant ✓
+   - issue_classified ✓
+   - issue_updated ✓
+   - issue_archived ✓
+   - dispatch_sent ✓
+   - contractor_replied ✓
+   - contractor_selected ✓
+   - job_scheduled ✓
+   - job_started ✓
+   - job_completed ✓
+   - job_updated ✓
+   - property_created/updated/deleted ✓
+   - intake_link_created/deactivated ✓
+
+6. Dashboard/Filter Consistency (Section 9) — PASS
+   - Dashboard cards use same status groups as issues page VIEW_STATUS_MAP
+   - Open = notIn ['completed', 'canceled', 'archived']
+   - Awaiting quotes = 'awaiting_quotes'
+   - Active jobs = job status in ['contractor_selected', 'scheduled', 'in_progress']
+
+FIXES APPLIED:
+
+1. app/api/issues/route.ts — Added logTimelineEvent for owner-created issues
+   - event type: 'issue_created', actorType: 'user', payload: { sourceType: 'owner_app' }
+
+2. app/api/webhooks/twilio/status/route.ts — Added Twilio signature validation
+   - Uses validateTwilioSignature() like inbound webhook
+   - Returns 403 on invalid signature
+
+3. app/api/jobs/[id]/route.ts — Removed `any` types
+   - updateData: Prisma.JobUpdateInput (was `any`)
+   - status: newIssueStatus as IssueStatus (was `as any`)
+
+REMAINING ITEMS (user manual testing required):
+   - Section 6: Live SMS/email end-to-end tests
+   - Section 5: UI/UX visual verification
+   - A2P 10DLC registration for production SMS
+   - Push code and verify Vercel deploy
+
+FILES MODIFIED:
+   - app/api/issues/route.ts (added timeline event)
+   - app/api/webhooks/twilio/status/route.ts (added signature validation)
+   - app/api/jobs/[id]/route.ts (removed any types)
+
+TYPESCRIPT: `npx tsc --noEmit` passes with 0 errors after all changes.
+
 NEXT STEPS:
    - Push from local terminal: git add -A && git commit && git push origin main
    - Vercel will auto-deploy from main
-   - .env cleanup (ensure .env not in repo, only in Vercel env vars)
-   - End-to-end testing on ifbids.com
+   - Run real SMS test (Section 6.1)
+   - Run real email test (Section 6.2)
    - UI polish pass
+   - Launch to small real user group
