@@ -28,10 +28,13 @@ function urgencyColor(urgency: string) {
 
 function statusColor(status: string) {
   switch (status.toLowerCase()) {
+    case 'quotes_received':
     case 'completed':
       return 'bg-green-100 text-green-800';
     case 'in_progress':
       return 'bg-blue-100 text-blue-800';
+    case 'awaiting_quotes':
+      return 'bg-yellow-100 text-yellow-800';
     case 'awaiting_dispatch':
     case 'classified':
       return 'bg-yellow-100 text-yellow-800';

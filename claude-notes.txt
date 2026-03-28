@@ -1945,3 +1945,25 @@ FILES MODIFIED:
 5. Quoted reply chain stripped → AI parses contractor's actual reply
 6. Parsed fields (availability, estimate, follow-up) saved to DB
 7. UI displays "Replied" badge + parsed quote under "Quote Responses"
+
+### UI progress visibility improvements
+- Issue auto-advances to quotes_received on FIRST contractor reply (not waiting for all)
+- Quote Response card: now shows price, availability, follow-up question (amber highlight),
+  timestamp, Reply by email/text links, Select button, review indicator
+- Issues table Contractor column: "1 replied / 3 contacted" instead of "—"
+- Richer notifications: include quote amount + follow-up question text
+- Dashboard: cleaned up raw enum badges (awaiting_quotes → Awaiting Quotes, etc.)
+- Applied same fixes to both email and SMS webhook handlers
+
+FILES MODIFIED:
+- app/api/webhooks/email/inbound/route.ts — first-reply status advance, richer notifications
+- app/api/webhooks/twilio/inbound/route.ts — same fixes for SMS
+- app/(app)/issues/[id]/page.tsx — upgraded Quote Response card
+- app/(app)/issues/page.tsx — contractor column shows dispatch activity, include dispatches in query
+- components/issue-summary-card.tsx — clean display labels, urgency colors
+
+### Remaining backlog:
+- A2P 10DLC vetting approval (waiting on Twilio) — then re-test SMS
+- 5 remaining guide pages (3 of 8 built, non-blocking)
+- Create separate Stripe account for Maintenance OS (cosmetic)
+- Get first users (Reddit r/landlord, r/propertymanagement, Facebook groups, Product Hunt, etc.)

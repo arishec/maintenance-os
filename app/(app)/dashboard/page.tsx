@@ -11,13 +11,17 @@ export default async function DashboardPage() {
   const properties = await prisma.property.findMany({ where: { ownerUserId: user.id } });
   const propertyIds = properties.map((p) => p.id);
 
-  const [openIssues, awaitingQuotes, activeJobs, recentIssues, notifications] = await Promise.all([
+  const [openIssues, awaitingQuotes, quotesReceived, activeJobs, recentIssues, notifications] = await Promise.all([
     prisma.issue.count({ where: { propertyId: { in: propertyIds }, status: { notIn: ['completed', 'canceled', 'archived'] } } }),
     prisma.issue.count({ where: { propertyId: { in: propertyIds }, status: 'awaiting_quotes' } }),
+    prisma.issue.count({ where: { propertyId: { in: propertyIds }, status: 'quotes_received' } }),
     prisma.job.count({ where: { issue: { propertyId: { in: propertyIds } }, status: { in: ['contractor_selected', 'scheduled', 'in_progress'] } } }),
     prisma.issue.findMany({
       where: { propertyId: { in: propertyIds }, status: { notIn: ['archived'] } },
-      include: { property: true },
+      include: {
+        property: true,
+        dispatches: { include: { responses: true } },
+      },
       orderBy: { createdAt: 'desc' },
       take: 5,
     }),
@@ -28,11 +32,11 @@ export default async function DashboardPage() {
     }),
   ]);
 
-  const stats: Array<{ label: string; value: number; href: string }> = [
+  const stats: Array<{ label: string; value: number; href: string; highlight?: boolean }> = [
     { label: 'Open issues', value: openIssues, href: '/issues?view=open' },
     { label: 'Awaiting quotes', value: awaitingQuotes, href: '/issues?view=awaiting_quotes' },
+    { label: 'Quotes received', value: quotesReceived, href: '/issues?view=quotes_received', highlight: quotesReceived > 0 },
     { label: 'Active jobs', value: activeJobs, href: '/issues?view=active_jobs' },
-    { label: 'Properties', value: properties.length, href: '/properties' },
   ];
 
   return (
@@ -50,12 +54,18 @@ export default async function DashboardPage() {
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {stats.map((stat) => (
             <Link key={stat.label} href={stat.href}>
-              <Card className="cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5">
+              <Card className={`cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 ${
+                stat.highlight ? 'border-green-300 bg-green-50' : ''
+              }`}>
                 <CardHeader>
-                  <CardTitle className="text-sm text-muted-foreground">{stat.label}</CardTitle>
+                  <CardTitle className={`text-sm ${stat.highlight ? 'text-green-700' : 'text-muted-foreground'}`}>
+                    {stat.label}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-semibold">{stat.value}</div>
+                  <div className={`text-3xl font-semibold ${stat.highlight ? 'text-green-800' : ''}`}>
+                    {stat.value}
+                  </div>
                 </CardContent>
               </Card>
             </Link>
@@ -72,18 +82,26 @@ export default async function DashboardPage() {
                 </CardContent>
               </Card>
             ) : (
-              recentIssues.map((issue) => (
-                <Link key={issue.id} href={`/issues/${issue.id}`}>
-                  <IssueSummaryCard
-                    title={issue.title ?? 'Untitled issue'}
-                    property={issue.property.nickname ?? issue.property.addressLine1}
-                    status={issue.status}
-                    urgency={issue.urgency ?? 'medium'}
-                    category={issue.category ?? 'unknown'}
-                    description={issue.description.slice(0, 120)}
-                  />
-                </Link>
-              ))
+              recentIssues.map((issue) => {
+                const totalDispatches = issue.dispatches?.length ?? 0;
+                const totalReplies = issue.dispatches?.reduce(
+                  (sum, d) => sum + (d.responses?.length ?? 0), 0
+                ) ?? 0;
+                return (
+                  <Link key={issue.id} href={`/issues/${issue.id}`}>
+                    <IssueSummaryCard
+                      title={issue.title ?? 'Untitled issue'}
+                      property={issue.property.nickname ?? issue.property.addressLine1}
+                      status={issue.status}
+                      urgency={issue.urgency ?? 'medium'}
+                      category={issue.category ?? 'unknown'}
+                      description={issue.description}
+                      dispatchCount={totalDispatches}
+                      replyCount={totalReplies}
+                    />
+                  </Link>
+                );
+              })
             )}
           </div>
 
@@ -96,8 +114,15 @@ export default async function DashboardPage() {
                 ) : (
                   notifications.map((n) => (
                     <div key={n.id} className="py-3">
-                      <div className="text-sm font-medium">{n.title}</div>
-                      <div className="text-xs text-muted-foreground">{n.body}</div>
+                      <div className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-blue-500 flex-shrink-0" />
+                        <span className="text-sm font-medium">{n.title}</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1 ml-4">{n.body}</div>
+                      <div className="text-xs text-muted-foreground/60 mt-0.5 ml-4">
+                        {new Date(n.createdAt).toLocaleDateString()} at{' '}
+                        {new Date(n.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                      </div>
                     </div>
                   ))
                 )}

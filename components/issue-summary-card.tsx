@@ -4,12 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 const STATUS_LABELS: Record<string, string> = {
   new: 'New',
   classified: 'Classified',
-  awaiting_dispatch: 'Awaiting Dispatch',
-  awaiting_quotes: 'Awaiting Quotes',
-  quotes_received: 'Quotes Received',
-  contractor_selected: 'Contractor Selected',
+  awaiting_dispatch: 'Awaiting dispatch',
+  awaiting_quotes: 'Awaiting quotes',
+  quotes_received: 'Quotes received',
+  contractor_selected: 'Contractor selected',
   scheduled: 'Scheduled',
-  in_progress: 'In Progress',
+  in_progress: 'In progress',
   completed: 'Completed',
   canceled: 'Canceled',
   archived: 'Archived',
@@ -46,6 +46,18 @@ function urgencyColor(urgency: string) {
   }
 }
 
+function statusColor(status: string) {
+  switch (status) {
+    case 'quotes_received': return 'bg-green-100 text-green-800 border-green-200';
+    case 'awaiting_quotes': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+    case 'in_progress': return 'bg-blue-100 text-blue-800 border-blue-200';
+    case 'completed': return 'bg-green-100 text-green-800 border-green-200';
+    case 'canceled':
+    case 'archived': return 'bg-gray-100 text-gray-600 border-gray-200';
+    default: return 'border-slate-200 bg-slate-50 text-slate-700';
+  }
+}
+
 export function IssueSummaryCard(props: {
   title: string;
   property: string;
@@ -53,30 +65,53 @@ export function IssueSummaryCard(props: {
   urgency: string;
   category: string;
   description: string;
+  dispatchCount?: number;
+  replyCount?: number;
 }) {
+  const hasReplies = (props.replyCount ?? 0) > 0;
+  const statusLabel = STATUS_LABELS[props.status] || props.status;
+
+  // Build status subtext
+  let statusSubtext: string | null = null;
+  if (props.status === 'quotes_received' && hasReplies) {
+    statusSubtext = `${props.replyCount} response${props.replyCount !== 1 ? 's' : ''} received`;
+  } else if (props.status === 'awaiting_quotes' && (props.dispatchCount ?? 0) > 0) {
+    statusSubtext = `${props.dispatchCount} contacted`;
+  }
+
   return (
-    <Card>
+    <Card className="transition-all hover:shadow-md hover:-translate-y-0.5">
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
-          <div>
-            <CardTitle>{props.title}</CardTitle>
+          <div className="min-w-0">
+            <CardTitle className="text-base">{props.title}</CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">{props.property}</p>
           </div>
-          <div className="flex gap-2 flex-wrap justify-end">
+          <div className="flex gap-2 flex-wrap justify-end flex-shrink-0">
             <Badge className="border-slate-200 bg-slate-50 text-slate-700">
               {CATEGORY_LABELS[props.category] || props.category}
             </Badge>
             <Badge className={urgencyColor(props.urgency)}>
               {URGENCY_LABELS[props.urgency] || props.urgency}
             </Badge>
-            <Badge className="border-slate-200 bg-slate-50 text-slate-700">
-              {STATUS_LABELS[props.status] || props.status}
-            </Badge>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground">{props.description}</p>
+      <CardContent className="space-y-2">
+        <p className="text-sm text-muted-foreground line-clamp-2">{props.description}</p>
+        <div className="flex items-center gap-2">
+          <Badge className={statusColor(props.status)}>
+            {statusLabel}
+          </Badge>
+          {statusSubtext && (
+            <span className="text-xs text-muted-foreground">{statusSubtext}</span>
+          )}
+          {hasReplies && props.status !== 'quotes_received' && (
+            <Badge className="bg-blue-100 text-blue-800 border-blue-200 text-xs">
+              New reply
+            </Badge>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
