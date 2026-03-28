@@ -35,9 +35,9 @@ export default async function DashboardPage() {
   ]);
 
   const stats = [
-    { label: 'Open issues', value: openIssues, href: '/issues?status=open' },
-    { label: 'Awaiting quotes', value: awaitingQuotes, href: '/issues?status=awaiting_quotes' },
-    { label: 'Active jobs', value: activeJobs, href: '/issues?status=active_jobs' },
+    { label: 'Open issues', value: openIssues, href: '/issues?view=open' },
+    { label: 'Awaiting quotes', value: awaitingQuotes, href: '/issues?view=awaiting_quotes' },
+    { label: 'Active jobs', value: activeJobs, href: '/issues?view=active_jobs' },
     { label: 'Properties', value: properties.length, href: '/properties' },
   ];
 
@@ -55,7 +55,7 @@ export default async function DashboardPage() {
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {stats.map((stat) => (
-            <Link key={stat.label} href={stat.href}>
+            <Link key={stat.label} href={stat.href as never}>
               <Card className="cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5">
                 <CardHeader>
                   <CardTitle className="text-sm text-muted-foreground">{stat.label}</CardTitle>

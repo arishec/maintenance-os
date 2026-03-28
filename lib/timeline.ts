@@ -21,7 +21,7 @@ export async function logTimelineEvent(input: LogTimelineEventInput) {
       actorType: input.actorType,
       actorLabel: input.actorLabel,
       eventType: input.eventType,
-      eventPayloadJson: input.payload ?? undefined,
+      eventPayloadJson: input.payload ? JSON.parse(JSON.stringify(input.payload)) : undefined,
     },
   });
 }

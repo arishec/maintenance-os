@@ -84,7 +84,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
                 return (
                   <Link
                     key={item.href}
-                    href={item.href}
+                    href={item.href as never}
                     onClick={() => setMobileMenuOpen(false)}
                     className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
                       isActive ? 'bg-primary/10 font-medium text-primary' : 'hover:bg-muted'
@@ -126,7 +126,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
               return (
                 <Link
                   key={item.href}
-                  href={item.href}
+                  href={item.href as never}
                   className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors ${
                     isActive ? 'bg-primary/10 font-medium text-primary' : 'hover:bg-muted'
                   }`}
