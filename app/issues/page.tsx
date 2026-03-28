@@ -48,13 +48,32 @@ function urgencyLabel(urgency: string | null): string {
   return urgency.charAt(0).toUpperCase() + urgency.slice(1);
 }
 
-export default async function IssuesPage() {
+// Status filter groups mapped from dashboard card labels
+const STATUS_FILTERS: Record<string, string[]> = {
+  open: ['new', 'classified', 'awaiting_dispatch', 'awaiting_quotes', 'quotes_received', 'contractor_selected', 'scheduled', 'in_progress'],
+  awaiting_quotes: ['awaiting_quotes'],
+  active_jobs: ['contractor_selected', 'scheduled', 'in_progress'],
+};
+
+const FILTER_LABELS: Record<string, string> = {
+  open: 'Open issues',
+  awaiting_quotes: 'Awaiting quotes',
+  active_jobs: 'Active jobs',
+};
+
+export default async function IssuesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
   let user;
   try {
     user = await requireDbUser();
   } catch {
     redirect('/sign-in');
   }
+
+  const { status: statusFilter } = await searchParams;
 
   const propertyIds = await prisma.property
     .findMany({
@@ -63,16 +82,38 @@ export default async function IssuesPage() {
     })
     .then((props) => props.map((p) => p.id));
 
+  // Build the where clause based on filter
+  const statusWhere = statusFilter && STATUS_FILTERS[statusFilter]
+    ? { in: STATUS_FILTERS[statusFilter] }
+    : undefined;
+
   const issues = await prisma.issue.findMany({
-    where: { propertyId: { in: propertyIds } },
+    where: {
+      propertyId: { in: propertyIds },
+      ...(statusWhere ? { status: statusWhere } : {}),
+    },
     include: { property: true },
     orderBy: { createdAt: 'desc' },
   });
 
+  const activeFilterLabel = statusFilter && FILTER_LABELS[statusFilter]
+    ? FILTER_LABELS[statusFilter]
+    : null;
+
   return (
     <LayoutShell>
       <div className="flex items-center justify-between gap-3 mb-6">
-        <h1 className="text-2xl font-bold">Issues</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold">Issues</h1>
+          {activeFilterLabel && (
+            <div className="flex items-center gap-2">
+              <Badge className="border-blue-200 bg-blue-50 text-blue-700">{activeFilterLabel}</Badge>
+              <Link href="/issues" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                Clear filter
+              </Link>
+            </div>
+          )}
+        </div>
         <Link href="/issues/new">
           <Button size="sm">Report Issue</Button>
         </Link>
