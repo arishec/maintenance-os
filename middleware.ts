@@ -7,6 +7,7 @@ const isPublicRoute = createRouteMatcher([
   '/intake/(.*)',
   '/api/webhooks/(.*)',
   '/api/intake/(.*)',
+  '/api/stripe/webhook',
   // SEO files
   '/sitemap.xml',
   '/robots.txt',
