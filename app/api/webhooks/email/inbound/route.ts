@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
 
     const body = JSON.parse(rawBody);
     const from = body.from as string | null;
+    const to = body.to as string | null;
     const text = body.text as string | null;
     const subject = body.subject as string | null;
     const emailId = (body.id || body.email_id) as string | null;
@@ -61,8 +62,9 @@ export async function POST(request: NextRequest) {
 
     // --- DETERMINISTIC REPLY CORRELATION ---
 
-    // Step 1: Try token-based matching from subject or body
-    const searchText = `${subject || ''} ${text}`;
+    // Step 1: Try token-based matching from to address, subject, or body
+    // Tokenized reply-to: replies+MNT-XXXXXX@ifbids.com
+    const searchText = `${to || ''} ${subject || ''} ${text}`;
     const tokenMatch = searchText.match(REPLY_TOKEN_PATTERN);
     let matchingDispatch = null;
 

@@ -160,7 +160,7 @@ export async function POST(
             contractor.email!,
             emailSubject,
             emailBody,
-            'repairs@ifbids.com'
+            `replies+${replyToken}@ifbids.com`
           );
           if (response.data?.id) {
             providerMessageId = response.data.id;
