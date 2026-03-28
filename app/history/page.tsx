@@ -1,9 +1,12 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { requireDbUser } from '@/lib/auth';
 import { LayoutShell } from '@/components/layout-shell';
 import { Badge } from '@/components/ui/badge';
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 function categoryLabel(category: string | null): string {

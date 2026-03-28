@@ -1,6 +1,8 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import type { Route } from 'next';
 import { Prisma, IssueCategory, Urgency } from '@prisma/client';
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 import { prisma } from '@/lib/prisma';
 import { requireDbUserOrRedirect } from '@/lib/auth';
 import { LayoutShell } from '@/components/layout-shell';
@@ -105,14 +107,14 @@ function urgencyLabel(urgency: string | null): string {
 function buildFilterUrl(
   base: Record<string, string | undefined>,
   overrides: Record<string, string | undefined>,
-): Route {
+): string {
   const merged = { ...base, ...overrides };
   const params = new URLSearchParams();
   for (const [k, v] of Object.entries(merged)) {
     if (v) params.set(k, v);
   }
   const qs = params.toString();
-  return `/issues${qs ? `?${qs}` : ''}` as Route;
+  return `/issues${qs ? `?${qs}` : ''}`;
 }
 
 // ──────────────────────────────────────────────

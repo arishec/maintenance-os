@@ -2,7 +2,6 @@
 
 import { useState, type ReactNode } from 'react';
 import Link from 'next/link';
-import type { Route } from 'next';
 import { usePathname } from 'next/navigation';
 import { UserButton } from '@clerk/nextjs';
 import { ClipboardList, Clock, HardHat, House, LayoutDashboard, Menu, Plus, Settings, X } from 'lucide-react';
@@ -10,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { NotificationsBell } from '@/components/notifications-bell';
 
 const nav: Array<{
-  href: Route;
+  href: string;
   label: string;
   icon: typeof LayoutDashboard;
 }> = [

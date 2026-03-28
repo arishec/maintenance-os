@@ -1027,3 +1027,244 @@ NEXT STEPS:
    - Run real email test (Section 6.2)
    - UI polish pass
    - Launch to small real user group
+
+========================================
+SESSION: March 27, 2026 - Public SEO Pages
+========================================
+
+TASK: Create all public marketing pages for Maintenance OS app
+Site URL: https://ifbids.com (NOT maintenanceos.com)
+Note: These are PUBLIC marketing pages, NOT app pages. No LayoutShell, Clerk, or authenticated components.
+
+COMPLETED:
+
+1. PUBLIC LAYOUT COMPONENT
+   - components/public-layout.tsx
+   - Server component (not 'use client')
+   - Header: Maintenance OS logo, nav links (Features, How It Works, Pricing, Guides), Sign In & Get Started buttons
+   - Footer: 4-column link layout (Product, Resources, Legal, Company), copyright
+   - Clean Tailwind styling, max-w-6xl container
+   - Links to all public pages
+
+2. CORE PAGES (Layer 1)
+
+   a) app/features/page.tsx
+      - Title: "Features — Property Maintenance Made Simple"
+      - Showcase of 6 features with links to subpages
+      - 2-column grid layout
+      - Links to quote-comparison, repair-history, tenant-intake, contractor-dispatch pages
+      - Professional copywriting focused on user pain points
+      - CTA: "Get Started Free"
+
+   b) app/how-it-works/page.tsx
+      - Title: "How Maintenance OS Works"
+      - 5-step workflow: Report → Classify → Dispatch → Compare → Track
+      - Each step explained in detail (~150-200 words)
+      - Links to related feature pages
+      - "Why This Matters" benefits section
+      - Sections for homeowners and landlords
+
+   c) app/pricing/page.tsx
+      - Title: "Maintenance OS Pricing"
+      - 2 pricing tiers: Starter (free forever) and Professional (pay-as-you-go SMS)
+      - Starter: Free, 1 property, unlimited issues, repair history
+      - Professional: $0.50-0.75 per SMS dispatch, up to 5 properties
+      - "How SMS Works" explanation box
+      - What's always included across both tiers
+      - FAQ section with 6 questions
+
+   d) app/for-homeowners/page.tsx
+      - Title: "Home Repair Tracker for Homeowners"
+      - Pain points section: scattered texts, lost quotes, can't remember repairs, no resale proof, comparing quotes
+      - Solution section explaining how Maintenance OS solves each pain point
+      - Use cases: first-time homeowners, planning home sale, insurance, multiple quotes
+      - Key features with links to detailed feature pages
+      - Pricing info with link to /pricing
+      - Links to guides and related features
+
+   e) app/for-landlords/page.tsx
+      - Title: "Property Maintenance Software for Landlords"
+      - Multi-property pain points: scattered across properties, tenant chaos, contractor coordination, no records, cost control
+      - Solution section with feature highlights
+      - Use cases: small landlords (2-10 properties), property managers, vacation rentals, self-managed
+      - Key benefits with icons/emojis
+      - Features highlighted with links to detailed pages
+      - Landlord guides and resources
+
+   f) app/contact/page.tsx
+      - Title: "Contact Maintenance OS"
+      - Two contact methods: Email (support@ifbids.com) and Feedback (feedback@ifbids.com)
+      - FAQ section with 7 common questions
+      - Quick links to other pages
+      - CTA: "Get Started Free"
+
+   g) app/privacy/page.tsx
+      - Title: "Privacy Policy"
+      - Last updated: March 27, 2026
+      - 11 sections covering: info collection, usage, SMS communications, third-party sharing, security, rights, retention, children, international transfers, changes, contact
+      - Comprehensive but readable
+
+   h) app/terms/page.tsx
+      - Title: "Terms of Service"
+      - Last updated: March 27, 2026
+      - 17 sections covering: acceptance, license, accounts, content, prohibited conduct, pricing, warranties, liability, contractor disputes, SMS, IP, indemnification, termination, law, disputes, changes, contact
+
+3. FEATURE DETAIL PAGES (Layer 2)
+
+   a) app/features/property-maintenance-tracking/page.tsx
+      - Title: "Property Maintenance Tracking"
+      - What you can do section with 5 key capabilities
+      - Why it matters section with 4 benefits
+      - Who benefits (homeowners, landlords, property managers)
+      - Related features links
+      - CTA: "Get Started Free"
+
+   b) app/features/contractor-dispatch/page.tsx
+      - Title: "Contractor Dispatch"
+      - 5-step workflow explained in detail
+      - Why dispatch saves time (5 benefits)
+      - What you can dispatch (issue details, photos, location, quick reply tokens)
+      - 4 common scenarios (urgent repairs, competitive quotes, multi-property, tenant-reported)
+      - SMS pricing info ($0.50-0.75 per SMS)
+      - Related features links
+
+   c) app/features/quote-comparison/page.tsx
+      - Title: "Contractor Quote Comparison"
+      - The Problem section explaining scattered quotes
+      - The Solution section with 5 key benefits
+      - Detailed example workflow: Roof Repair (5 steps)
+      - Table showing sample quote comparison
+      - Why it matters for homeowners and landlords
+      - Features list (5 items)
+      - Related features
+
+   d) app/features/repair-history/page.tsx
+      - Title: "Repair History"
+      - The Problem section (can't remember repairs, resale, insurance, landlord disputes)
+      - The Solution section with 6 benefits
+      - What gets stored (timeline data, financial, contractor details, documentation)
+      - 5 real-world scenarios (home sale, insurance claim, tenant dispute, warranty, property assessment)
+      - Why it matters (legal, value, planning, peace of mind)
+      - 6 history features
+      - Related features
+
+   e) app/features/tenant-intake/page.tsx
+      - Title: "Tenant Maintenance Intake"
+      - The Challenge section
+      - The Solution with 6 key benefits
+      - How It Works (5 steps for landlords, 6 steps for tenants)
+      - Form Customization section (4 customization options)
+      - Benefits for landlords (fewer complaints, better info, legal protection, tenant satisfaction)
+      - Example: Bathroom Leak (4-stage workflow)
+      - Related features
+      - CTA
+
+4. GUIDE PAGES (Layer 3)
+
+   a) app/guides/how-to-track-home-repairs/page.tsx
+      - Title: "How to Track Home Repairs"
+      - ~800 words
+      - Uses ArticleJsonLd component for SEO
+      - datePublished: "2026-03-27"
+      - Sections: Why Track, Step 1-7, Common Mistakes
+      - Practical advice throughout
+      - Headings: Why Track (6 reasons), Decide on System, Record Essentials, Organize Documentation, Make Searchable, Update as You Go, Use for Planning, Prepare for Resale, Handle Insurance Claims, Common Mistakes, Tools to Help, Final Thoughts
+      - Professional copywriting
+
+   b) app/guides/how-to-manage-rental-property-maintenance/page.tsx
+      - Title: "How to Manage Rental Property Maintenance"
+      - ~800 words
+      - Uses ArticleJsonLd component
+      - datePublished: "2026-03-27"
+      - For landlords managing multiple properties
+      - Sections: Challenge, Step 1-10, Common Mistakes, Tools
+      - Steps: Establish intake, Organize by property, Triage, Build contractor network, Dispatch efficiently, Compare quotes, Track costs, Communicate with tenants, Plan preventative maintenance, Emergency procedures
+      - Practical, actionable guidance
+
+   c) app/guides/how-to-compare-contractor-quotes/page.tsx
+      - Title: "How to Compare Contractor Quotes"
+      - ~800 words
+      - Uses ArticleJsonLd component
+      - datePublished: "2026-03-27"
+      - Practical guide for evaluating estimates
+      - Sections: Why Compare, How Many Quotes, Setup, What to Look For, Red Flags, Compare Fairly, Beyond Price, Sample Table, Making Decision, Common Mistakes, After You Choose, Final Thoughts
+      - Includes sample comparison table
+      - Professional copywriting
+
+TECHNICAL DETAILS:
+- All pages use PublicLayout component
+- All pages wrap content in max-w-5xl container (max-w-3xl for guides)
+- All pages have proper Metadata with title, description, alternates.canonical
+- All guides use ArticleJsonLd component with proper JSON-LD structured data
+- All guides use prose classes for article styling
+- Internal links between pages for navigation
+- Professional, SEO-friendly copywriting
+- No 'use client' directives - all server components
+- Clean Tailwind styling throughout
+- Responsive grid layouts
+- Consistent CTA buttons throughout
+- Links focus on user pain points and benefits
+
+FILES CREATED:
+1. components/public-layout.tsx
+2. app/features/page.tsx
+3. app/how-it-works/page.tsx
+4. app/pricing/page.tsx
+5. app/for-homeowners/page.tsx
+6. app/for-landlords/page.tsx
+7. app/contact/page.tsx
+8. app/privacy/page.tsx
+9. app/terms/page.tsx
+10. app/features/property-maintenance-tracking/page.tsx
+11. app/features/contractor-dispatch/page.tsx
+12. app/features/quote-comparison/page.tsx
+13. app/features/repair-history/page.tsx
+14. app/features/tenant-intake/page.tsx
+15. app/guides/how-to-track-home-repairs/page.tsx
+16. app/guides/how-to-manage-rental-property-maintenance/page.tsx
+17. app/guides/how-to-compare-contractor-quotes/page.tsx
+
+TOTAL: 17 files created
+All pages are production-ready with professional copywriting, proper SEO structure, and internal linking.
+
+
+---
+
+## Session 17 — SEO Master Pack Implementation (2026-03-27)
+
+### What was done:
+- Implemented full SEO strategy from engineer's SEO Master Pack
+- Created robots.ts — allows public marketing routes, blocks dashboard/issues/properties/contractors/settings/api/auth
+- Created sitemap.ts — lists all 18+ public static pages with priorities and change frequencies
+- Created JSON-LD structured data components:
+  - components/seo/software-jsonld.tsx (SoftwareApplication schema)
+  - components/seo/article-jsonld.tsx (Article schema for guide pages)
+- Created components/public-layout.tsx — shared header/footer for all marketing pages
+- Rewrote app/page.tsx — full SEO-optimized marketing homepage with hero, how-it-works, features, guides links, CTA
+- Created 17 new public pages:
+  - app/features/page.tsx, app/how-it-works/page.tsx, app/pricing/page.tsx
+  - app/for-homeowners/page.tsx, app/for-landlords/page.tsx
+  - app/contact/page.tsx, app/privacy/page.tsx, app/terms/page.tsx
+  - app/features/property-maintenance-tracking/page.tsx
+  - app/features/contractor-dispatch/page.tsx
+  - app/features/quote-comparison/page.tsx
+  - app/features/repair-history/page.tsx
+  - app/features/tenant-intake/page.tsx
+  - app/guides/how-to-track-home-repairs/page.tsx
+  - app/guides/how-to-manage-rental-property-maintenance/page.tsx
+  - app/guides/how-to-compare-contractor-quotes/page.tsx
+- Updated app/layout.tsx — added metadataBase, title template, description, keywords, OpenGraph, Twitter cards
+- Updated middleware.ts — added all new public routes to Clerk's public route matcher
+- Added noindex metadata to all 6 private app pages (dashboard, issues, properties, contractors, settings, history)
+- Disabled typedRoutes in next.config.ts (incompatible with growing public page structure)
+- Updated tsconfig.json to exclude .next directory
+- Removed Route type imports from dashboard, issues, layout-shell (back to plain string types)
+- Added NEXT_PUBLIC_SITE_URL to .env.example
+- TypeScript check passes with 0 errors
+
+### Still needed:
+- Push code and deploy
+- Add NEXT_PUBLIC_SITE_URL=https://ifbids.com to Vercel env vars
+- Create OG image (public/og-image.png, 1200x630)
+- Submit sitemap to Google Search Console after deploy
+- Build remaining 5 guide pages (spec listed 8 total, 3 built so far)

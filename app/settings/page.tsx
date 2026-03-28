@@ -1,5 +1,8 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { requireDbUser } from '@/lib/auth';
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 import { LayoutShell } from '@/components/layout-shell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 

@@ -1,6 +1,8 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import type { Route } from 'next';
 import { prisma } from '@/lib/prisma';
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 import { requireDbUserOrRedirect } from '@/lib/auth';
 import { LayoutShell } from '@/components/layout-shell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,7 +31,7 @@ export default async function DashboardPage() {
     }),
   ]);
 
-  const stats: Array<{ label: string; value: number; href: Route }> = [
+  const stats: Array<{ label: string; value: number; href: string }> = [
     { label: 'Open issues', value: openIssues, href: '/issues?view=open' },
     { label: 'Awaiting quotes', value: awaitingQuotes, href: '/issues?view=awaiting_quotes' },
     { label: 'Active jobs', value: activeJobs, href: '/issues?view=active_jobs' },
