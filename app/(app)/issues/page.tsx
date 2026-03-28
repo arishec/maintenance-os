@@ -185,6 +185,9 @@ export default async function IssuesPage({
     where,
     include: {
       property: true,
+      dispatches: {
+        include: { contractor: true, responses: true },
+      },
       jobs: {
         where: { status: { not: 'canceled' } },
         include: { contractor: true },
@@ -397,7 +400,19 @@ export default async function IssuesPage({
                             </Badge>
                           </td>
                           <td className="p-4 text-muted-foreground text-xs">
-                            {activeJob?.contractor?.companyName || activeJob?.contractor?.name || '—'}
+                            {activeJob?.contractor?.companyName || activeJob?.contractor?.name
+                              ? (activeJob?.contractor?.companyName || activeJob?.contractor?.name)
+                              : issue.dispatches && issue.dispatches.length > 0
+                                ? (() => {
+                                    const total = issue.dispatches.length;
+                                    const replied = issue.dispatches.filter(
+                                      (d) => d.responses && d.responses.length > 0
+                                    ).length;
+                                    return replied > 0
+                                      ? `${replied} replied / ${total} contacted`
+                                      : `${total} contacted`;
+                                  })()
+                                : '—'}
                           </td>
                           <td className="p-4 text-muted-foreground text-xs">
                             {new Date(issue.updatedAt).toLocaleDateString()}

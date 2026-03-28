@@ -1908,5 +1908,40 @@ SESSION: March 28, 2026
 - A2P 10DLC vetting approval (waiting on Twilio) — then re-test SMS
 - 5 remaining guide pages (3 of 8 built, non-blocking)
 - Create separate Stripe account for Maintenance OS (cosmetic)
-- **TEST the full email loop**: dispatch to a real contractor → they reply → verify webhook fires, AI parses, response shows on issue page
+- ~~**TEST the full email loop**: dispatch to a real contractor → they reply → verify webhook fires, AI parses, response shows on issue page~~ ✅ DONE
 - Get first users (Reddit r/landlord, r/propertymanagement, Facebook groups, Product Hunt, etc.)
+
+========================================
+SESSION 5 — March 28, 2026 (evening, continued)
+========================================
+
+### AI reply parsing fix
+- Original parse failed on dispatch MNT-5L243X reply — all parsed fields were null, requiresReview=true
+- Root cause: quoted email thread ("On Mar 28... wrote:" + ">" lines) was confusing the AI parser
+- NOT the API key (key works fine — issue classification uses same model and works)
+- Fix: added `stripQuotedReply()` function in lib/ai/parse-contractor-reply.ts
+  - Strips lines starting with ">" and "On ... wrote:" attribution
+  - Strips "--- Original Message" and "___" dividers
+  - Only sends the contractor's actual new text to AI
+- Added console logging for input/output lengths and raw AI response
+- Created POST /api/issues/[id]/reparse-replies endpoint to retry failed parses
+- After deploy, hit reparse endpoint — AI correctly extracted:
+  - availabilityText: "Tomorrow"
+  - flatEstimate: 450
+  - followUpQuestion: "What is the address and can I park there"
+  - confidenceScore: 0.85
+  - requiresReview: false
+- UI now shows "$450" under Quote Responses for Test Plumber ✅
+
+FILES MODIFIED:
+- lib/ai/parse-contractor-reply.ts — added stripQuotedReply(), logging
+- app/api/issues/[id]/reparse-replies/route.ts — NEW, reparse endpoint
+
+### Full email loop: CONFIRMED WORKING ✅
+1. Dispatch email sent → contractor receives at their email
+2. Contractor replies → Resend receives inbound email
+3. Resend webhook fires → our handler fetches body via REST API
+4. Token-based matching correlates reply to dispatch (MNT-XXXXXX)
+5. Quoted reply chain stripped → AI parses contractor's actual reply
+6. Parsed fields (availability, estimate, follow-up) saved to DB
+7. UI displays "Replied" badge + parsed quote under "Quote Responses"

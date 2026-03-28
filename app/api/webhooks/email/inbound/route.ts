@@ -266,16 +266,9 @@ export async function POST(request: NextRequest) {
       console.error('Failed to update usage metrics (non-fatal):', metricsError);
     }
 
-    // Check if issue should move to 'quotes_received'
-    const allDispatches = await prisma.dispatch.findMany({
-      where: { issueId: issue.id },
-    });
-
-    const allRepliedOrFailed = allDispatches.every((d) =>
-      ['replied', 'failed', 'expired'].includes(d.status)
-    );
-
-    if (allRepliedOrFailed) {
+    // Advance issue to 'quotes_received' on first valid reply
+    // Don't wait for all dispatches — user should see progress immediately
+    if (issue.status === 'awaiting_quotes') {
       await prisma.issue.update({
         where: { id: issue.id },
         data: { status: 'quotes_received' },
@@ -296,13 +289,23 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Create notification
+    // Create notification with parsed details when available
+    let notifBody = `${contractor.name} replied to your request for ${issue.title}`;
+    if (parsedReply?.flatEstimate) {
+      notifBody = `${contractor.name} quoted $${parsedReply.flatEstimate} for ${issue.title}`;
+    } else if (parsedReply?.estimateLow && parsedReply?.estimateHigh) {
+      notifBody = `${contractor.name} quoted $${parsedReply.estimateLow}–$${parsedReply.estimateHigh} for ${issue.title}`;
+    }
+    if (parsedReply?.followUpQuestion) {
+      notifBody += ` — they asked: "${parsedReply.followUpQuestion}"`;
+    }
+
     await prisma.notification.create({
       data: {
         userId: issue.property.ownerUserId,
         type: 'contractor_replied',
-        title: 'Contractor replied',
-        body: `${contractor.name} replied to your request for ${issue.title}`,
+        title: 'New quote received',
+        body: notifBody,
       },
     });
 

@@ -270,32 +270,94 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
                     ? dispatch.responses.map((response) => (
                         <div
                           key={response.id}
-                          className="rounded-xl border border-border p-4"
+                          className="rounded-xl border border-border p-4 space-y-3"
                         >
+                          {/* Header: name + select button */}
                           <div className="flex items-start justify-between">
                             <div>
-                              <h4 className="font-medium">{dispatch.contractor.name}</h4>
-                              {response.availabilityDate && (
-                                <p className="text-sm text-muted-foreground">
-                                  Available: {new Date(response.availabilityDate).toLocaleDateString()}
-                                </p>
+                              <h4 className="font-semibold text-base">{dispatch.contractor.name}</h4>
+                              {dispatch.contractor.companyName && (
+                                <p className="text-sm text-muted-foreground">{dispatch.contractor.companyName}</p>
                               )}
                             </div>
-                            {issue.status === 'quotes_received' && (
-                              <SelectContractorButton
-                                issueId={issue.id}
-                                responseId={response.id}
-                                contractorId={dispatch.contractorId}
-                              />
+                            <div className="flex items-center gap-2">
+                              {response.receivedAt && (
+                                <span className="text-xs text-muted-foreground">
+                                  {new Date(response.receivedAt).toLocaleDateString()} at{' '}
+                                  {new Date(response.receivedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                                </span>
+                              )}
+                              {issue.status === 'quotes_received' && (
+                                <SelectContractorButton
+                                  issueId={issue.id}
+                                  responseId={response.id}
+                                  contractorId={dispatch.contractorId}
+                                />
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Price */}
+                          {(response.flatEstimate || response.estimateLow || response.estimateHigh) && (
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-2xl font-bold">
+                                {response.flatEstimate
+                                  ? `$${Number(response.flatEstimate).toLocaleString()}`
+                                  : response.estimateLow && response.estimateHigh
+                                    ? `$${Number(response.estimateLow).toLocaleString()} – $${Number(response.estimateHigh).toLocaleString()}`
+                                    : response.estimateLow
+                                      ? `From $${Number(response.estimateLow).toLocaleString()}`
+                                      : `Up to $${Number(response.estimateHigh).toLocaleString()}`}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Availability */}
+                          {(response.availabilityText || response.availabilityDate) && (
+                            <div className="flex items-center gap-2 text-sm">
+                              <span className="font-medium text-muted-foreground">Available:</span>
+                              <span>
+                                {response.availabilityText || new Date(response.availabilityDate!).toLocaleDateString()}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Follow-up question */}
+                          {response.followUpQuestion && (
+                            <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
+                              <p className="text-sm font-medium text-amber-800">Contractor question:</p>
+                              <p className="text-sm text-amber-900 mt-1">{response.followUpQuestion}</p>
+                            </div>
+                          )}
+
+                          {/* Notes */}
+                          {response.notes && (
+                            <p className="text-sm text-muted-foreground">{response.notes}</p>
+                          )}
+
+                          {/* Reply actions */}
+                          <div className="flex items-center gap-2 pt-1">
+                            {dispatch.contractor.email && (
+                              <a
+                                href={`mailto:${dispatch.contractor.email}?subject=Re: ${issue.title || 'Maintenance request'}`}
+                                className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                              >
+                                Reply by email
+                              </a>
+                            )}
+                            {dispatch.contractor.phone && (
+                              <a
+                                href={`sms:${dispatch.contractor.phone}`}
+                                className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                              >
+                                Reply by text
+                              </a>
                             )}
                           </div>
-                          {(response.flatEstimate || response.estimateLow || response.estimateHigh) && (
-                            <p className="mt-2 text-lg font-semibold">
-                              ${String(response.flatEstimate || response.estimateLow || response.estimateHigh)}
-                            </p>
-                          )}
-                          {response.notes && (
-                            <p className="mt-2 text-sm text-muted-foreground">{response.notes}</p>
+
+                          {/* Confidence indicator */}
+                          {response.requiresReview && (
+                            <p className="text-xs text-amber-600">This response needs manual review</p>
                           )}
                         </div>
                       ))
