@@ -16,7 +16,7 @@ const isPublicRoute = createRouteMatcher([
   '/pricing',
   '/for-homeowners',
   '/for-landlords',
-  '/guides/(.*)',
+  '/guides(.*)',
   '/contact',
   '/privacy',
   '/terms',
