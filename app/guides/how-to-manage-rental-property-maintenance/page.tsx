@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     'Best practices for collecting tenant requests, dispatching to contractors, and keeping detailed maintenance records across multiple properties.',
   alternates: {
-    canonical: 'https://ifbids.com/guides/how-to-manage-rental-property-maintenance',
+    canonical: '/guides/how-to-manage-rental-property-maintenance',
   },
 };
 

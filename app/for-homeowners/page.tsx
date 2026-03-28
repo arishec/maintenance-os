@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     'Organize home repairs, track contractor quotes, and keep a searchable repair history. The simple maintenance tracker for homeowners.',
   alternates: {
-    canonical: 'https://ifbids.com/for-homeowners',
+    canonical: '/for-homeowners',
   },
 };
 

@@ -49,3 +49,37 @@ IMPLEMENTATION NOTES:
 - Proper Next.js navigation with router.push and router.refresh
 
 All three pages follow the existing API and UI patterns established in the codebase.
+
+---
+
+Maintenance OS Development Session - 2026-03-28
+
+=== CANONICAL URL MIGRATION COMPLETED ===
+
+Changed all hardcoded full canonical URLs to relative paths in metadata alternates across 16 public pages.
+
+CHANGE PATTERN:
+Before: alternates: { canonical: 'https://ifbids.com/pricing' }
+After:  alternates: { canonical: '/pricing' }
+
+FILES UPDATED:
+1. app/pricing/page.tsx → '/pricing'
+2. app/for-homeowners/page.tsx → '/for-homeowners'
+3. app/how-it-works/page.tsx → '/how-it-works'
+4. app/for-landlords/page.tsx → '/for-landlords'
+5. app/contact/page.tsx → '/contact'
+6. app/terms/page.tsx → '/terms'
+7. app/privacy/page.tsx → '/privacy'
+8. app/features/page.tsx → '/features'
+9. app/features/repair-history/page.tsx → '/features/repair-history'
+10. app/features/property-maintenance-tracking/page.tsx → '/features/property-maintenance-tracking'
+11. app/features/contractor-dispatch/page.tsx → '/features/contractor-dispatch'
+12. app/features/quote-comparison/page.tsx → '/features/quote-comparison'
+13. app/features/tenant-intake/page.tsx → '/features/tenant-intake'
+14. app/guides/how-to-compare-contractor-quotes/page.tsx → '/guides/how-to-compare-contractor-quotes'
+15. app/guides/how-to-track-home-repairs/page.tsx → '/guides/how-to-track-home-repairs'
+16. app/guides/how-to-manage-rental-property-maintenance/page.tsx → '/guides/how-to-manage-rental-property-maintenance'
+
+All files had the canonical URL already nested in alternates object, so only the URL value was changed from full domain to relative path. No structural changes needed.
+
+NOTE: app/page.tsx and app/layout.tsx already use relative paths and were not modified.

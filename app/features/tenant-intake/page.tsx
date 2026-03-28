@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     'Provide tenants with simple forms to request maintenance. Collect details systematically and organize requests by property.',
   alternates: {
-    canonical: 'https://ifbids.com/features/tenant-intake',
+    canonical: '/features/tenant-intake',
   },
 };
 

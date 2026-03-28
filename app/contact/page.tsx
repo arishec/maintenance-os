@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: 'Contact Maintenance OS',
   description: 'Get in touch with the Maintenance OS team. Questions about features, pricing, or custom plans?',
   alternates: {
-    canonical: 'https://ifbids.com/contact',
+    canonical: '/contact',
   },
 };
 

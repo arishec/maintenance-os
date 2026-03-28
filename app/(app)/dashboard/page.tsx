@@ -1,8 +1,5 @@
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
-
-export const metadata: Metadata = { robots: { index: false, follow: false } };
 import { requireDbUserOrRedirect } from '@/lib/auth';
 import { LayoutShell } from '@/components/layout-shell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     'Learn the simple 5-step workflow: Report → Classify → Dispatch → Compare → Track. Manage all your maintenance coordination in one place.',
   alternates: {
-    canonical: 'https://ifbids.com/how-it-works',
+    canonical: '/how-it-works',
   },
 };
 

@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: 'Privacy Policy',
   description: 'Maintenance OS Privacy Policy. Learn how we protect your data.',
   alternates: {
-    canonical: 'https://ifbids.com/privacy',
+    canonical: '/privacy',
   },
 };
 

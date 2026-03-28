@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     'Keep a searchable timeline of every repair and maintenance work. Perfect for insurance, resale documentation, and future planning.',
   alternates: {
-    canonical: 'https://ifbids.com/features/repair-history',
+    canonical: '/features/repair-history',
   },
 };
 

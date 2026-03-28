@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     'Learn how to evaluate contractor bids, spot red flags, and choose the best contractor for your repair based on price, timeline, and reliability.',
   alternates: {
-    canonical: 'https://ifbids.com/guides/how-to-compare-contractor-quotes',
+    canonical: '/guides/how-to-compare-contractor-quotes',
   },
 };
 

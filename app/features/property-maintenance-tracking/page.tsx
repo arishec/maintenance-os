@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     'Track every maintenance issue per property. Report problems, classify them by type, and monitor progress from initial report through completion.',
   alternates: {
-    canonical: 'https://ifbids.com/features/property-maintenance-tracking',
+    canonical: '/features/property-maintenance-tracking',
   },
 };
 

@@ -1,8 +1,5 @@
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Prisma, IssueCategory, Urgency } from '@prisma/client';
-
-export const metadata: Metadata = { robots: { index: false, follow: false } };
 import { prisma } from '@/lib/prisma';
 import { requireDbUserOrRedirect } from '@/lib/auth';
 import { LayoutShell } from '@/components/layout-shell';

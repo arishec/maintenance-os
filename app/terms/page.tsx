@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: 'Terms of Service',
   description: 'Maintenance OS Terms of Service. Read our terms and conditions.',
   alternates: {
-    canonical: 'https://ifbids.com/terms',
+    canonical: '/terms',
   },
 };
 

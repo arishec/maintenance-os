@@ -36,6 +36,18 @@ export async function PublicLayout({ children }: { children: React.ReactNode }) 
               Pricing
             </Link>
             <Link
+              href="/for-homeowners"
+              className="text-gray-700 hover:text-gray-900 transition-colors"
+            >
+              Homeowners
+            </Link>
+            <Link
+              href="/for-landlords"
+              className="text-gray-700 hover:text-gray-900 transition-colors"
+            >
+              Landlords
+            </Link>
+            <Link
               href="/guides/how-to-track-home-repairs"
               className="text-gray-700 hover:text-gray-900 transition-colors"
             >

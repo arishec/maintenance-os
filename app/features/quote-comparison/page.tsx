@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     'Compare multiple contractor quotes side by side. See prices, timelines, and contractor details at a glance to make informed decisions.',
   alternates: {
-    canonical: 'https://ifbids.com/features/quote-comparison',
+    canonical: '/features/quote-comparison',
   },
 };
 

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     'Discover how Maintenance OS simplifies property maintenance with issue tracking, contractor dispatch, quote comparison, repair history, and tenant intake.',
   alternates: {
-    canonical: 'https://ifbids.com/features',
+    canonical: '/features',
   },
 };
 

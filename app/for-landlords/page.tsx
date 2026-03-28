@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     'Manage maintenance across multiple rental properties. Dispatch to contractors, collect tenant requests, and maintain detailed repair records.',
   alternates: {
-    canonical: 'https://ifbids.com/for-landlords',
+    canonical: '/for-landlords',
   },
 };
 

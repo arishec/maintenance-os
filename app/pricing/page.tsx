@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     'Simple, transparent pricing. Start free, pay only for SMS dispatches you use. No contracts, no hidden fees.',
   alternates: {
-    canonical: 'https://ifbids.com/pricing',
+    canonical: '/pricing',
   },
 };
 

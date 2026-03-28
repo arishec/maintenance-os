@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     'A practical guide to organizing home maintenance, keeping records, and building a complete repair history for your home.',
   alternates: {
-    canonical: 'https://ifbids.com/guides/how-to-track-home-repairs',
+    canonical: '/guides/how-to-track-home-repairs',
   },
 };
 

@@ -2,7 +2,7 @@ import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import { ClerkProvider } from '@clerk/nextjs';
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ifbids.com';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ifbids.com';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

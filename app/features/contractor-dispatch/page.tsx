@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     'Dispatch maintenance requests to contractors via SMS and email with one click. Get quick responses without phone calls or endless emails.',
   alternates: {
-    canonical: 'https://ifbids.com/features/contractor-dispatch',
+    canonical: '/features/contractor-dispatch',
   },
 };
 
