@@ -1751,3 +1751,100 @@ Focus: Final review fixes from launch checklist
 - Layout shell active states — already working
 - "Dashboard" duplication — already fixed in previous session
 - No new features added per review doc advice
+
+========================================
+SESSION 22c - March 28, 2026
+Full E2E testing + SMS fix
+========================================
+
+### Testing completed (browser-based via Chrome MCP):
+- Homepage loads, nav links work, active states highlight correctly
+- Dashboard loads after Clerk auth
+- Created test property and contractor
+- Created issue with AI classification (plumbing → emergency priority)
+- Paywall modal triggered correctly at issue limit and dispatch
+- Stripe checkout redirect works (cs_live_ session ID confirmed)
+- Stripe webhook processed (200 response in Vercel logs)
+- Pro plan upgrade confirmed (dispatch page loaded without paywall)
+- Dispatch sent (201 response, status → awaiting_quotes)
+
+### Bug found and fixed:
+- **SMS not delivering**: Phone numbers stored as "2152852211" but Twilio requires E.164 format "+12152852211"
+- **Fix**: Added `normalizeToE164()` helper in `lib/twilio.ts` that strips non-digits and prepends +1 for 10-digit US numbers
+- Committed and pushed: `fix: normalize phone numbers to E.164 format for Twilio SMS delivery`
+
+### Post-fix verification (Session 22d - March 28, 2026):
+- E.164 fix deployed (dpl_6VQM5eNvvKjv7krHM3GJ5TereXkY, state: READY)
+- **SMS re-test**: Dispatched "AC Unit Blowing Warm Air" issue via SMS → 201, zero errors in Vercel logs (17:32:20)
+- **Email test**: Dispatched "Garage Door Stops Halfway and Reverses" issue via Email → 201, zero errors in Vercel logs (17:34:56)
+- Both issues transitioned to "Awaiting Quotes" status correctly
+- All 3 issues now dispatched and in awaiting_quotes state
+
+### Additional fixes (all deployed):
+- **Reply-to on emails**: Added `replyTo` param to `sendRepairRequestEmail` in `lib/resend.ts`
+  - Dispatch route (`app/api/issues/[id]/dispatch/route.ts`) now passes `user.email` as replyTo
+  - Contractors can reply to dispatch emails and it goes to the property owner's email
+- **From address updated**: Changed `RESEND_FROM_EMAIL` env var in Vercel from `noreply@ifbids.com` to `Maintenance OS <repairs@ifbids.com>`
+  - This was done via Vercel Dashboard → Settings → Environment Variables
+  - Emails now show "Maintenance OS" as sender name with repairs@ifbids.com address
+  - Requires redeploy to take effect (will happen on next git push or manual redeploy)
+- **E.164 phone normalization**: `normalizeToE164()` in `lib/twilio.ts` converts "2152852211" → "+12152852211"
+
+### A2P 10DLC Registration (completed in Twilio console):
+- Campaign type: Sole Proprietor ($2/month)
+- Campaign ID: CM4b5789e18e143087dde3880af6c7c41e
+- Brand: Maintenance OS (BN6cd9730f2b79d5b5cc4db9067b2349b0)
+- Phone number registered: +14788126475
+- Campaign description: Transactional SMS notifications to contractors for repair requests
+- Privacy Policy URL: https://ifbids.com/privacy
+- Terms URL: https://ifbids.com/terms
+- Status: PENDING VETTING — SMS will not deliver to US numbers until approved
+- Approval typically takes hours to a few days for sole proprietor campaigns
+
+### Email dispatch confirmed working:
+- Contractor received email from noreply@ifbids.com (will be repairs@ifbids.com after redeploy)
+- Subject: "Repair request [Ref: MNT-J93M9E] — Garage Door Stops Halfway and Reverses"
+- Body includes: reference number, property name, issue title, description, reply instructions
+- Email delivered to ashechtman@icloud.com (test contractor)
+
+### SMS dispatch status:
+- API accepts messages (201 response, no errors in Vercel logs)
+- Twilio accepts the message with E.164 formatted number
+- Carriers BLOCK delivery due to unregistered A2P 10DLC
+- Will auto-resolve once campaign vetting is approved — no code changes needed
+
+### Stripe situation:
+- Stripe account is SHARED between ColdPitch and Maintenance OS
+- Checkout page shows "ColdPitch.ai" branding — this is cosmetic only, everything works
+- To fix: create a separate Stripe account for Maintenance OS and swap these 3 env vars:
+  - STRIPE_SECRET_KEY
+  - STRIPE_PRO_PRICE_ID
+  - STRIPE_WEBHOOK_SECRET
+- This is NOT urgent — app functions correctly as-is
+
+### Files modified in this session:
+1. `lib/twilio.ts` — Added normalizeToE164() helper, used in sendRepairRequestSms
+2. `lib/resend.ts` — Added optional replyTo param to sendRepairRequestEmail
+3. `app/api/issues/[id]/dispatch/route.ts` — Passes user.email as replyTo for email dispatches
+4. `claude-notes.txt` — This file
+
+### Current production state (all deployed & working):
+- Homepage + all public pages ✓
+- Clerk auth (sign-up, sign-in, user sync) ✓
+- Dashboard with nav active states ✓
+- Property CRUD ✓
+- Contractor CRUD ✓
+- Issue creation with AI classification ✓
+- Photo upload on issues ✓
+- Paywall enforcement (3 free issues, dispatch requires Pro) ✓
+- Stripe checkout + webhook + Pro upgrade ✓
+- Email dispatch to contractors ✓ (working, confirmed delivered)
+- SMS dispatch to contractors ✓ (code working, blocked by A2P vetting)
+- Reply-to on dispatch emails ✓ (deployed)
+- From address: Maintenance OS <repairs@ifbids.com> ✓ (env var updated, needs redeploy)
+
+### Remaining backlog:
+- Build 5 remaining guide pages (non-blocking, from previous sessions)
+- Re-test SMS after A2P 10DLC vetting is approved
+- Create separate Stripe account for Maintenance OS (cosmetic, not urgent)
+- Redeploy to pick up new RESEND_FROM_EMAIL value (or push any code change)
