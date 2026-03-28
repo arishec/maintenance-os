@@ -18,7 +18,7 @@ export async function POST(
 
     // Get the issue and its dispatches with responses
     const issue = await prisma.issue.findFirst({
-      where: { id: issueId, userId: user.id },
+      where: { id: issueId, property: { ownerUserId: user.id } },
       include: {
         dispatches: {
           include: {
