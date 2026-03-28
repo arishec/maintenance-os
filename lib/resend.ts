@@ -23,3 +23,9 @@ export async function sendRepairRequestEmail(to: string, subject: string, html: 
     ...(replyTo ? { reply_to: replyTo } : {}),
   });
 }
+
+/** Fetch a received (inbound) email's full content by ID */
+export async function getReceivedEmail(emailId: string) {
+  const client = getResendClient();
+  return (client.emails as any).receiving.get(emailId);
+}

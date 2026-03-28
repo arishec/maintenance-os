@@ -1848,3 +1848,65 @@ Full E2E testing + SMS fix
 - Re-test SMS after A2P 10DLC vetting is approved
 - Create separate Stripe account for Maintenance OS (cosmetic, not urgent)
 - Redeploy to pick up new RESEND_FROM_EMAIL value (or push any code change)
+
+========================================
+SESSION: March 28, 2026
+========================================
+
+### What was done this session:
+
+1. **Checked production status after break**
+   - A2P 10DLC vetting: still pending (no action needed)
+   - Deployment health: confirmed working
+
+2. **Vercel Analytics setup**
+   - Installed `@vercel/analytics` package
+   - Added `<Analytics />` component to `app/layout.tsx` inside ClerkProvider
+   - Confirmed working: dashboard shows visitor/pageview data
+   - Commit: `fe79a45 add Vercel Analytics`
+
+3. **npm security vulnerabilities fixed**
+   - Ran `npm audit fix --legacy-peer-deps` (fixed `effect` dep)
+   - Ran `npm audit fix --force --legacy-peer-deps` (upgraded Next.js 15.2.6 → 15.5.14)
+   - Patched 4 high-severity CVEs in Next.js (image optimization, middleware, SSR)
+   - 3 remaining vulns are all in Prisma's `effect` dependency — out of our control
+
+4. **Stripe build failure from Next.js upgrade — FIXED**
+   - Next.js 15.5.14 evaluates modules differently during static page collection
+   - `export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)` crashed at build time (env vars unavailable)
+   - Fix: rewrote `lib/stripe.ts` to lazy singleton pattern with `getStripe()` function
+   - Updated `app/api/stripe/checkout/route.ts` and `app/api/stripe/webhook/route.ts` to use `getStripe()`
+   - Commit: `7dda49c fix: lazy Stripe init + Next.js security update to 15.5.14`
+
+5. **CRITICAL FIX: Email reply routing gap**
+   - **Problem**: Contractor replies went to user's personal email (ashechtman@icloud.com) instead of back into the app
+   - This completely broke the core product loop — no webhook hit, no AI parsing, no ContractorResponse record
+   - **Root cause**: `dispatch/route.ts` was passing `user.email` as the reply-to address
+   - **Fix**: Changed reply-to from `user.email` to `replies+${replyToken}@ifbids.com`
+   - This means each dispatch gets a unique reply-to like `replies+MNT-7F4K2Q@ifbids.com`
+   - Also updated `webhooks/email/inbound/route.ts` to extract token from `to` field (in addition to subject and body)
+   - Commits: `bb5f9f5` and `6b1a38c`
+
+### Files modified this session:
+1. `app/layout.tsx` — Added Vercel Analytics import and component
+2. `lib/stripe.ts` — Rewrote to lazy singleton pattern (`getStripe()`)
+3. `app/api/stripe/checkout/route.ts` — Updated to use `getStripe()`
+4. `app/api/stripe/webhook/route.ts` — Updated to use `getStripe()`
+5. `app/api/issues/[id]/dispatch/route.ts` — Changed reply-to from `user.email` to `replies+${replyToken}@ifbids.com`
+6. `app/api/webhooks/email/inbound/route.ts` — Added `to` field extraction, included in token search text
+7. `package.json` / `package-lock.json` — Next.js 15.5.14, @vercel/analytics
+
+### Current production state:
+- All previous features still working ✓
+- Vercel Analytics tracking visitors ✓
+- Next.js 15.5.14 with security patches ✓
+- Stripe lazy init (build-safe) ✓
+- Tokenized reply-to addresses for email dispatch ✓ (deterministic routing)
+- Email reply → webhook → AI parse → display loop should now work end-to-end ✓
+
+### Remaining backlog:
+- A2P 10DLC vetting approval (waiting on Twilio) — then re-test SMS
+- 5 remaining guide pages (3 of 8 built, non-blocking)
+- Create separate Stripe account for Maintenance OS (cosmetic)
+- **TEST the full email loop**: dispatch to a real contractor → they reply → verify webhook fires, AI parses, response shows on issue page
+- Get first users (Reddit r/landlord, r/propertymanagement, Facebook groups, Product Hunt, etc.)
