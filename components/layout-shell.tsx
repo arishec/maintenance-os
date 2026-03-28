@@ -29,6 +29,8 @@ export function LayoutShell({ children }: { children: ReactNode }) {
     { href: '/features', label: 'Features' },
     { href: '/how-it-works', label: 'How It Works' },
     { href: '/pricing', label: 'Pricing' },
+    { href: '/for-homeowners', label: 'Homeowners' },
+    { href: '/for-landlords', label: 'Landlords' },
     { href: '/guides', label: 'Guides' },
   ];
 
@@ -36,30 +38,32 @@ export function LayoutShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-background text-foreground">
       {/* Top nav bar — marketing links (visible on all screen sizes) */}
       <div className="border-b border-border bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2.5 lg:px-8">
-          <div className="flex items-center gap-6">
-            <Link href="/" className="text-lg font-semibold hover:opacity-80 transition-opacity">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 lg:px-8">
+          <div className="flex items-center gap-8">
+            <Link href="/" className="text-lg font-semibold hover:opacity-80 cursor-pointer transition-opacity">
               Maintenance OS
             </Link>
-            <nav className="hidden md:flex items-center gap-5">
-              {marketingLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {link.label}
-                </Link>
-              ))}
+            <nav className="hidden md:flex items-center gap-6">
+              {marketingLinks.map((link) => {
+                const isActive = pathname === link.href || pathname?.startsWith(link.href + '/');
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`text-sm transition-colors ${
+                      isActive
+                        ? 'font-semibold text-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
             </nav>
           </div>
           <div className="flex items-center gap-3">
-            <Link
-              href="/dashboard"
-              className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
-            >
-              Dashboard
-            </Link>
+            <UserButton afterSignOutUrl="/" />
           </div>
         </div>
       </div>
