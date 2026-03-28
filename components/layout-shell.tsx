@@ -4,7 +4,7 @@ import { useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { UserButton } from '@clerk/nextjs';
-import { ClipboardList, Clock, HardHat, House, LayoutDashboard, Menu, Plus, Settings, X } from 'lucide-react';
+import { ClipboardList, Clock, HardHat, House, LayoutDashboard, Menu, Plus, Settings, X, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NotificationsBell } from '@/components/notifications-bell';
 
@@ -25,8 +25,45 @@ export function LayoutShell({ children }: { children: ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
+  const marketingLinks = [
+    { href: '/features', label: 'Features' },
+    { href: '/how-it-works', label: 'How It Works' },
+    { href: '/pricing', label: 'Pricing' },
+    { href: '/guides', label: 'Guides' },
+  ];
+
   return (
     <div className="min-h-screen bg-background text-foreground">
+      {/* Top nav bar — marketing links (visible on all screen sizes) */}
+      <div className="border-b border-border bg-white">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2.5 lg:px-8">
+          <div className="flex items-center gap-6">
+            <Link href="/" className="text-lg font-semibold hover:opacity-80 transition-opacity">
+              Maintenance OS
+            </Link>
+            <nav className="hidden md:flex items-center gap-5">
+              {marketingLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/dashboard"
+              className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+            >
+              Dashboard
+            </Link>
+          </div>
+        </div>
+      </div>
+
       {/* Mobile top bar */}
       <div className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-white px-4 py-3 lg:hidden">
         <div className="flex items-center gap-3">
@@ -101,7 +138,24 @@ export function LayoutShell({ children }: { children: ReactNode }) {
               })}
             </nav>
 
-            <div className="mt-6 border-t border-border pt-4 px-2 flex items-center justify-between gap-2">
+            <div className="mt-4 border-t border-border pt-4">
+              <div className="px-1 mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Explore
+              </div>
+              {marketingLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted transition-colors"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+
+            <div className="mt-4 border-t border-border pt-4 px-2 flex items-center justify-between gap-2">
               <NotificationsBell />
               <UserButton afterSignOutUrl="/" />
             </div>
