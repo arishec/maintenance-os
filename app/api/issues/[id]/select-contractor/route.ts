@@ -4,6 +4,8 @@ import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { logTimelineEvent } from '@/lib/timeline';
 import { createNotification } from '@/lib/notifications';
+import { sendRepairRequestEmail } from '@/lib/resend';
+import { sendRepairRequestSms } from '@/lib/twilio';
 
 const selectContractorSchema = z.object({
   responseId: z.string().uuid(),
@@ -129,7 +131,7 @@ export async function POST(
       },
     });
 
-    // 7. Create notification
+    // 7. Create notification for owner
     const priceStr = agreedPrice ? `$${Number(agreedPrice).toLocaleString()}` : '';
     await createNotification({
       userId: user.id,
@@ -137,6 +139,42 @@ export async function POST(
       title: 'Contractor selected',
       body: `You selected ${contractor.name}${priceStr ? ` (${priceStr})` : ''} for ${issue.title || 'a maintenance issue'}`,
     });
+
+    // 8. Notify the contractor they got the job
+    const propertyAddress = issue.property.addressLine1
+      ? `${issue.property.addressLine1}${issue.property.city ? `, ${issue.property.city}` : ''}`
+      : issue.property.nickname || 'the property';
+
+    const confirmationMsg = [
+      `Hi ${contractor.name}, you've been selected for a job: ${issue.title || 'Maintenance request'}.`,
+      `Location: ${propertyAddress}.`,
+      priceStr ? `Agreed quote: ${priceStr}.` : '',
+      `The property owner will be in touch about scheduling.`,
+    ].filter(Boolean).join('\n');
+
+    try {
+      const dispatch = selectedResponse.dispatch;
+      if (dispatch.channel === 'sms' && contractor.phone) {
+        await sendRepairRequestSms(contractor.phone, confirmationMsg);
+      } else if (contractor.email) {
+        await sendRepairRequestEmail(
+          contractor.email,
+          `You've been selected: ${issue.title || 'Maintenance request'}`,
+          `<div style="font-family: sans-serif; font-size: 14px; line-height: 1.6;">
+            <p>Hi ${contractor.name},</p>
+            <p>You've been selected for a job: <strong>${issue.title || 'Maintenance request'}</strong>.</p>
+            <p><strong>Location:</strong> ${propertyAddress}</p>
+            ${priceStr ? `<p><strong>Agreed quote:</strong> ${priceStr}</p>` : ''}
+            <p>The property owner will be in touch about scheduling.</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 16px 0;">
+            <p style="color: #888; font-size: 12px;">Sent via Maintenance OS</p>
+          </div>`
+        );
+      }
+    } catch (notifyErr) {
+      // Don't fail the selection if contractor notification fails
+      console.error('Failed to notify contractor of selection:', notifyErr);
+    }
 
     return NextResponse.json({ job }, { status: 201 });
   } catch (error) {
