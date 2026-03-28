@@ -7,6 +7,16 @@ export async function POST() {
   try {
     const user = await requireDbUser();
 
+    // Guard: don't let already-Pro users create duplicate checkout sessions
+    if (user.plan === 'pro') {
+      return NextResponse.json(
+        { error: 'ALREADY_PRO', message: 'You already have an active Pro plan.' },
+        { status: 400 }
+      );
+    }
+
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://ifbids.com';
+
     // If user already has a Stripe customer ID, reuse it
     let customerId = user.stripeCustomerId;
 
@@ -32,8 +42,8 @@ export async function POST() {
           quantity: 1,
         },
       ],
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?upgraded=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
+      success_url: `${siteUrl}/dashboard?upgraded=true`,
+      cancel_url: `${siteUrl}/pricing`,
       subscription_data: {
         metadata: { userId: user.id },
       },

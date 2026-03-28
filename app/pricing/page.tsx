@@ -205,7 +205,7 @@ export default function PricingPage() {
             <div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">What&apos;s included in contractor dispatch?</h3>
               <p className="text-gray-600">
-                Pro includes unlimited SMS and email dispatches to your contractors. Send repair requests, get quotes back, and compare responses — all in one place.
+                Pro includes SMS and email dispatch to your contractors. Send repair requests, get quotes back, and compare responses — all in one place.
               </p>
             </div>
           </div>

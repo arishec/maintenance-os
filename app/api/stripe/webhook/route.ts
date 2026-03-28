@@ -3,6 +3,42 @@ import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 import type Stripe from 'stripe';
 
+/**
+ * Resolve the user associated with a Stripe subscription.
+ * Tries metadata first, then falls back to stripeSubscriptionId, then stripeCustomerId.
+ */
+async function resolveUserForSubscription(subscription: Stripe.Subscription) {
+  // 1. Try subscription metadata
+  const metadataUserId = subscription.metadata?.userId;
+  if (metadataUserId) {
+    const user = await prisma.user.findUnique({
+      where: { id: metadataUserId },
+    });
+    if (user) return user;
+  }
+
+  // 2. Fallback: find by stripeSubscriptionId
+  const bySubscription = await prisma.user.findFirst({
+    where: { stripeSubscriptionId: subscription.id },
+  });
+  if (bySubscription) return bySubscription;
+
+  // 3. Fallback: find by stripeCustomerId
+  const customerId =
+    typeof subscription.customer === 'string'
+      ? subscription.customer
+      : (subscription.customer as Stripe.Customer)?.id;
+
+  if (customerId) {
+    const byCustomer = await prisma.user.findFirst({
+      where: { stripeCustomerId: customerId },
+    });
+    if (byCustomer) return byCustomer;
+  }
+
+  return null;
+}
+
 export async function POST(request: NextRequest) {
   const body = await request.text();
   const signature = request.headers.get('stripe-signature');
@@ -32,11 +68,17 @@ export async function POST(request: NextRequest) {
         const userId = session.metadata?.userId;
 
         if (userId && session.subscription) {
+          const customerId =
+            typeof session.customer === 'string'
+              ? session.customer
+              : (session.customer as Stripe.Customer)?.id;
+
           await prisma.user.update({
             where: { id: userId },
             data: {
               plan: 'pro',
               stripeSubscriptionId: session.subscription as string,
+              ...(customerId ? { stripeCustomerId: customerId } : {}),
             },
           });
           console.log(`User ${userId} upgraded to pro`);
@@ -46,35 +88,39 @@ export async function POST(request: NextRequest) {
 
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription;
-        const userId = subscription.metadata?.userId;
+        const user = await resolveUserForSubscription(subscription);
 
-        if (userId) {
+        if (user) {
           const isActive = ['active', 'trialing'].includes(subscription.status);
           await prisma.user.update({
-            where: { id: userId },
+            where: { id: user.id },
             data: {
               plan: isActive ? 'pro' : 'free',
               stripeSubscriptionId: subscription.id,
             },
           });
-          console.log(`User ${userId} subscription updated: ${subscription.status} -> plan: ${isActive ? 'pro' : 'free'}`);
+          console.log(`User ${user.id} subscription updated: ${subscription.status} -> plan: ${isActive ? 'pro' : 'free'}`);
+        } else {
+          console.error(`Could not resolve user for subscription ${subscription.id}`);
         }
         break;
       }
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription;
-        const userId = subscription.metadata?.userId;
+        const user = await resolveUserForSubscription(subscription);
 
-        if (userId) {
+        if (user) {
           await prisma.user.update({
-            where: { id: userId },
+            where: { id: user.id },
             data: {
               plan: 'free',
               stripeSubscriptionId: null,
             },
           });
-          console.log(`User ${userId} subscription cancelled, reverted to free`);
+          console.log(`User ${user.id} subscription cancelled, reverted to free`);
+        } else {
+          console.error(`Could not resolve user for deleted subscription ${subscription.id}`);
         }
         break;
       }
