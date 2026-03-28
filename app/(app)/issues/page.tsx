@@ -376,15 +376,30 @@ export default async function IssuesPage({
                   <tbody>
                     {issues.map((issue) => {
                       const activeJob = issue.jobs[0];
+                      const totalDispatches = issue.dispatches?.length ?? 0;
+                      const totalReplies = issue.dispatches?.reduce(
+                        (sum, d) => sum + (d.responses?.length ?? 0), 0
+                      ) ?? 0;
+
+                      // Status subtext
+                      let statusSub = '';
+                      if (issue.status === 'quotes_received' && totalReplies > 0) {
+                        statusSub = `${totalReplies} response${totalReplies !== 1 ? 's' : ''}`;
+                      } else if (issue.status === 'awaiting_quotes' && totalDispatches > 0) {
+                        statusSub = 'Waiting on replies';
+                      }
+
                       return (
-                        <tr key={issue.id} className="border-b border-border hover:bg-muted/30 transition-colors">
+                        <tr key={issue.id} className="border-b border-border hover:bg-muted/30 transition-colors cursor-pointer" onClick={undefined}>
                           <td className="p-4">
                             <Link href={`/issues/${issue.id}`} className="font-medium hover:underline">
                               {issue.title || 'Untitled Issue'}
                             </Link>
                           </td>
                           <td className="p-4 text-muted-foreground">
-                            {issue.property.nickname || issue.property.addressLine1 || 'Unnamed'}
+                            <Link href={`/issues/${issue.id}`} className="hover:underline">
+                              {issue.property.nickname || issue.property.addressLine1 || 'Unnamed'}
+                            </Link>
                           </td>
                           <td className="p-4">
                             <Badge className="border-slate-200 bg-slate-50 text-slate-700">
@@ -397,23 +412,22 @@ export default async function IssuesPage({
                             </Badge>
                           </td>
                           <td className="p-4">
-                            <Badge className={statusColor(issue.status)}>
-                              {STATUS_DISPLAY[issue.status] || issue.status}
-                            </Badge>
+                            <div>
+                              <Badge className={statusColor(issue.status)}>
+                                {STATUS_DISPLAY[issue.status] || issue.status}
+                              </Badge>
+                              {statusSub && (
+                                <p className="text-xs text-muted-foreground mt-1">{statusSub}</p>
+                              )}
+                            </div>
                           </td>
                           <td className="p-4 text-muted-foreground text-xs">
                             {activeJob?.contractor?.companyName || activeJob?.contractor?.name
                               ? (activeJob?.contractor?.companyName || activeJob?.contractor?.name)
-                              : issue.dispatches && issue.dispatches.length > 0
-                                ? (() => {
-                                    const total = issue.dispatches.length;
-                                    const replied = issue.dispatches.filter(
-                                      (d) => d.responses && d.responses.length > 0
-                                    ).length;
-                                    return replied > 0
-                                      ? `${replied} replied / ${total} contacted`
-                                      : `${total} contacted`;
-                                  })()
+                              : totalDispatches > 0
+                                ? totalReplies > 0
+                                  ? `${totalReplies} replied / ${totalDispatches} contacted`
+                                  : `${totalDispatches} contacted`
                                 : '—'}
                           </td>
                           <td className="p-4 text-muted-foreground text-xs">

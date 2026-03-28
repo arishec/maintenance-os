@@ -32,11 +32,18 @@ export default async function DashboardPage() {
     }),
   ]);
 
-  const stats: Array<{ label: string; value: number; href: string; highlight?: boolean }> = [
-    { label: 'Open issues', value: openIssues, href: '/issues?view=open' },
-    { label: 'Awaiting quotes', value: awaitingQuotes, href: '/issues?view=awaiting_quotes' },
-    { label: 'Quotes received', value: quotesReceived, href: '/issues?view=quotes_received', highlight: quotesReceived > 0 },
-    { label: 'Active jobs', value: activeJobs, href: '/issues?view=active_jobs' },
+  const stats: Array<{ label: string; subtext: string; value: number; href: string; highlight?: boolean; badge?: string }> = [
+    { label: 'Open issues', subtext: 'Issues that need attention', value: openIssues, href: '/issues?view=open' },
+    { label: 'Awaiting quotes', subtext: 'Waiting on contractor responses', value: awaitingQuotes, href: '/issues?view=awaiting_quotes' },
+    {
+      label: 'Quotes received',
+      subtext: 'Ready for you to review',
+      value: quotesReceived,
+      href: '/issues?view=quotes_received',
+      highlight: quotesReceived > 0,
+      badge: quotesReceived > 0 ? `${quotesReceived} new response${quotesReceived !== 1 ? 's' : ''}` : undefined,
+    },
+    { label: 'Active jobs', subtext: 'Work currently in progress', value: activeJobs, href: '/issues?view=active_jobs' },
   ];
 
   return (
@@ -57,15 +64,18 @@ export default async function DashboardPage() {
               <Card className={`cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 ${
                 stat.highlight ? 'border-green-300 bg-green-50' : ''
               }`}>
-                <CardHeader>
+                <CardHeader className="pb-1">
                   <CardTitle className={`text-sm ${stat.highlight ? 'text-green-700' : 'text-muted-foreground'}`}>
                     {stat.label}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-1">
                   <div className={`text-3xl font-semibold ${stat.highlight ? 'text-green-800' : ''}`}>
                     {stat.value}
                   </div>
+                  <p className={`text-xs ${stat.highlight ? 'text-green-600' : 'text-muted-foreground/70'}`}>
+                    {stat.badge || stat.subtext}
+                  </p>
                 </CardContent>
               </Card>
             </Link>
@@ -110,7 +120,7 @@ export default async function DashboardPage() {
             <Card>
               <CardContent className="divide-y divide-border">
                 {notifications.length === 0 ? (
-                  <p className="py-4 text-center text-sm text-muted-foreground">No new notifications.</p>
+                  <p className="py-4 text-center text-sm text-muted-foreground">No new activity yet.</p>
                 ) : (
                   notifications.map((n) => (
                     <div key={n.id} className="py-3">

@@ -117,6 +117,24 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
 
+        {/* Decision Banner */}
+        {issue.status === 'quotes_received' && issue.dispatches?.some(d => d.responses?.length > 0) && (() => {
+          const totalResponses = issue.dispatches.reduce((sum, d) => sum + (d.responses?.length ?? 0), 0);
+          return (
+            <div className="rounded-lg border border-green-200 bg-green-50 p-4 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-green-800">
+                  You have {totalResponses} contractor response{totalResponses !== 1 ? 's' : ''} — choose who to hire
+                </p>
+                <p className="text-xs text-green-700 mt-0.5">Review the quotes below and select a contractor to get started.</p>
+              </div>
+              <a href="#quotes" className="text-sm font-medium text-green-700 hover:text-green-900 hover:underline flex-shrink-0">
+                View quotes
+              </a>
+            </div>
+          );
+        })()}
+
         {/* AI Classification Section */}
         {(issue.category || issue.reasoningSummary) ? (
           <Card>
@@ -262,15 +280,25 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
 
         {/* Responses/Quotes Section */}
         {issue.dispatches &&
-          issue.dispatches.some((d) => d.responses && d.responses.length > 0) && (
-            <Card>
+          issue.dispatches.some((d) => d.responses && d.responses.length > 0) && (() => {
+            // Flatten and sort by lowest price first
+            const allResponses = issue.dispatches
+              .flatMap((dispatch) =>
+                (dispatch.responses || []).map((response) => ({ dispatch, response }))
+              )
+              .sort((a, b) => {
+                const priceA = Number(a.response.flatEstimate || a.response.estimateLow || a.response.estimateHigh) || Infinity;
+                const priceB = Number(b.response.flatEstimate || b.response.estimateLow || b.response.estimateHigh) || Infinity;
+                return priceA - priceB;
+              });
+
+            return (
+            <Card id="quotes">
               <CardHeader>
                 <CardTitle className="text-lg">Quote Responses</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {issue.dispatches.map((dispatch) =>
-                  dispatch.responses && dispatch.responses.length > 0
-                    ? dispatch.responses.map((response) => (
+                {allResponses.map(({ dispatch, response }) => (
                         <div
                           key={response.id}
                           className="rounded-xl border border-border p-4 space-y-3"
@@ -363,12 +391,11 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
                             <p className="text-xs text-amber-600">This response needs manual review</p>
                           )}
                         </div>
-                      ))
-                    : null
-                )}
+                      ))}
               </CardContent>
             </Card>
-          )}
+            );
+          })()}
 
         {/* Jobs Section */}
         {issue.jobs && issue.jobs.length > 0 && (

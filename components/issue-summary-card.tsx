@@ -15,6 +15,18 @@ const STATUS_LABELS: Record<string, string> = {
   archived: 'Archived',
 };
 
+const NEXT_ACTION: Record<string, string> = {
+  new: 'Classify this issue to get started',
+  classified: 'Send to contractors for quotes',
+  awaiting_dispatch: 'Send to contractors for quotes',
+  awaiting_quotes: 'Waiting for contractor responses',
+  quotes_received: 'Review quotes and select a contractor',
+  contractor_selected: 'Contractor selected — awaiting schedule',
+  scheduled: 'Job is scheduled',
+  in_progress: 'Work is in progress',
+  completed: 'Job complete',
+};
+
 const CATEGORY_LABELS: Record<string, string> = {
   plumbing: 'Plumbing',
   electrical: 'Electrical',
@@ -70,13 +82,14 @@ export function IssueSummaryCard(props: {
 }) {
   const hasReplies = (props.replyCount ?? 0) > 0;
   const statusLabel = STATUS_LABELS[props.status] || props.status;
+  const nextAction = NEXT_ACTION[props.status] || null;
 
-  // Build status subtext
-  let statusSubtext: string | null = null;
+  // Build status detail
+  let statusDetail: string | null = null;
   if (props.status === 'quotes_received' && hasReplies) {
-    statusSubtext = `${props.replyCount} response${props.replyCount !== 1 ? 's' : ''} received`;
+    statusDetail = `${props.replyCount} response${props.replyCount !== 1 ? 's' : ''} received`;
   } else if (props.status === 'awaiting_quotes' && (props.dispatchCount ?? 0) > 0) {
-    statusSubtext = `${props.dispatchCount} contacted`;
+    statusDetail = `${props.dispatchCount} contacted`;
   }
 
   return (
@@ -99,12 +112,12 @@ export function IssueSummaryCard(props: {
       </CardHeader>
       <CardContent className="space-y-2">
         <p className="text-sm text-muted-foreground line-clamp-2">{props.description}</p>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Badge className={statusColor(props.status)}>
             {statusLabel}
           </Badge>
-          {statusSubtext && (
-            <span className="text-xs text-muted-foreground">{statusSubtext}</span>
+          {statusDetail && (
+            <span className="text-xs text-muted-foreground">{statusDetail}</span>
           )}
           {hasReplies && props.status !== 'quotes_received' && (
             <Badge className="bg-blue-100 text-blue-800 border-blue-200 text-xs">
@@ -112,6 +125,9 @@ export function IssueSummaryCard(props: {
             </Badge>
           )}
         </div>
+        {nextAction && (
+          <p className="text-xs text-muted-foreground/80 italic">{nextAction}</p>
+        )}
       </CardContent>
     </Card>
   );

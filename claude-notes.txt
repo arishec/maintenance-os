@@ -1967,3 +1967,73 @@ FILES MODIFIED:
 - 5 remaining guide pages (3 of 8 built, non-blocking)
 - Create separate Stripe account for Maintenance OS (cosmetic)
 - Get first users (Reddit r/landlord, r/propertymanagement, Facebook groups, Product Hunt, etc.)
+
+========================================
+SESSION 19: FULL UI CLARITY + UX OVERHAUL (March 28, 2026)
+========================================
+
+SPEC: full_ui_improvements.txt — comprehensive UI clarity pass
+USER INSTRUCTION: "do all"
+
+CHANGES IMPLEMENTED (all items from the spec):
+
+1. DASHBOARD (app/(app)/dashboard/page.tsx)
+   - Stat cards now have action-oriented subtext:
+     * Open issues → "Issues that need attention"
+     * Awaiting quotes → "Waiting on contractor responses"
+     * Quotes received → "Ready for you to review"
+     * Active jobs → "Work currently in progress"
+   - "Quotes received" card highlighted green when > 0
+   - Shows "1 new response" badge when quotes exist
+   - Issue cards pass dispatchCount + replyCount to IssueSummaryCard
+   - Notification panel: blue dot, timestamp, "No new activity yet" empty state
+
+2. ISSUE SUMMARY CARD (components/issue-summary-card.tsx)
+   - Added NEXT_ACTION map per status:
+     * new → "Classify this issue to get started"
+     * classified/awaiting_dispatch → "Send to contractors for quotes"
+     * awaiting_quotes → "Waiting for contractor responses"
+     * quotes_received → "Review quotes and select a contractor"
+     * contractor_selected → "Contractor selected — awaiting schedule"
+     * scheduled → "Job is scheduled"
+     * in_progress → "Work is in progress"
+     * completed → "Job complete"
+   - Status detail: "1 response received" / "3 contacted"
+   - "New reply" badge for issues with replies not yet in quotes_received
+   - Description truncated with line-clamp-2
+   - Next action shown as italic subtext
+
+3. ISSUE DETAIL PAGE (app/(app)/issues/[id]/page.tsx)
+   - Decision banner: "You have 1 contractor response — choose who to hire"
+   - Quotes sorted by lowest price first
+   - Quote cards expanded: name, company, price, availability, follow-up question, timestamp
+   - #quotes anchor for direct linking
+
+4. ISSUES TABLE (app/(app)/issues/page.tsx)
+   - Status column subtext: "1 response" for quotes_received, "Waiting on replies" for awaiting_quotes
+   - Added quotes_received view tab
+   - Green status color for quotes_received
+   - Contractor column: "1 replied / 3 contacted" logic
+
+5. CONTRACTORS PAGE (app/(app)/contractors/page.tsx)
+   - Each card now shows context stats:
+     * Jobs completed count
+     * Response rate ("Responds quickly" / "Usually responds" / "Slow to respond")
+     * Last contacted date
+   - Stats pulled from jobs + dispatches + responses relations
+   - Cards have hover lift animation (-translate-y-0.5)
+
+6. HISTORY PAGE (app/(app)/history/page.tsx)
+   - Empty state improved: "No completed jobs yet." + "Once you finish a repair, it will appear here with full history."
+
+7. SETTINGS PAGE (app/(app)/settings/page.tsx)
+   - Placeholder text changed to: "This is where you'll manage notifications, contractors, and integrations."
+
+FILES MODIFIED:
+- app/(app)/dashboard/page.tsx
+- app/(app)/issues/page.tsx
+- app/(app)/issues/[id]/page.tsx
+- app/(app)/contractors/page.tsx
+- app/(app)/history/page.tsx
+- app/(app)/settings/page.tsx
+- components/issue-summary-card.tsx

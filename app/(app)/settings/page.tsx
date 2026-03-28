@@ -41,7 +41,7 @@ export default async function SettingsPage() {
 
         <Card>
           <CardContent className="py-8 text-center text-sm text-muted-foreground">
-            More settings coming soon — notification preferences, integrations, and account management.
+            This is where you&apos;ll manage notifications, contractors, and integrations.
           </CardContent>
         </Card>
       </div>
