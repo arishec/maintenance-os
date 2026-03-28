@@ -41,9 +41,20 @@ export async function POST(request: NextRequest) {
     const from = body.from as string | null;
     const text = body.text as string | null;
     const subject = body.subject as string | null;
+    const emailId = (body.id || body.email_id) as string | null;
 
     if (!from || !text) {
       return NextResponse.json({ success: true }, { status: 200 });
+    }
+
+    // Idempotency: check by Resend email ID first (catches webhook retries)
+    if (emailId) {
+      const existingByProviderId = await prisma.contractorResponse.findUnique({
+        where: { providerInboundId: emailId },
+      });
+      if (existingByProviderId) {
+        return NextResponse.json({ success: true }, { status: 200 });
+      }
     }
 
     const normalizedIncomingEmail = from.toLowerCase();
@@ -129,10 +140,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true }, { status: 200 });
     }
 
-    // Create raw response record
+    // Create raw response record with provider ID for future dedup
     const contractorResponse = await prisma.contractorResponse.create({
       data: {
         dispatchId: matchingDispatch.id,
+        providerInboundId: emailId,
         rawMessage: text,
         receivedAt: new Date(),
       },

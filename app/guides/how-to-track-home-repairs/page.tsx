@@ -17,7 +17,7 @@ export default function HowToTrackHomeRepairsPage() {
       <ArticleJsonLd
         headline="How to Track Home Repairs"
         description="A practical guide to organizing home maintenance, keeping records, and building a complete repair history for your home."
-        url="https://ifbids.com/guides/how-to-track-home-repairs"
+        path="/guides/how-to-track-home-repairs"
         datePublished="2026-03-27"
         dateModified="2026-03-27"
       />

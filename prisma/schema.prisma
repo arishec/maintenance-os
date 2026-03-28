@@ -228,6 +228,7 @@ model Dispatch {
 model ContractorResponse {
   id                   String    @id @default(uuid())
   dispatchId           String
+  providerInboundId    String?   @unique
   rawMessage           String
   availabilityText     String?
   availabilityDate     DateTime?

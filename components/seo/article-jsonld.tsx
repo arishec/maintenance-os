@@ -1,7 +1,9 @@
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ifbids.com';
+
 type ArticleJsonLdProps = {
   headline: string;
   description: string;
-  url: string;
+  path: string;
   datePublished: string;
   dateModified: string;
 };
@@ -9,7 +11,7 @@ type ArticleJsonLdProps = {
 export function ArticleJsonLd({
   headline,
   description,
-  url,
+  path,
   datePublished,
   dateModified,
 }: ArticleJsonLdProps) {
@@ -18,7 +20,7 @@ export function ArticleJsonLd({
     '@type': 'Article',
     headline,
     description,
-    url,
+    url: `${siteUrl}${path}`,
     datePublished,
     dateModified,
     author: {

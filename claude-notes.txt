@@ -1262,9 +1262,85 @@ All pages are production-ready with professional copywriting, proper SEO structu
 - Added NEXT_PUBLIC_SITE_URL to .env.example
 - TypeScript check passes with 0 errors
 
+### Completed after Session 17:
+- Pushed code and deployed (all 40/40 static pages generated, 0 errors)
+- Added NEXT_PUBLIC_SITE_URL=https://ifbids.com to Vercel env vars (via dashboard)
+- Redeployed with new env var active
+- Created OG image (public/og-image.png, 1200x630) — dark theme with app name, tagline, feature pills, mini dashboard mockup, domain
+
+========================================
+SESSION 18 (March 28, 2026) - Env var + cleanup
+========================================
+
+### What was done:
+- Added NEXT_PUBLIC_SITE_URL=https://ifbids.com to Vercel environment variables (all environments) via Vercel dashboard
+- Triggered redeploy so the env var takes effect in production
+- Verified OG image was already committed and pushed (commit cde2a6f)
+- All SEO fixes from engineer review are now live
+
+### Current deployment status:
+- Latest commit: 6164692 "seo: fix canonicals, centralize noindex, improve nav"
+- Redeployed with NEXT_PUBLIC_SITE_URL env var
+- Domain: ifbids.com
+
+========================================
+SESSION 18 CONTINUED - Nav polish, domain fix, webhook idempotency
+========================================
+
+### Dashboard navigation overhaul:
+- Added top nav bar to dashboard layout (layout-shell.tsx) with marketing links
+- Links: Features, How It Works, Pricing, Homeowners, Landlords, Guides
+- Logo ("Maintenance OS") is clickable → links to homepage
+- Active state highlighting on current page
+- Replaced duplicate "Dashboard" link with Clerk UserButton (avatar/logout)
+- Mobile slide-out menu also includes "Explore" section with marketing links
+- Spacing tuned (py-3, gap-8 between logo and links, gap-6 between links)
+
+### Created /guides index page:
+- app/guides/page.tsx — lists all 3 guides with descriptions and "Read guide →" links
+- Fixed middleware: '/guides(.*)' pattern (was '/guides/(.*)' which missed /guides itself)
+
+### OG image regenerated:
+- Replaced dark-theme mockup with light-theme image matching actual site design
+- White background, black text, blue CTA button, quote comparison card, issue tracker snippet
+
+### Favicon created:
+- app/favicon.ico (16/32/48px, dark rounded square with white "M")
+- app/icon.png (180px apple-touch-icon, same design)
+
+### Domain consistency fixes:
+- Updated ArticleJsonLd component to use `path` prop + NEXT_PUBLIC_SITE_URL instead of hardcoded URLs
+- All 3 guide pages updated: url="https://ifbids.com/..." → path="/guides/..."
+- Canonicals: all 16+ pages use relative paths (correct)
+- sitemap.ts, robots.ts, layout.tsx: all use NEXT_PUBLIC_SITE_URL with ?? fallback (correct)
+- Email addresses (support@ifbids.com) in contact/privacy/terms: intentionally hardcoded
+
+### Webhook idempotency:
+- Added `providerInboundId` (String? @unique) field to ContractorResponse model
+- Twilio inbound: checks MessageSid first before processing (catches webhook retries)
+- Resend email inbound: checks email ID (body.id || body.email_id) first
+- Both handlers store provider ID on create for future dedup
+- Fallback: still checks dispatch + rawMessage text match
+
+### Files changed:
+- components/layout-shell.tsx (top nav, active states, UserButton, Homeowners/Landlords)
+- app/guides/page.tsx (NEW — guides index)
+- middleware.ts (/guides(.*) route fix)
+- public/og-image.png (regenerated to match site)
+- app/favicon.ico (NEW)
+- app/icon.png (NEW)
+- components/seo/article-jsonld.tsx (path prop, siteUrl env var)
+- app/guides/*/page.tsx (3 files — url→path prop)
+- prisma/schema.prisma (providerInboundId field)
+- app/api/webhooks/twilio/inbound/route.ts (MessageSid idempotency)
+- app/api/webhooks/email/inbound/route.ts (email ID idempotency)
+
+### After pushing, you need to:
+1. Run `npx prisma db push` to apply the schema change (new providerInboundId column)
+2. The Vercel build will handle `prisma generate` automatically
+
 ### Still needed:
-- Push code and deploy
-- Add NEXT_PUBLIC_SITE_URL=https://ifbids.com to Vercel env vars
-- Create OG image (public/og-image.png, 1200x630)
-- Submit sitemap to Google Search Console after deploy
-- Build remaining 5 guide pages (spec listed 8 total, 3 built so far)
+- Submit sitemap to Google Search Console
+- Run end-to-end production test (create issue → classify → dispatch → receive reply → select → complete)
+- Build remaining 5 guide pages (spec listed 8 total, 3 built)
+- Switch Clerk from development keys (pk_test_) to production keys

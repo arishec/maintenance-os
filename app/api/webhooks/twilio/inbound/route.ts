@@ -37,9 +37,20 @@ export async function POST(request: NextRequest) {
 
     const from = formData.get('From') as string | null;
     const body = formData.get('Body') as string | null;
+    const messageSid = formData.get('MessageSid') as string | null;
 
     if (!from || !body) {
       return getTwiMLResponse();
+    }
+
+    // Idempotency: check by Twilio MessageSid first (catches webhook retries)
+    if (messageSid) {
+      const existingByProviderId = await prisma.contractorResponse.findUnique({
+        where: { providerInboundId: messageSid },
+      });
+      if (existingByProviderId) {
+        return getTwiMLResponse();
+      }
     }
 
     const normalizedIncomingPhone = normalizePhone(from);
@@ -112,7 +123,7 @@ export async function POST(request: NextRequest) {
 
     const { issue, contractor } = matchingDispatch;
 
-    // Check for idempotency: if response already exists with same raw message
+    // Fallback idempotency: check by dispatch + raw message text
     const existingResponse = await prisma.contractorResponse.findFirst({
       where: {
         dispatchId: matchingDispatch.id,
@@ -124,10 +135,11 @@ export async function POST(request: NextRequest) {
       return getTwiMLResponse();
     }
 
-    // Create raw response record
+    // Create raw response record with provider ID for future dedup
     const contractorResponse = await prisma.contractorResponse.create({
       data: {
         dispatchId: matchingDispatch.id,
+        providerInboundId: messageSid,
         rawMessage: body,
         receivedAt: new Date(),
       },

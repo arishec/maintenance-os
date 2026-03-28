@@ -17,7 +17,7 @@ export default function HowToManageRentalPropertyMaintenancePage() {
       <ArticleJsonLd
         headline="How to Manage Rental Property Maintenance"
         description="Best practices for collecting tenant requests, dispatching to contractors, and keeping detailed maintenance records across multiple properties."
-        url="https://ifbids.com/guides/how-to-manage-rental-property-maintenance"
+        path="/guides/how-to-manage-rental-property-maintenance"
         datePublished="2026-03-27"
         dateModified="2026-03-27"
       />

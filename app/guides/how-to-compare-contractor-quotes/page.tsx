@@ -17,7 +17,7 @@ export default function HowToCompareContractorQuotesPage() {
       <ArticleJsonLd
         headline="How to Compare Contractor Quotes"
         description="Learn how to evaluate contractor bids, spot red flags, and choose the best contractor for your repair based on price, timeline, and reliability."
-        url="https://ifbids.com/guides/how-to-compare-contractor-quotes"
+        path="/guides/how-to-compare-contractor-quotes"
         datePublished="2026-03-27"
         dateModified="2026-03-27"
       />
