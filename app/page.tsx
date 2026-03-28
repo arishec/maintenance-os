@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { auth } from '@clerk/nextjs/server';
 import { SoftwareJsonLd } from '@/components/seo/software-jsonld';
 import { PublicLayout } from '@/components/public-layout';
 
@@ -12,7 +13,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  const { userId } = await auth();
+  const isSignedIn = !!userId;
   return (
     <>
       <SoftwareJsonLd />
@@ -29,10 +32,10 @@ export default function HomePage() {
               </p>
               <div className="mt-8 flex gap-3">
                 <Link
-                  href="/sign-up"
+                  href={isSignedIn ? '/dashboard' : '/sign-up'}
                   className="inline-flex rounded-xl bg-black px-5 py-3 text-sm font-medium text-white hover:opacity-90 transition-opacity"
                 >
-                  Get started free
+                  {isSignedIn ? 'Go to dashboard' : 'Get started free'}
                 </Link>
                 <Link
                   href="/how-it-works"
@@ -164,10 +167,10 @@ export default function HomePage() {
             <h2 className="text-2xl font-semibold">Ready to organize your property maintenance?</h2>
             <p className="mt-3 text-muted-foreground">Free to start. No credit card required.</p>
             <Link
-              href="/sign-up"
+              href={isSignedIn ? '/dashboard' : '/sign-up'}
               className="mt-6 inline-flex rounded-xl bg-black px-6 py-3 text-sm font-medium text-white hover:opacity-90 transition-opacity"
             >
-              Get started free
+              {isSignedIn ? 'Go to dashboard' : 'Get started free'}
             </Link>
           </section>
         </main>

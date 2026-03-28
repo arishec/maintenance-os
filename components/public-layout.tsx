@@ -1,6 +1,10 @@
 import Link from 'next/link';
+import { auth } from '@clerk/nextjs/server';
 
-export function PublicLayout({ children }: { children: React.ReactNode }) {
+export async function PublicLayout({ children }: { children: React.ReactNode }) {
+  const { userId } = await auth();
+  const isSignedIn = !!userId;
+
   return (
     <div className="flex min-h-screen flex-col bg-white">
       {/* Header */}
@@ -41,18 +45,29 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
 
           {/* Buttons */}
           <div className="flex items-center gap-4">
-            <Link
-              href="/sign-in"
-              className="text-gray-700 hover:text-gray-900 transition-colors"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/sign-up"
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Get Started
-            </Link>
+            {isSignedIn ? (
+              <Link
+                href="/dashboard"
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/sign-in"
+                  className="text-gray-700 hover:text-gray-900 transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/sign-up"
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>
