@@ -24,8 +24,25 @@ export async function sendRepairRequestEmail(to: string, subject: string, html: 
   });
 }
 
-/** Fetch a received (inbound) email's full content by ID */
-export async function getReceivedEmail(emailId: string) {
-  const client = getResendClient();
-  return (client.emails as any).receiving.get(emailId);
+/** Fetch a received (inbound) email's full content by ID via REST API */
+export async function getReceivedEmail(emailId: string): Promise<{
+  data: { id: string; to: string[]; from: string; subject: string; html: string | null; text: string | null; headers: Record<string, string> } | null;
+  error: any;
+}> {
+  const key = process.env.RESEND_API_KEY;
+  if (!key || key === 'REPLACE_ME' || key === 're_REPLACE_ME') {
+    throw new Error('Resend API key not configured');
+  }
+
+  const response = await fetch(`https://api.resend.com/emails/receiving/${emailId}`, {
+    headers: { Authorization: `Bearer ${key}` },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    return { data: null, error: `Resend API ${response.status}: ${errorText}` };
+  }
+
+  const data = await response.json();
+  return { data, error: null };
 }
