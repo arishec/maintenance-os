@@ -13,12 +13,13 @@ function getResendClient() {
   return _resend;
 }
 
-export async function sendRepairRequestEmail(to: string, subject: string, html: string) {
+export async function sendRepairRequestEmail(to: string, subject: string, html: string, replyTo?: string) {
   const client = getResendClient();
   return client.emails.send({
     from: process.env.RESEND_FROM_EMAIL!,
     to,
     subject,
     html,
+    ...(replyTo ? { reply_to: replyTo } : {}),
   });
 }

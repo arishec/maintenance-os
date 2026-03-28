@@ -159,7 +159,8 @@ export async function POST(
           const response = await sendRepairRequestEmail(
             contractor.email!,
             emailSubject,
-            emailBody
+            emailBody,
+            user.email
           );
           if (response.data?.id) {
             providerMessageId = response.data.id;
