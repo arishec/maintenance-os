@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Camera, ImagePlus, X } from 'lucide-react';
 import { LayoutShell } from '@/components/layout-shell';
+import { PaywallModal } from '@/components/paywall-modal';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -62,6 +63,7 @@ export default function NewIssuePage() {
   const [classification, setClassification] = useState<ClassificationResult | null>(null);
   const [issueId, setIssueId] = useState<string | null>(null);
   const [classifying, setClassifying] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   // Inline photo state
   const [photos, setPhotos] = useState<SelectedPhoto[]>([]);
@@ -150,6 +152,12 @@ export default function NewIssuePage() {
 
       if (!res.ok) {
         const errData = await res.json();
+        if (errData.error === 'PAYWALL_REQUIRED') {
+          setShowPaywall(true);
+          setLoading(false);
+          setClassifying(false);
+          return;
+        }
         setError(errData.error || 'Failed to create issue.');
         setLoading(false);
         setClassifying(false);
@@ -422,6 +430,11 @@ export default function NewIssuePage() {
           </form>
         </CardContent>
       </Card>
+      <PaywallModal
+        isOpen={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        trigger="issue_limit"
+      />
     </LayoutShell>
   );
 }

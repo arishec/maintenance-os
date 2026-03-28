@@ -32,6 +32,14 @@ export async function POST(request: NextRequest) {
     const user = await requireDbUser();
     const body = issueSchema.parse(await request.json());
 
+    // Paywall check: free users limited to 3 issues total
+    if (user.plan === 'free' && user.issueCount >= 3) {
+      return NextResponse.json(
+        { error: 'PAYWALL_REQUIRED', message: 'Upgrade to Pro to create more issues.' },
+        { status: 403 }
+      );
+    }
+
     const property = await prisma.property.findFirst({
       where: { id: body.propertyId, ownerUserId: user.id },
     });
@@ -50,6 +58,12 @@ export async function POST(request: NextRequest) {
         locationInProperty: body.locationInProperty,
         status: 'new',
       },
+    });
+
+    // Increment user's issue count
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { issueCount: { increment: 1 } },
     });
 
     // Log timeline event for issue creation

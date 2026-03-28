@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { PaywallModal } from '@/components/paywall-modal';
 
 interface Issue {
   id: string;
@@ -45,6 +46,7 @@ export default function DispatchPage() {
   const [includePhotos, setIncludePhotos] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPaywall, setShowPaywall] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -106,6 +108,11 @@ export default function DispatchPage() {
 
     if (!res.ok) {
       const data = await res.json();
+      if (data.error === 'PAYWALL_REQUIRED') {
+        setShowPaywall(true);
+        setLoading(false);
+        return;
+      }
       setError(data.error || 'Failed to send requests.');
       setLoading(false);
       return;
@@ -226,6 +233,11 @@ export default function DispatchPage() {
           </Button>
         </div>
       </div>
+      <PaywallModal
+        isOpen={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        trigger="dispatch"
+      />
     </LayoutShell>
   );
 }
