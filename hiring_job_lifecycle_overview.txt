@@ -1,0 +1,425 @@
+MAINTENANCE OS — HIRING + JOB LIFECYCLE
+Complete Technical Overview
+========================================
+
+This document covers everything added in Sessions 19–20,
+focusing on the full workflow from quote collection through
+job completion and contractor notification.
+
+
+========================================
+1. THE FULL WORKFLOW (end to end)
+========================================
+
+Here is the complete user journey, step by step:
+
+STEP 1: Issue is reported
+  → User submits issue via /issues/new (with photos, description)
+  → AI classifies it (category, urgency, trade, timeframe)
+  → Status: new → classified
+
+STEP 2: Dispatch to contractors
+  → User clicks "Contact Contractors" on issue detail page
+  → Selects which contractors to contact
+  → System sends SMS (Twilio) or email (Resend) to each
+  → Each dispatch gets a unique reply token (MNT-XXXXXX)
+  → Status: classified → awaiting_quotes
+
+STEP 3: Contractor replies
+  → Contractor replies by SMS or email
+  → Resend/Twilio webhook receives the reply
+  → System matches reply to dispatch via MNT-XXXXXX token
+  → AI (Claude Haiku) parses the reply: price, availability, follow-up question
+  → Parsed data stored in ContractorResponse table
+  → Status: awaiting_quotes → quotes_received (on FIRST reply)
+  → Notification created for the property owner
+
+STEP 4: Owner reviews quotes
+  → Issue detail page shows green banner: "You have N responses ready to review"
+  → Quote cards sorted by lowest price first
+  → Each card shows: contractor name, company, price, availability,
+    follow-up question (amber highlight), source channel (SMS/Email),
+    received timestamp
+  → "View raw message" toggle shows the original unprocessed reply
+  → "Reply" button opens in-app reply modal
+  → "Select Contractor" button on each card
+
+STEP 5: Owner selects a contractor (THE KEY NEW FEATURE)
+  → User clicks "Select Contractor" on a quote card
+  → Confirmation modal appears:
+      Title: "Hire Test Plumber?"
+      Body: "This will mark Test Plumber as the selected contractor..."
+      Summary: Quote: $450, Availability: Tomorrow, Company: Ari's Plumbing
+      Buttons: [Confirm Selection] [Cancel]
+  → On confirm, frontend calls: POST /api/issues/{id}/select-contractor
+  → Backend runs atomic transaction (see Section 3 below)
+  → Status: quotes_received → contractor_selected (issue)
+  → Job created with status: contractor_selected
+
+STEP 6: Contractor gets notified
+  → System sends confirmation to the contractor via their original channel
+  → If they replied by SMS → SMS confirmation
+  → If they replied by email → HTML email confirmation
+  → Message: "You've been selected for: [job title]. Location: [address].
+    Agreed quote: $450. The property owner will be in touch about scheduling."
+  → Wrapped in try/catch — if notification fails, selection still succeeds
+
+STEP 7: Job tracking
+  → Issue detail page now shows Job Tracking panel
+  → Progress bar: selected → scheduled → in_progress → completed
+  → Action buttons to advance:
+      contractor_selected → "Mark as Scheduled" or "Mark In Progress"
+      scheduled → "Mark In Progress"
+      in_progress → "Mark Completed"
+  → "Cancel Job" button available at any non-completed state
+  → Each status change calls: PATCH /api/jobs/{id}
+  → Job status syncs to issue status automatically
+
+STEP 8: Job completion
+  → User clicks "Mark Completed"
+  → Job status → completed, Issue status → completed
+  → Issue gets completedAt timestamp
+  → Notification created: "Kitchen sink leak was marked completed"
+  → Issue moves to History page
+
+STEP 9: History
+  → Completed/canceled issues appear on /history
+  → Shows: date, property, issue title, contractor, estimate, status
+
+
+========================================
+2. DATABASE CHANGES
+========================================
+
+DISPATCH STATUS ENUM (prisma/schema.prisma):
+  Added two new values:
+  - accepted  → the dispatch for the winning contractor
+  - closed    → all other dispatches after a contractor is selected
+
+  Full enum: queued, sent, delivered, failed, replied, accepted, closed, expired
+
+  This means you can look at any dispatch and know:
+  - "sent" = message delivered, no reply yet
+  - "replied" = contractor responded
+  - "accepted" = this contractor was selected for the job
+  - "closed" = another contractor was selected, this one wasn't
+
+NO OTHER SCHEMA CHANGES were needed. The existing Job, Issue,
+ContractorResponse, and Dispatch models already had all required fields.
+
+
+========================================
+3. SELECT CONTRACTOR API (the core transaction)
+========================================
+
+File: app/api/issues/[id]/select-contractor/route.ts
+
+Endpoint: POST /api/issues/{id}/select-contractor
+Body: { "responseId": "uuid-of-the-contractor-response" }
+
+The contractorId is NOT passed separately — it's derived from the
+response's dispatch record. This prevents mismatches.
+
+VALIDATION (before any writes):
+  1. Issue exists and user owns it (via property.ownerUserId)
+  2. Issue is in quotes_received status (not already selected)
+  3. Response exists and belongs to a dispatch for this issue
+  4. No existing active (non-canceled) job for this issue → 409 if exists
+
+ATOMIC TRANSACTION (all-or-nothing via prisma.$transaction):
+  1. Create Job record:
+     - issueId, contractorId (from response's dispatch)
+     - selectedResponseId = the chosen response
+     - selectedEstimate = flatEstimate or estimateLow from the response
+     - status = contractor_selected
+
+  2. Update Issue:
+     - status → contractor_selected
+
+  3. Update winning dispatch:
+     - status → accepted
+
+  4. Close all other dispatches:
+     - Any dispatch for this issue that was sent/delivered/replied
+     - status → closed
+
+AFTER TRANSACTION (non-blocking, failure-tolerant):
+  5. Log timeline event (contractor_selected, with name + price)
+  6. Create in-app notification for the owner
+  7. Send confirmation to contractor via SMS or email (try/catch)
+
+
+========================================
+4. CONFIRMATION MODAL (frontend)
+========================================
+
+File: app/(app)/issues/[id]/select-contractor-button.tsx
+
+This is a client component ('use client') with two states:
+  - Closed: renders just a "Select Contractor" button
+  - Open: renders a full-screen modal overlay
+
+Props it receives from the parent page:
+  - issueId, responseId, contractorId
+  - contractorName, companyName (for display)
+  - price, availability (for the summary box)
+
+Modal contents:
+  - Title: "Hire {contractorName}?"
+  - Explanation text
+  - Gray summary box with: Quote, Availability, Company
+  - Error display (if API call fails)
+  - Cancel + Confirm Selection buttons
+  - Loading state: "Confirming..."
+
+On confirm:
+  - Calls POST /api/issues/{id}/select-contractor with { responseId }
+  - On success: closes modal, calls router.refresh() to reload server data
+  - On error: shows error message in the modal
+
+
+========================================
+5. POST-SELECTION UI CHANGES
+========================================
+
+File: app/(app)/issues/[id]/page.tsx
+
+After a contractor is selected, the issue detail page changes:
+
+STATUS BANNERS (top of page, below title):
+  - quotes_received → Green: "You have N responses ready to review"
+  - contractor_selected/scheduled/in_progress → Blue:
+    "Test Plumber has been selected for this job"
+    "Agreed price: $450"
+  - completed → Green: "This repair is complete"
+    "Completed on 3/28/2026"
+
+QUOTE CARDS:
+  - Selected response: green border + green background + "Selected" badge
+  - Non-selected responses: gray border, 60% opacity, "Not selected" badge
+  - Select button only visible when issue is in quotes_received state
+  - Non-selected cards hide their action buttons entirely
+
+JOB TRACKING PANEL:
+  - Only visible when an active job exists
+  - Shows between the status banner and AI classification section
+  - See Section 6 below for details
+
+
+========================================
+6. JOB LIFECYCLE PANEL
+========================================
+
+File: app/(app)/issues/[id]/job-lifecycle-panel.tsx
+
+Client component that manages job status transitions.
+
+DISPLAY:
+  - Card with "Job Tracking" title + status badge
+  - Grid showing: Contractor name/company, Agreed price, Scheduled date,
+    Started date, Completed date (only if set)
+  - Notes field (if any)
+  - Progress bar: 4 segments, filled blue up to current status
+
+STATUS BADGE COLORS:
+  - contractor_selected → blue
+  - scheduled → indigo
+  - in_progress → blue
+  - completed → green
+  - canceled → gray
+
+ACTION BUTTONS per state:
+  contractor_selected:
+    [Mark as Scheduled]  [Mark In Progress]  [Cancel Job]
+  scheduled:
+    [Mark In Progress]  [Cancel Job]
+  in_progress:
+    [Mark Completed]  [Cancel Job]
+  completed:
+    (no buttons — job is done)
+  canceled:
+    (no buttons — job is canceled)
+
+Each button calls: PATCH /api/jobs/{id} with { status: "new_status" }
+Cancel button shows browser confirm() dialog first.
+
+The PATCH endpoint (app/api/jobs/[id]/route.ts) automatically syncs
+the issue status:
+  - job: scheduled → issue: scheduled
+  - job: in_progress → issue: in_progress
+  - job: completed → issue: completed + completedAt = now()
+  - job: canceled → issue: canceled
+
+
+========================================
+7. REPLY TO CONTRACTOR
+========================================
+
+Two files work together:
+
+FRONTEND: app/(app)/issues/[id]/reply-to-contractor-button.tsx
+  - "Reply" button on each quote card
+  - Opens modal with:
+    - Title: "Reply to Test Plumber"
+    - Subtitle: "Re: Kitchen sink leak under cabinet"
+    - Textarea for message
+    - Channel selector: [Email] [SMS] toggle buttons
+    - Pre-selects the channel the contractor originally used
+    - Only shows channels the contractor has contact info for
+  - On send: calls POST /api/issues/{id}/reply-to-contractor
+  - Shows "Message sent!" success state, then auto-closes
+
+BACKEND: app/api/issues/[id]/reply-to-contractor/route.ts
+  - Validates: issue exists, user owns it, message is 1-2000 chars
+  - Finds the most recent active dispatch for this issue
+  - Sends via selected channel:
+    - Email: HTML formatted via Resend, includes issue title + property
+    - SMS: plain text via Twilio, prefixed with "Re: [issue title]"
+  - Logs timeline event (owner_reply_sent) with channel + message preview
+  - Does NOT create a ContractorResponse record (that's for inbound only)
+
+
+========================================
+8. RAW MESSAGE TOGGLE
+========================================
+
+File: app/(app)/issues/[id]/raw-message-toggle.tsx
+
+Simple client component:
+  - "View raw message" link (blue text)
+  - Click toggles to show/hide the original rawMessage
+  - Displayed in a monospace <pre> block with max-height + scroll
+  - Toggle text changes to "Hide raw message" when open
+
+This lets the user see exactly what the contractor wrote before
+AI parsing extracted the structured fields.
+
+
+========================================
+9. DISPLAY LABEL UNIFICATION
+========================================
+
+Before this change, the app showed granular internal status names:
+  "Contractor selected", "Scheduled", "In progress"
+
+Now, all three map to a single user-facing label: "Active job"
+This is applied consistently across:
+
+  - Issue detail page status badge
+  - Issues table status column
+  - Issue summary cards (dashboard)
+  - Status colors: all three use blue (bg-blue-100 text-blue-800)
+
+The granular status is still tracked internally and visible in the
+Job Tracking panel, where it matters for workflow progression.
+
+
+========================================
+10. PROPERTIES PAGE IMPROVEMENTS
+========================================
+
+File: app/(app)/properties/page.tsx
+
+Each property card now shows an issue count breakdown:
+  - "3 open · 2 awaiting quotes · 1 ready to review · 1 active job"
+  - "Ready to review" text is green (highlights action needed)
+  - "Active job" text is blue
+  - Total lifetime issues shown on the right
+
+Cards link to /issues?property={id} to filter issues by property.
+
+The breakdown is calculated from the issues relation:
+  - open = not completed/canceled/archived
+  - awaiting quotes = status === awaiting_quotes
+  - ready to review = status === quotes_received
+  - active jobs = status in [contractor_selected, scheduled, in_progress]
+
+
+========================================
+11. CONTRACTOR NOTIFICATION ON SELECTION
+========================================
+
+Added to: app/api/issues/[id]/select-contractor/route.ts (step 8)
+
+When a contractor is selected:
+  1. System checks the dispatch channel (how they originally replied)
+  2. If SMS + contractor has phone → sends SMS via Twilio
+  3. If email or no phone → sends HTML email via Resend
+  4. Message includes:
+     - Greeting with contractor name
+     - Job title
+     - Property address (street + city)
+     - Agreed quote amount (if known)
+     - "The property owner will be in touch about scheduling"
+
+This is wrapped in try/catch. If the notification fails (network error,
+bad phone number, etc.), the contractor selection still succeeds.
+The error is logged to console but does not block the user.
+
+
+========================================
+12. NOTIFICATION CREATION POINTS
+========================================
+
+Notifications are created at these moments:
+
+  1. Contractor replies (inbound webhook handlers)
+     → "Test Plumber quoted $450 for Kitchen sink leak"
+     → Includes follow-up question if present
+
+  2. Contractor selected (select-contractor API)
+     → "You selected Test Plumber ($450) for Kitchen sink leak"
+
+  3. Job completed (jobs PATCH API)
+     → "Kitchen sink leak was marked completed"
+
+All notifications:
+  - Stored in the Notification table
+  - Shown in the dashboard notification panel (blue dot, timestamp)
+  - Shown in the notification bell dropdown
+
+
+========================================
+13. FILES SUMMARY
+========================================
+
+NEW FILES (4):
+  app/(app)/issues/[id]/job-lifecycle-panel.tsx    — Job tracking UI
+  app/(app)/issues/[id]/raw-message-toggle.tsx     — Raw message expand/collapse
+  app/(app)/issues/[id]/reply-to-contractor-button.tsx — In-app reply modal
+  app/api/issues/[id]/reply-to-contractor/route.ts — Reply API endpoint
+
+MODIFIED FILES (10):
+  prisma/schema.prisma                             — DispatchStatus: +accepted, +closed
+  app/api/issues/[id]/select-contractor/route.ts   — Full rewrite: transaction, notifications
+  app/api/jobs/[id]/route.ts                       — Added completion notification
+  app/(app)/issues/[id]/page.tsx                   — Complete overhaul: banners, selection UI
+  app/(app)/issues/[id]/select-contractor-button.tsx — Confirmation modal
+  app/(app)/issues/page.tsx                        — "Active job" labels, blue colors
+  app/(app)/properties/page.tsx                    — Issue count breakdown
+  app/(app)/history/page.tsx                       — Updated empty state text
+  components/issue-summary-card.tsx                — "Active job" labels, blue colors
+  claude-notes.txt                                 — Session notes updated
+
+
+========================================
+14. REQUIRED POST-DEPLOY STEPS
+========================================
+
+After pushing to GitHub and Vercel deploys:
+
+  1. Run: npx prisma db push
+     This adds the new DispatchStatus enum values (accepted, closed)
+     to the PostgreSQL database on Neon/Vercel.
+
+  2. Test the flow:
+     - Go to an issue with quotes_received status
+     - Click "Select Contractor" on a quote card
+     - Verify the confirmation modal appears with correct details
+     - Confirm selection
+     - Verify: issue shows "Active Job" badge
+     - Verify: blue banner says contractor has been selected
+     - Verify: Job Tracking panel appears with progress bar
+     - Verify: contractor receives SMS or email confirmation
+     - Advance job through: Scheduled → In Progress → Completed
+     - Verify: issue moves to History page

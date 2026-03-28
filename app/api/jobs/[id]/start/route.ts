@@ -38,7 +38,7 @@ export async function POST(
     // Update issue
     await prisma.issue.update({
       where: { id: job.issueId },
-      data: { status: 'in_progress' },
+      data: { status: 'active_job' },
     });
 
     // Log timeline event

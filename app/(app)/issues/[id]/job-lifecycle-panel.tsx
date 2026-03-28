@@ -19,43 +19,37 @@ interface JobProps {
 }
 
 const JOB_STATUS_LABELS: Record<string, string> = {
-  contractor_selected: 'Contractor Selected',
+  selected: 'Contractor Selected',
   scheduled: 'Scheduled',
   in_progress: 'In Progress',
   completed: 'Completed',
   canceled: 'Canceled',
 };
 
+const JOB_STATUS_MICROCOPY: Record<string, string> = {
+  selected: 'Contractor hired — confirm scheduling next',
+  scheduled: 'Work has been scheduled',
+  in_progress: 'Work is currently underway',
+  completed: 'Work finished',
+  canceled: 'This job was canceled',
+};
+
 const JOB_STATUS_COLORS: Record<string, string> = {
-  contractor_selected: 'bg-blue-100 text-blue-800',
+  selected: 'bg-blue-100 text-blue-800',
   scheduled: 'bg-indigo-100 text-indigo-800',
   in_progress: 'bg-blue-100 text-blue-800',
   completed: 'bg-green-100 text-green-800',
   canceled: 'bg-gray-100 text-gray-600',
 };
 
-// Allowed transitions
-const NEXT_ACTIONS: Record<string, { label: string; nextStatus: string }[]> = {
-  contractor_selected: [
-    { label: 'Mark as Scheduled', nextStatus: 'scheduled' },
-    { label: 'Mark In Progress', nextStatus: 'in_progress' },
-  ],
-  scheduled: [
-    { label: 'Mark In Progress', nextStatus: 'in_progress' },
-  ],
-  in_progress: [
-    { label: 'Mark Completed', nextStatus: 'completed' },
-  ],
-};
-
 export function JobLifecyclePanel({ job }: { job: JobProps }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState('');
 
-  const actions = NEXT_ACTIONS[job.status] || [];
-
-  const handleStatusChange = async (nextStatus: string) => {
+  const handleStatusChange = async (nextStatus: string, extra?: { scheduledFor?: string }) => {
     setIsLoading(nextStatus);
     setError(null);
 
@@ -63,7 +57,7 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
       const res = await fetch(`/api/jobs/${job.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: nextStatus }),
+        body: JSON.stringify({ status: nextStatus, ...extra }),
       });
 
       if (!res.ok) {
@@ -79,97 +73,116 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
     }
   };
 
+  const handleScheduleConfirm = () => {
+    if (!scheduleDate) return;
+    const dateTime = new Date(scheduleDate).toISOString();
+    setShowScheduleModal(false);
+    handleStatusChange('scheduled', { scheduledFor: dateTime });
+  };
+
   const handleCancel = async () => {
     if (!confirm('Are you sure you want to cancel this job?')) return;
     await handleStatusChange('canceled');
   };
 
+  const microcopy = JOB_STATUS_MICROCOPY[job.status] || '';
+
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Job Tracking</CardTitle>
-          <Badge className={JOB_STATUS_COLORS[job.status] || ''}>
-            {JOB_STATUS_LABELS[job.status] || job.status}
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Job details */}
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">Contractor</label>
-            <p className="text-sm font-medium">{job.contractorName}</p>
-            {job.companyName && <p className="text-xs text-muted-foreground">{job.companyName}</p>}
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">Job Tracking</CardTitle>
+            <div className="text-right">
+              <Badge className={JOB_STATUS_COLORS[job.status] || ''}>
+                {JOB_STATUS_LABELS[job.status] || job.status}
+              </Badge>
+              {microcopy && (
+                <p className="text-xs text-muted-foreground mt-1">{microcopy}</p>
+              )}
+            </div>
           </div>
-          {job.agreedPrice && (
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Job details */}
+          <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label className="text-xs font-medium text-muted-foreground">Agreed Price</label>
-              <p className="text-sm font-medium">${Number(job.agreedPrice).toLocaleString()}</p>
+              <label className="text-xs font-medium text-muted-foreground">Contractor</label>
+              <p className="text-sm font-medium">{job.contractorName}</p>
+              {job.companyName && <p className="text-xs text-muted-foreground">{job.companyName}</p>}
             </div>
-          )}
-          {job.scheduledFor && (
-            <div>
-              <label className="text-xs font-medium text-muted-foreground">Scheduled For</label>
-              <p className="text-sm">{new Date(job.scheduledFor).toLocaleDateString()}</p>
-            </div>
-          )}
-          {job.startedAt && (
-            <div>
-              <label className="text-xs font-medium text-muted-foreground">Started</label>
-              <p className="text-sm">{new Date(job.startedAt).toLocaleDateString()}</p>
-            </div>
-          )}
-          {job.completedAt && (
-            <div>
-              <label className="text-xs font-medium text-muted-foreground">Completed</label>
-              <p className="text-sm">{new Date(job.completedAt).toLocaleDateString()}</p>
-            </div>
-          )}
-        </div>
-
-        {job.notes && (
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">Notes</label>
-            <p className="text-sm mt-1">{job.notes}</p>
+            {job.agreedPrice && (
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">Agreed Price</label>
+                <p className="text-sm font-medium">${Number(job.agreedPrice).toLocaleString()}</p>
+              </div>
+            )}
+            {job.scheduledFor && (
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">Scheduled For</label>
+                <p className="text-sm">{new Date(job.scheduledFor).toLocaleDateString()}</p>
+              </div>
+            )}
+            {job.startedAt && (
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">Started</label>
+                <p className="text-sm">{new Date(job.startedAt).toLocaleDateString()}</p>
+              </div>
+            )}
+            {job.completedAt && (
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">Completed</label>
+                <p className="text-sm">{new Date(job.completedAt).toLocaleDateString()}</p>
+              </div>
+            )}
           </div>
-        )}
 
-        {/* Status progress bar */}
-        {job.status !== 'canceled' && job.status !== 'completed' && (
-          <div className="flex items-center gap-1">
-            {['contractor_selected', 'scheduled', 'in_progress', 'completed'].map((step, idx) => {
-              const steps = ['contractor_selected', 'scheduled', 'in_progress', 'completed'];
-              const currentIdx = steps.indexOf(job.status);
-              const isActive = idx <= currentIdx;
-              return (
-                <div
-                  key={step}
-                  className={`h-1.5 flex-1 rounded-full ${isActive ? 'bg-blue-500' : 'bg-gray-200'}`}
-                />
-              );
-            })}
-          </div>
-        )}
+          {job.notes && (
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Notes</label>
+              <p className="text-sm mt-1">{job.notes}</p>
+            </div>
+          )}
 
-        {error && (
-          <p className="text-sm text-red-600">{error}</p>
-        )}
+          {/* Status progress bar */}
+          {job.status !== 'canceled' && job.status !== 'completed' && (
+            <div className="flex items-center gap-1">
+              {['selected', 'scheduled', 'in_progress', 'completed'].map((step, idx) => {
+                const steps = ['selected', 'scheduled', 'in_progress', 'completed'];
+                const currentIdx = steps.indexOf(job.status);
+                const isActive = idx <= currentIdx;
+                return (
+                  <div
+                    key={step}
+                    className={`h-1.5 flex-1 rounded-full ${isActive ? 'bg-blue-500' : 'bg-gray-200'}`}
+                  />
+                );
+              })}
+            </div>
+          )}
 
-        {/* Action buttons */}
-        {actions.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2">
-            {actions.map((action) => (
+          {error && (
+            <p className="text-sm text-red-600">{error}</p>
+          )}
+
+          {/* Action buttons */}
+          {job.status === 'selected' && (
+            <div className="flex flex-wrap items-center gap-2">
               <Button
-                key={action.nextStatus}
                 size="sm"
-                onClick={() => handleStatusChange(action.nextStatus)}
+                onClick={() => setShowScheduleModal(true)}
                 disabled={isLoading !== null}
               >
-                {isLoading === action.nextStatus ? 'Updating...' : action.label}
+                Mark as Scheduled
               </Button>
-            ))}
-            {job.status !== 'completed' && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleStatusChange('in_progress')}
+                disabled={isLoading !== null}
+              >
+                {isLoading === 'in_progress' ? 'Updating...' : 'Mark In Progress'}
+              </Button>
               <Button
                 size="sm"
                 variant="outline"
@@ -179,10 +192,89 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
               >
                 Cancel Job
               </Button>
-            )}
+            </div>
+          )}
+
+          {job.status === 'scheduled' && (
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                size="sm"
+                onClick={() => handleStatusChange('in_progress')}
+                disabled={isLoading !== null}
+              >
+                {isLoading === 'in_progress' ? 'Updating...' : 'Mark In Progress'}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-red-600 hover:text-red-700"
+                onClick={handleCancel}
+                disabled={isLoading !== null}
+              >
+                Cancel Job
+              </Button>
+            </div>
+          )}
+
+          {job.status === 'in_progress' && (
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                size="sm"
+                onClick={() => handleStatusChange('completed')}
+                disabled={isLoading !== null}
+              >
+                {isLoading === 'completed' ? 'Updating...' : 'Mark Completed'}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-red-600 hover:text-red-700"
+                onClick={handleCancel}
+                disabled={isLoading !== null}
+              >
+                Cancel Job
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Schedule Date Picker Modal */}
+      {showScheduleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setShowScheduleModal(false)}
+          />
+          <div className="relative z-10 w-full max-w-sm mx-4 rounded-xl bg-white p-6 shadow-xl space-y-4">
+            <h3 className="text-lg font-semibold">When is this scheduled?</h3>
+            <p className="text-sm text-muted-foreground">
+              Select the date the contractor is expected to arrive.
+            </p>
+            <input
+              type="date"
+              value={scheduleDate}
+              onChange={(e) => setScheduleDate(e.target.value)}
+              min={new Date().toISOString().split('T')[0]}
+              className="w-full rounded-lg border border-border p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setShowScheduleModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleScheduleConfirm}
+                disabled={!scheduleDate}
+              >
+                Confirm Schedule
+              </Button>
+            </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </div>
+      )}
+    </>
   );
 }

@@ -26,6 +26,7 @@ export function SelectContractorButton({
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showToast, setShowToast] = useState(false);
 
   const handleConfirm = async () => {
     setIsLoading(true);
@@ -44,7 +45,11 @@ export function SelectContractorButton({
       }
 
       setIsOpen(false);
-      router.refresh();
+      setShowToast(true);
+      setTimeout(() => {
+        setShowToast(false);
+        router.refresh();
+      }, 2000);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An error occurred';
       setError(message);
@@ -119,6 +124,13 @@ export function SelectContractorButton({
               </Button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Success toast */}
+      {showToast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-green-700 text-white px-6 py-3 rounded-xl shadow-lg text-sm font-medium animate-in fade-in slide-in-from-bottom-4">
+          {contractorName} selected. Job started.
         </div>
       )}
     </>

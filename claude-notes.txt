@@ -2155,6 +2155,95 @@ SCHEMA CHANGE REQUIRED:
 - prisma db push needed for DispatchStatus enum (added: accepted, closed)
 
 REMAINING ITEMS:
-- [ ] prisma db push for new DispatchStatus values
+- [ ] prisma db push for schema changes (IssueStatus, JobStatus, Notification.issueId, DispatchStatus)
 - [ ] Settings page: notification preferences + billing sections (placeholder for now)
 - [ ] Switch Clerk from development to production keys
+
+========================================
+SESSION 21: Status Simplification + Review Refinements
+Date: March 28, 2026
+========================================
+
+WHAT WAS DONE:
+Implemented comprehensive review/refinement pass based on user's "FULL REVIEW + REFINEMENTS" spec.
+
+KEY CHANGES:
+
+1. IssueStatus Enum Simplification
+   - Removed: contractor_selected, scheduled, in_progress (3 statuses)
+   - Added: active_job (1 status replaces all three)
+   - Rationale: Issue only needs to know "there's an active job." Job model carries granular state.
+   - Updated ~15 files with references to old statuses
+
+2. JobStatus Enum Rename
+   - contractor_selected → selected (cleaner, no prefix needed since it's already on Job model)
+
+3. DispatchStatus Additions
+   - Added: accepted (for the winning contractor's dispatch)
+   - Added: closed (for losing contractors' dispatches)
+
+4. Notification Model Enhancement
+   - Added issueId field (optional String?) to Notification model
+   - Added Issue relation for linking
+   - All notification creation calls updated to pass issueId
+   - Dashboard notifications now clickable — link to /issues/{issueId}
+
+5. Schedule Date Picker Modal
+   - "Mark as Scheduled" now opens a date picker modal instead of instant status change
+   - Date picker has min date of today, cancel/confirm buttons
+
+6. Success Toast on Contractor Selection
+   - Green toast at bottom of screen: "{name} selected. Job started."
+   - Shows for 2 seconds, then auto-refreshes page
+
+7. Actionable Contractor Notification
+   - When contractor is selected, they receive SMS/email with:
+     - Job title, location, agreed price
+     - "Reply to confirm your availability or ask any questions."
+   - Wrapped in try/catch so notification failure doesn't block selection
+
+8. Job Lifecycle Panel Microcopy
+   - Each status has descriptive microcopy:
+     - selected: "Contractor hired — confirm scheduling next"
+     - scheduled: "Work has been scheduled"
+     - in_progress: "Work is currently underway"
+     - completed: "Work finished"
+     - canceled: "This job was canceled"
+
+9. Clickable Dashboard Notifications
+   - Notifications with issueId wrap in <Link> to /issues/{issueId}
+   - Hover effect (bg-muted/50) for clickable items
+   - Non-linked notifications render as plain divs
+
+FILES MODIFIED:
+- prisma/schema.prisma (IssueStatus, JobStatus, DispatchStatus enums + Notification.issueId)
+- app/api/issues/[id]/select-contractor/route.ts (atomic transaction, contractor notification)
+- app/api/issues/[id]/route.ts (status enum update)
+- app/api/jobs/[id]/route.ts (JobStatus enum, simplified status map)
+- app/api/jobs/[id]/schedule/route.ts (active_job instead of scheduled)
+- app/api/jobs/[id]/start/route.ts (active_job instead of in_progress)
+- app/(app)/dashboard/page.tsx (clickable notifications)
+- app/(app)/issues/page.tsx (active_job filter + display)
+- app/(app)/issues/[id]/page.tsx (banners, post-selection UI, active_job)
+- app/(app)/issues/[id]/edit/page.tsx (status options)
+- app/(app)/issues/[id]/job-lifecycle-panel.tsx (microcopy, schedule modal, selected status)
+- app/(app)/issues/[id]/select-contractor-button.tsx (success toast)
+- app/(app)/properties/page.tsx (active_job filter)
+- app/(app)/history/page.tsx (active_job statusColor)
+- components/issue-summary-card.tsx (active_job labels + colors)
+- app/api/webhooks/twilio/inbound/route.ts (issueId on notifications)
+- app/api/webhooks/email/inbound/route.ts (issueId on notifications)
+- lib/notifications.ts (optional issueId param)
+
+SCHEMA CHANGES REQUIRED:
+- prisma db push needed for:
+  - IssueStatus enum (removed 3, added active_job)
+  - JobStatus enum (contractor_selected → selected)
+  - DispatchStatus enum (added accepted, closed)
+  - Notification.issueId field
+
+TO DEPLOY:
+cd ~/maintenance-os-v1
+git add -A && git commit -m "Status simplification + review refinements"
+git push origin main
+npx prisma db push

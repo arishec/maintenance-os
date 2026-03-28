@@ -44,7 +44,7 @@ export async function POST(
     // Update issue
     await prisma.issue.update({
       where: { id: job.issueId },
-      data: { status: 'scheduled' },
+      data: { status: 'active_job' },
     });
 
     // Log timeline event

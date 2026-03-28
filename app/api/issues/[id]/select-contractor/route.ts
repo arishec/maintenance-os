@@ -87,7 +87,7 @@ export async function POST(
           contractorId,
           selectedResponseId: body.responseId,
           selectedEstimate: agreedPrice,
-          status: 'contractor_selected',
+          status: 'selected',
         },
         include: { contractor: true, selectedResponse: true },
       });
@@ -95,7 +95,7 @@ export async function POST(
       // Update issue status
       await tx.issue.update({
         where: { id: issueId },
-        data: { status: 'contractor_selected' },
+        data: { status: 'active_job' },
       });
 
       // Update dispatch for selected contractor → accepted
@@ -138,6 +138,7 @@ export async function POST(
       type: 'contractor_selected',
       title: 'Contractor selected',
       body: `You selected ${contractor.name}${priceStr ? ` (${priceStr})` : ''} for ${issue.title || 'a maintenance issue'}`,
+      issueId,
     });
 
     // 8. Notify the contractor they got the job
@@ -148,8 +149,8 @@ export async function POST(
     const confirmationMsg = [
       `Hi ${contractor.name}, you've been selected for a job: ${issue.title || 'Maintenance request'}.`,
       `Location: ${propertyAddress}.`,
-      priceStr ? `Agreed quote: ${priceStr}.` : '',
-      `The property owner will be in touch about scheduling.`,
+      priceStr ? `Estimated price: ${priceStr}.` : '',
+      `Reply to confirm your availability or ask any questions.`,
     ].filter(Boolean).join('\n');
 
     try {
@@ -165,7 +166,7 @@ export async function POST(
             <p>You've been selected for a job: <strong>${issue.title || 'Maintenance request'}</strong>.</p>
             <p><strong>Location:</strong> ${propertyAddress}</p>
             ${priceStr ? `<p><strong>Agreed quote:</strong> ${priceStr}</p>` : ''}
-            <p>The property owner will be in touch about scheduling.</p>
+            <p>Reply to this email to confirm your availability or ask any questions.</p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 16px 0;">
             <p style="color: #888; font-size: 12px;">Sent via Maintenance OS</p>
           </div>`

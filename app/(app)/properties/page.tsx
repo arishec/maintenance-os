@@ -64,7 +64,7 @@ export default async function PropertiesPage() {
                   (i) => i.status === 'quotes_received'
                 ).length;
                 const activeJobs = property.issues.filter(
-                  (i) => ['contractor_selected', 'scheduled', 'in_progress'].includes(i.status)
+                  (i) => i.status === 'active_job'
                 ).length;
                 const totalIssues = property.issues.length;
 

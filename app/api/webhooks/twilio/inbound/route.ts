@@ -258,6 +258,7 @@ export async function POST(request: NextRequest) {
         type: 'contractor_replied',
         title: 'New quote received',
         body: notifBody,
+        issueId: issue.id,
       },
     });
 

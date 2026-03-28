@@ -32,7 +32,7 @@ const statusOptions = [
   { value: 'awaiting_dispatch', label: 'Awaiting Dispatch' },
   { value: 'awaiting_quotes', label: 'Awaiting Quotes' },
   { value: 'quotes_received', label: 'Quotes Received' },
-  { value: 'in_progress', label: 'In Progress' },
+  { value: 'active_job', label: 'Active Job' },
   { value: 'completed', label: 'Completed' },
   { value: 'canceled', label: 'Canceled' },
   { value: 'archived', label: 'Archived' },

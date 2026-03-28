@@ -5,6 +5,7 @@ export async function createNotification(input: {
   type: string;
   title: string;
   body: string;
+  issueId?: string;
 }) {
   return prisma.notification.create({
     data: input,

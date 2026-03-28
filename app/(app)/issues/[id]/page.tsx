@@ -33,9 +33,7 @@ function statusColor(status: string) {
   switch (status.toLowerCase()) {
     case 'quotes_received':
       return 'bg-green-100 text-green-800';
-    case 'contractor_selected':
-    case 'scheduled':
-    case 'in_progress':
+    case 'active_job':
       return 'bg-blue-100 text-blue-800';
     case 'completed':
       return 'bg-green-100 text-green-800';
@@ -58,15 +56,13 @@ const STATUS_LABELS: Record<string, string> = {
   awaiting_dispatch: 'Ready to Send',
   awaiting_quotes: 'Awaiting Quotes',
   quotes_received: 'Quotes Received',
-  contractor_selected: 'Active Job',
-  scheduled: 'Active Job',
-  in_progress: 'Active Job',
+  active_job: 'Active Job',
   completed: 'Completed',
   canceled: 'Canceled',
   archived: 'Archived',
 };
 
-const ACTIVE_JOB_STATUSES = ['contractor_selected', 'scheduled', 'in_progress'];
+const ACTIVE_JOB_STATUSES = ['active_job'];
 
 export default async function IssuePage({ params }: { params: Promise<{ id: string }> }) {
   let user;

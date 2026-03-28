@@ -9,7 +9,7 @@ import { createNotification } from '@/lib/notifications';
 const updateJobSchema = z.object({
   scheduledFor: z.string().datetime().optional(),
   notes: z.string().optional(),
-  status: z.enum(['contractor_selected', 'scheduled', 'in_progress', 'completed', 'canceled']).optional(),
+  status: z.enum(['selected', 'scheduled', 'in_progress', 'completed', 'canceled']).optional(),
 });
 
 export async function GET(
@@ -86,12 +86,12 @@ export async function PATCH(
     });
 
     // Sync issue status when job status changes
+    // Issue only has: active_job, completed, canceled
+    // Job carries the granular state (selected, scheduled, in_progress)
     if (body.status) {
-      const jobToIssueStatusMap: Record<string, string> = {
-        scheduled: 'scheduled',
-        in_progress: 'in_progress',
-        completed: 'completed',
-        canceled: 'canceled',
+      const jobToIssueStatusMap: Record<string, IssueStatus> = {
+        completed: 'completed' as IssueStatus,
+        canceled: 'canceled' as IssueStatus,
       };
 
       const newIssueStatus = jobToIssueStatusMap[body.status];
@@ -99,11 +99,12 @@ export async function PATCH(
         await prisma.issue.update({
           where: { id: job.issueId },
           data: {
-            status: newIssueStatus as IssueStatus,
+            status: newIssueStatus,
             ...(body.status === 'completed' ? { completedAt: new Date() } : {}),
           },
         });
       }
+      // selected/scheduled/in_progress all keep issue at active_job (already set on selection)
     }
 
     await logTimelineEvent({
@@ -122,6 +123,7 @@ export async function PATCH(
         type: 'job_completed',
         title: 'Job completed',
         body: `${job.issue.title || 'A maintenance issue'} was marked completed`,
+        issueId: job.issueId,
       });
     }
 

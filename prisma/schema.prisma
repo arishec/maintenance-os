@@ -72,9 +72,7 @@ enum IssueStatus {
   awaiting_dispatch
   awaiting_quotes
   quotes_received
-  contractor_selected
-  scheduled
-  in_progress
+  active_job
   completed
   canceled
   archived
@@ -97,7 +95,7 @@ enum DispatchStatus {
 }
 
 enum JobStatus {
-  contractor_selected
+  selected
   scheduled
   in_progress
   completed
@@ -198,6 +196,7 @@ model Issue {
   dispatches         Dispatch[]
   jobs               Job[]
   timelineEvents     TimelineEvent[]
+  notifications      Notification[]
   usageMetrics       UsageMetricsIssueCost?
 }
 
@@ -301,9 +300,11 @@ model Notification {
   type      String
   title     String
   body      String
+  issueId   String?
   readAt    DateTime?
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  issue     Issue?   @relation(fields: [issueId], references: [id], onDelete: SetNull)
 }
 
 model UsageMetricsIssueCost {

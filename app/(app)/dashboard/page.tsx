@@ -15,7 +15,7 @@ export default async function DashboardPage() {
     prisma.issue.count({ where: { propertyId: { in: propertyIds }, status: { notIn: ['completed', 'canceled', 'archived'] } } }),
     prisma.issue.count({ where: { propertyId: { in: propertyIds }, status: 'awaiting_quotes' } }),
     prisma.issue.count({ where: { propertyId: { in: propertyIds }, status: 'quotes_received' } }),
-    prisma.job.count({ where: { issue: { propertyId: { in: propertyIds } }, status: { in: ['contractor_selected', 'scheduled', 'in_progress'] } } }),
+    prisma.job.count({ where: { issue: { propertyId: { in: propertyIds } }, status: { in: ['selected', 'scheduled', 'in_progress'] } } }),
     prisma.issue.findMany({
       where: { propertyId: { in: propertyIds }, status: { notIn: ['archived'] } },
       include: {
@@ -122,19 +122,26 @@ export default async function DashboardPage() {
                 {notifications.length === 0 ? (
                   <p className="py-4 text-center text-sm text-muted-foreground">No new activity yet.</p>
                 ) : (
-                  notifications.map((n) => (
-                    <div key={n.id} className="py-3">
-                      <div className="flex items-center gap-2">
-                        <span className="h-2 w-2 rounded-full bg-blue-500 flex-shrink-0" />
-                        <span className="text-sm font-medium">{n.title}</span>
+                  notifications.map((n) => {
+                    const inner = (
+                      <div className={`py-3 ${n.issueId ? 'cursor-pointer hover:bg-muted/50 -mx-2 px-2 rounded-lg transition-colors' : ''}`}>
+                        <div className="flex items-center gap-2">
+                          <span className="h-2 w-2 rounded-full bg-blue-500 flex-shrink-0" />
+                          <span className="text-sm font-medium">{n.title}</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1 ml-4">{n.body}</div>
+                        <div className="text-xs text-muted-foreground/60 mt-0.5 ml-4">
+                          {new Date(n.createdAt).toLocaleDateString()} at{' '}
+                          {new Date(n.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                        </div>
                       </div>
-                      <div className="text-xs text-muted-foreground mt-1 ml-4">{n.body}</div>
-                      <div className="text-xs text-muted-foreground/60 mt-0.5 ml-4">
-                        {new Date(n.createdAt).toLocaleDateString()} at{' '}
-                        {new Date(n.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                      </div>
-                    </div>
-                  ))
+                    );
+                    return n.issueId ? (
+                      <Link key={n.id} href={`/issues/${n.issueId}`}>{inner}</Link>
+                    ) : (
+                      <div key={n.id}>{inner}</div>
+                    );
+                  }))
                 )}
               </CardContent>
             </Card>
