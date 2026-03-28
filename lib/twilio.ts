@@ -14,10 +14,23 @@ function getTwilioClient() {
   return _twilio;
 }
 
+/**
+ * Normalize a phone number to E.164 format (+1XXXXXXXXXX).
+ * Handles common US formats: "2155551234", "(215) 555-1234", "12155551234", "+12155551234".
+ */
+function normalizeToE164(phone: string): string {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.startsWith('1') && digits.length === 11) return `+${digits}`;
+  if (digits.length === 10) return `+1${digits}`;
+  if (phone.startsWith('+')) return phone;
+  return `+${digits}`;
+}
+
 export async function sendRepairRequestSms(to: string, body: string) {
   const client = getTwilioClient();
+  const normalizedTo = normalizeToE164(to);
   return client.messages.create({
-    to,
+    to: normalizedTo,
     from: process.env.TWILIO_PHONE_NUMBER!,
     body,
   });
