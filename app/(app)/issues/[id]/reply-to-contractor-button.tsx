@@ -13,6 +13,7 @@ interface ReplyToContractorButtonProps {
   contractorPhone?: string | null;
   dispatchChannel: string;
   issueTitle: string;
+  hasExistingReply?: boolean;
 }
 
 export function ReplyToContractorButton({
@@ -24,6 +25,7 @@ export function ReplyToContractorButton({
   contractorPhone,
   dispatchChannel,
   issueTitle,
+  hasExistingReply = false,
 }: ReplyToContractorButtonProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -81,7 +83,7 @@ export function ReplyToContractorButton({
         variant="outline"
         onClick={() => setIsOpen(true)}
       >
-        Reply
+        {hasExistingReply ? 'Reply again' : 'Reply'}
       </Button>
 
       {isOpen && (

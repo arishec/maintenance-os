@@ -60,6 +60,10 @@ export async function POST(
       return NextResponse.json({ error: 'Contractor not found for this dispatch.' }, { status: 400 });
     }
 
+    // Build professional message with greeting + sign-off
+    const contractorFirst = contractor.name.split(' ')[0];
+    const ownerFirst = user.fullName?.split(' ')[0] || 'The Owner';
+
     // Send via the selected channel
     try {
       if (body.channel === 'email') {
@@ -72,7 +76,9 @@ export async function POST(
           contractor.email,
           `Re: ${issue.title || 'Maintenance request'}`,
           `<div style="font-family: sans-serif; font-size: 14px; line-height: 1.6;">
+            <p>Hi ${contractorFirst},</p>
             <p>${body.message.replace(/\n/g, '<br>')}</p>
+            <p>Thanks,<br>${ownerFirst}</p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 16px 0;">
             <p style="color: #888; font-size: 12px;">
               Sent via Maintenance OS regarding: ${issue.title || 'Maintenance request'}<br>
@@ -88,7 +94,7 @@ export async function POST(
 
         await sendRepairRequestSms(
           contractor.phone,
-          `Re: ${issue.title || 'Maintenance request'}\n\n${body.message}`
+          `Hi ${contractorFirst},\n\n${body.message}\n\nThanks,\n${ownerFirst}\n\nRe: ${issue.title || 'Maintenance request'}`
         );
       }
     } catch (sendError) {

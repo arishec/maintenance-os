@@ -2621,7 +2621,17 @@ MIGRATIONS RUN:
 - add_issue_reference.sql (from session 25)
 - add_contractor_message.sql (dropped TEXT version, recreated with enum types)
 
+POLISH PASS (same session):
+1. tidyQuestion() — capitalize + punctuate contractor follow-up questions at render time
+2. Manual review warning — now only shows when parsing truly failed (no quote AND no availability extracted)
+3. Reply button — shows "Reply again" when outbound reply already exists
+4. Delivery status — "Delivered" label added to outbound reply card
+5. Conversation grouping — question + reply wrapped under "Conversation" label
+6. Selection badge — changed from "Selected" to "You selected this contractor"
+7. Email formatting — outbound emails now include "Hi {first},", message, "Thanks, {owner}" sign-off
+   SMS also gets greeting + sign-off
+
 TO DEPLOY:
 cd ~/maintenance-os-v1
-rm .git/HEAD.lock (if exists)
-git add -A && git commit -m "Add outbound reply tracking with ContractorMessage model" && git push
+rm -f .git/HEAD.lock
+git add -A && git commit -m "Add outbound reply tracking + quote response UI polish" && git push

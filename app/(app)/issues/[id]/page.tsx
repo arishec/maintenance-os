@@ -23,6 +23,16 @@ import {
   formatLabel,
 } from '@/lib/status';
 
+/** Light cleanup for contractor follow-up questions: capitalize, add punctuation */
+function tidyQuestion(raw: string): string {
+  let q = raw.trim();
+  // Capitalize first letter
+  q = q.charAt(0).toUpperCase() + q.slice(1);
+  // Add question mark if missing punctuation at end
+  if (!/[.?!]$/.test(q)) q += '?';
+  return q;
+}
+
 const ACTIVE_JOB_STATUSES = ['active_job'];
 
 export default async function IssuePage({ params }: { params: Promise<{ id: string }> }) {
@@ -404,28 +414,35 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
                       </div>
                     )}
 
-                    {/* Follow-up question */}
-                    {response.followUpQuestion && (
-                      <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
-                        <p className="text-sm font-medium text-amber-800">Contractor question:</p>
-                        <p className="text-sm text-amber-900 mt-1">{response.followUpQuestion}</p>
+                    {/* Conversation thread: question + reply */}
+                    {(response.followUpQuestion || response.outboundMessages?.[0]) && (
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Conversation</p>
+
+                        {/* Follow-up question */}
+                        {response.followUpQuestion && (
+                          <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
+                            <p className="text-sm font-medium text-amber-800">Contractor question:</p>
+                            <p className="text-sm text-amber-900 mt-1">{tidyQuestion(response.followUpQuestion)}</p>
+                          </div>
+                        )}
+
+                        {/* Outbound reply */}
+                        {response.outboundMessages?.[0] && (() => {
+                          const reply = response.outboundMessages[0];
+                          return (
+                            <div className="rounded-lg bg-blue-50 border border-blue-200 p-3">
+                              <p className="text-sm font-medium text-blue-800">Your reply:</p>
+                              <p className="text-sm text-blue-900 mt-1">{reply.messageBody}</p>
+                              <p className="text-xs text-blue-600 mt-2">
+                                Sent via {reply.channel === 'sms' ? 'SMS' : 'Email'} · Delivered · {new Date(reply.createdAt).toLocaleDateString()} at{' '}
+                                {new Date(reply.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                              </p>
+                            </div>
+                          );
+                        })()}
                       </div>
                     )}
-
-                    {/* Outbound reply */}
-                    {response.outboundMessages?.[0] && (() => {
-                      const reply = response.outboundMessages[0];
-                      return (
-                        <div className="rounded-lg bg-blue-50 border border-blue-200 p-3">
-                          <p className="text-sm font-medium text-blue-800">Your reply:</p>
-                          <p className="text-sm text-blue-900 mt-1">{reply.messageBody}</p>
-                          <p className="text-xs text-blue-600 mt-2">
-                            Sent via {reply.channel === 'sms' ? 'SMS' : 'Email'} · {new Date(reply.createdAt).toLocaleDateString()} at{' '}
-                            {new Date(reply.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                          </p>
-                        </div>
-                      );
-                    })()}
 
                     {/* Notes */}
                     {response.notes && (
@@ -437,9 +454,9 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
                       <RawMessageToggle rawMessage={response.rawMessage} />
                     )}
 
-                    {/* Confidence indicator */}
-                    {response.requiresReview && (
-                      <p className="text-xs text-amber-600">This response needs manual review</p>
+                    {/* Only show review warning when parsing truly failed (no quote or availability extracted) */}
+                    {response.requiresReview && !response.flatEstimate && !response.estimateLow && !response.availabilityText && (
+                      <p className="text-xs text-amber-600">Could not fully parse this response — please review the raw message</p>
                     )}
 
                     {/* Actions */}
@@ -457,7 +474,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
                           />
                         )}
                         {isSelected && (
-                          <Badge className="bg-green-100 text-green-800">Selected</Badge>
+                          <Badge className="bg-green-100 text-green-800">You selected this contractor</Badge>
                         )}
                         <ReplyToContractorButton
                           issueId={issue.id}
@@ -468,6 +485,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
                           contractorPhone={dispatch.contractor.phone}
                           dispatchChannel={dispatch.channel}
                           issueTitle={issue.title || 'Maintenance request'}
+                          hasExistingReply={!!(response.outboundMessages && response.outboundMessages.length > 0)}
                         />
                       </div>
                     )}
