@@ -72,33 +72,12 @@ export async function POST(
       );
     }
 
-    // Try public URL first; if bucket is private, use a signed URL
+    // Bucket is public — use permanent public URL (no expiring tokens)
     const { data: urlData } = supabaseAdmin.storage
       .from('issue-photos')
       .getPublicUrl(filePath);
 
-    let fileUrl = urlData.publicUrl;
-
-    // Verify the public URL works; if not, generate a long-lived signed URL
-    try {
-      const testRes = await fetch(fileUrl, { method: 'HEAD' });
-      if (!testRes.ok) {
-        const { data: signedData } = await supabaseAdmin.storage
-          .from('issue-photos')
-          .createSignedUrl(filePath, 60 * 60 * 24 * 365); // 1 year
-        if (signedData?.signedUrl) {
-          fileUrl = signedData.signedUrl;
-        }
-      }
-    } catch {
-      // If HEAD check fails, try signed URL
-      const { data: signedData } = await supabaseAdmin.storage
-        .from('issue-photos')
-        .createSignedUrl(filePath, 60 * 60 * 24 * 365);
-      if (signedData?.signedUrl) {
-        fileUrl = signedData.signedUrl;
-      }
-    }
+    const fileUrl = urlData.publicUrl;
 
     const photo = await prisma.issuePhoto.create({
       data: {

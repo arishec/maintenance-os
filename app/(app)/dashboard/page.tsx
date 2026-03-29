@@ -11,6 +11,11 @@ export default async function DashboardPage() {
   const properties = await prisma.property.findMany({ where: { ownerUserId: user.id } });
   const propertyIds = properties.map((p) => p.id);
 
+  const contractorCount = await prisma.contractor.count({ where: { ownerUserId: user.id, isActive: true } });
+  const issueCount = await prisma.issue.count({ where: { propertyId: { in: propertyIds } } });
+
+  const isNewUser = properties.length === 0 || contractorCount === 0 || issueCount === 0;
+
   const [openIssues, awaitingQuotes, quotesReceived, activeJobs, recentIssues, notifications] = await Promise.all([
     prisma.issue.count({ where: { propertyId: { in: propertyIds }, status: { notIn: ['completed', 'canceled', 'archived'] } } }),
     prisma.issue.count({ where: { propertyId: { in: propertyIds }, status: 'awaiting_quotes' } }),
@@ -52,16 +57,46 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-3xl font-semibold">Dashboard</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {properties.length === 0
-              ? 'Welcome! Add a property to get started.'
-              : 'Your maintenance overview.'}
+            {isNewUser ? 'Welcome! Get set up in 3 quick steps.' : 'Your maintenance overview.'}
           </p>
-          {properties.length === 0 && (
-            <Link href="/properties" className="mt-3 inline-flex items-center justify-center rounded-md border border-blue-600 bg-white px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors">
-              Add Property
-            </Link>
-          )}
         </div>
+
+        {isNewUser && (
+          <Card className="border-blue-200 bg-blue-50/50">
+            <CardContent className="py-6">
+              <h2 className="text-base font-semibold mb-4">Get started</h2>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <Link href="/properties" className={`flex items-start gap-3 rounded-lg border p-4 transition-colors ${properties.length > 0 ? 'border-green-300 bg-green-50' : 'border-blue-300 bg-white hover:bg-blue-50'}`}>
+                  <span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${properties.length > 0 ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}>
+                    {properties.length > 0 ? '\u2713' : '1'}
+                  </span>
+                  <div>
+                    <p className="text-sm font-medium">{properties.length > 0 ? 'Property added' : 'Add a property'}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{properties.length > 0 ? properties[0].nickname || properties[0].addressLine1 : 'Where is the repair needed?'}</p>
+                  </div>
+                </Link>
+                <Link href="/contractors" className={`flex items-start gap-3 rounded-lg border p-4 transition-colors ${contractorCount > 0 ? 'border-green-300 bg-green-50' : properties.length > 0 ? 'border-blue-300 bg-white hover:bg-blue-50' : 'border-gray-200 bg-gray-50 opacity-60'}`}>
+                  <span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${contractorCount > 0 ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}>
+                    {contractorCount > 0 ? '\u2713' : '2'}
+                  </span>
+                  <div>
+                    <p className="text-sm font-medium">{contractorCount > 0 ? 'Contractor added' : 'Add a contractor'}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{contractorCount > 0 ? `${contractorCount} contractor${contractorCount !== 1 ? 's' : ''}` : 'Who should we contact?'}</p>
+                  </div>
+                </Link>
+                <Link href="/issues/new" className={`flex items-start gap-3 rounded-lg border p-4 transition-colors ${issueCount > 0 ? 'border-green-300 bg-green-50' : contractorCount > 0 ? 'border-blue-300 bg-white hover:bg-blue-50' : 'border-gray-200 bg-gray-50 opacity-60'}`}>
+                  <span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${issueCount > 0 ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}>
+                    {issueCount > 0 ? '\u2713' : '3'}
+                  </span>
+                  <div>
+                    <p className="text-sm font-medium">{issueCount > 0 ? 'Issue reported' : 'Report an issue'}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{issueCount > 0 ? 'AI classified and ready to go' : 'AI classifies it instantly'}</p>
+                  </div>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {stats.map((stat) => (

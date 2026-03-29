@@ -2728,3 +2728,65 @@ TO DEPLOY:
 cd "~/dev projects/maintenance-os-v1"
 rm -rf app/api/admin
 git add -A && git commit -m "Harden admin lookup: rename to /internal, add secret header, summary block, fix AI confidence" && git push
+
+========================================
+SESSION 28 — PRE-LAUNCH CHECKLIST EXECUTION
+Date: March 29, 2026
+========================================
+
+User uploaded prelaunch_product_review.txt with a tiered priority list.
+After analysis, identified what was already built vs what needed doing.
+Executed all remaining items.
+
+WHAT WAS ALREADY DONE (NO CHANGES NEEDED):
+- Job completion flow: JobLifecyclePanel + 4 API routes (complete/schedule/start/cancel) already built in prior sessions
+- Multi-quote comparison UI: Already well-designed with price sorting, selection badges, conversation threads
+- Tier 3 items (manual quote entry, resend/retry, contractor dedup): Done in previous sessions
+- SPF and DKIM: Already verified in Resend for ifbids.com domain
+
+WHAT WAS DONE THIS SESSION:
+
+1. PHOTO URL EXPIRATION FIX (TIER 1 BLOCKER)
+   - Made Supabase issue-photos bucket PUBLIC via Supabase dashboard UI
+   - Updated app/api/issues/[id]/photos/route.ts: simplified to use getPublicUrl() instead of signed URLs
+   - Updated app/(app)/issues/[id]/page.tsx: replaced createSignedUrl() with synchronous getPublicUrl() map
+   - Photos now use permanent public URLs that never expire — contractors can open emails anytime
+
+2. EMAIL NOTIFICATIONS ON CONTRACTOR REPLY (TIER 1 BLOCKER)
+   - Added sendOwnerNotificationEmail() to lib/notifications.ts
+   - Sends "New quote received" email with notification body and "View Issue" button
+   - Non-blocking: catches errors and logs them without throwing (won't break webhooks)
+   - Called from both webhook handlers:
+     - app/api/webhooks/email/inbound/route.ts
+     - app/api/webhooks/twilio/inbound/route.ts
+   - Subject line format: "New quote for: {issueTitle}"
+
+3. ONBOARDING FLOW (TIER 2 RETENTION)
+   - Updated app/(app)/dashboard/page.tsx with 3-step onboarding stepper
+   - Detects new users: isNewUser = properties.length === 0 || contractorCount === 0 || issueCount === 0
+   - Shows blue card with steps: Add property → Add contractor → Report issue
+   - Progressive completion: green checkmarks for done steps, blue for current, gray/dimmed for future
+   - Disappears once all 3 are done
+
+4. DMARC DNS RECORD (EMAIL DELIVERABILITY)
+   - Added TXT record on GoDaddy DNS for ifbids.com:
+     Name: _dmarc
+     Value: v=DMARC1; p=none; rua=mailto:ashechtman@gmail.com
+     TTL: 1 Hour
+   - Monitoring-only policy (p=none) — won't reject mail but signals DMARC exists
+   - Completes the SPF + DKIM + DMARC trifecta for email deliverability
+
+FILES CHANGED:
+- app/api/issues/[id]/photos/route.ts (simplified to public URLs)
+- app/(app)/issues/[id]/page.tsx (public URLs instead of signed)
+- lib/notifications.ts (added sendOwnerNotificationEmail function)
+- app/api/webhooks/email/inbound/route.ts (added email notification call)
+- app/api/webhooks/twilio/inbound/route.ts (added email notification call)
+- app/(app)/dashboard/page.tsx (added onboarding stepper + contractor/issue counts)
+
+DNS CHANGES:
+- _dmarc.ifbids.com TXT record added on GoDaddy
+
+TO DEPLOY:
+cd "~/dev projects/maintenance-os-v1"
+git add -A && git commit -m "Pre-launch fixes: public photo URLs, email notifications, onboarding flow, DMARC" && git push

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { parseContractorReply } from '@/lib/ai/parse-contractor-reply';
 import { logTimelineEvent } from '@/lib/timeline';
 import { validateTwilioSignature } from '@/lib/twilio';
+import { sendOwnerNotificationEmail } from '@/lib/notifications';
 
 const REPLY_TOKEN_PATTERN = /MNT-[A-Z0-9]{6}/;
 
@@ -260,6 +261,14 @@ export async function POST(request: NextRequest) {
         body: notifBody,
         issueId: issue.id,
       },
+    });
+
+    // Send email notification to property owner (non-blocking)
+    await sendOwnerNotificationEmail({
+      userId: issue.property.ownerUserId,
+      issueId: issue.id,
+      issueTitle: issue.title ?? 'Untitled issue',
+      notifBody,
     });
 
     return getTwiMLResponse();

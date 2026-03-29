@@ -116,18 +116,18 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
     redirect('/issues');
   }
 
-  // Generate signed URLs for photos
-  const photosWithUrls = await Promise.all(
-    (issue.photos || []).map(async (photo) => {
-      if (photo.filePath) {
-        const { data } = await supabaseAdmin.storage
-          .from('issue-photos')
-          .createSignedUrl(photo.filePath, 60 * 60);
-        return { ...photo, signedUrl: data?.signedUrl || photo.fileUrl };
-      }
-      return { ...photo, signedUrl: photo.fileUrl };
-    })
-  );
+  // Photos use public URLs — no signed URL generation needed
+  const photosWithUrls = (issue.photos || []).map((photo) => {
+    // For existing photos with old signed URLs, build the public URL from filePath
+    let publicUrl = photo.fileUrl;
+    if (photo.filePath) {
+      const { data } = supabaseAdmin.storage
+        .from('issue-photos')
+        .getPublicUrl(photo.filePath);
+      publicUrl = data.publicUrl;
+    }
+    return { ...photo, signedUrl: publicUrl };
+  });
 
   const displayStatus = ISSUE_STATUS_LABELS[issue.status] || issue.status;
   const isActiveJob = ACTIVE_JOB_STATUSES.includes(issue.status);
