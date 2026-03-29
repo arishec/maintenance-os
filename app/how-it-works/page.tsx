@@ -5,7 +5,7 @@ import { PublicLayout } from '@/components/public-layout';
 export const metadata: Metadata = {
   title: 'How Maintenance OS Works',
   description:
-    'Learn the simple 5-step workflow: Report → Classify → Dispatch → Compare → Track. Manage all your maintenance coordination in one place.',
+    'Report an issue once, send it to contractors, compare responses, and keep everything organized from start to finish.',
   alternates: {
     canonical: '/how-it-works',
   },
@@ -14,232 +14,194 @@ export const metadata: Metadata = {
 export default function HowItWorksPage() {
   return (
     <PublicLayout>
-      <main className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16">
-        {/* Header */}
-        <div className="mb-16 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            How Maintenance OS Works
+      <main className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+        {/* Hero */}
+        <div className="mb-12 sm:mb-16">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            Manage repairs without chasing contractors
           </h1>
-          <p className="text-xl text-gray-600">
-            A simple 5-step workflow to keep your properties maintained
+          <p className="text-lg text-gray-600 max-w-3xl">
+            Report an issue once, send it to contractors, compare responses, and keep
+            everything organized from start to finish.
           </p>
+          <p className="mt-3 text-sm text-gray-500 max-w-3xl">
+            No more digging through texts, waiting on replies, or losing track of what was fixed.
+          </p>
+          <div className="mt-8 flex flex-col sm:flex-row gap-3">
+            <Link
+              href="/sign-up"
+              className="inline-flex justify-center rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+            >
+              Get started for free
+            </Link>
+            <Link
+              href="/features"
+              className="inline-flex justify-center rounded-xl border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              See features
+            </Link>
+          </div>
         </div>
 
-        {/* Step 1 */}
-        <div className="mb-16">
-          <div className="flex gap-8 items-start">
+        {/* Steps */}
+        <div className="space-y-12 sm:space-y-16">
+
+          {/* Step 1 */}
+          <div className="flex gap-5 sm:gap-8 items-start">
             <div className="flex-shrink-0">
-              <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-blue-600 text-white text-lg font-bold">
+              <div className="flex items-center justify-center h-11 w-11 sm:h-12 sm:w-12 rounded-lg bg-blue-600 text-white text-lg font-bold">
                 1
               </div>
             </div>
-            <div className="flex-grow">
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">Report</h2>
-              <p className="text-gray-600 mb-4">
-                You or your tenant reports a maintenance issue. This could be a leaky faucet, a broken window,
-                a malfunctioning HVAC system, or any property problem that needs attention. Submit the issue
-                through the Maintenance OS app or web portal with a description and optional photos.
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">Report the issue</h2>
+              <p className="text-gray-600 mb-3">
+                Start with the problem. Add a title, description, and photos if you have them.
               </p>
-              <p className="text-gray-600">
-                The system captures all the details you provide, creating a record of the problem for your
-                property.
+              <p className="text-gray-600 mb-3">
+                Whether it&apos;s a leaking sink, broken AC, or roof issue, everything gets captured
+                in one place so you have a clear record from the start.
+              </p>
+              <p className="text-gray-500 text-sm">
+                No more scattered notes or trying to remember what happened later.
               </p>
             </div>
           </div>
-        </div>
 
-        {/* Step 2 */}
-        <div className="mb-16">
-          <div className="flex gap-8 items-start">
+          {/* Step 2 */}
+          <div className="flex gap-5 sm:gap-8 items-start">
             <div className="flex-shrink-0">
-              <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-blue-600 text-white text-lg font-bold">
+              <div className="flex items-center justify-center h-11 w-11 sm:h-12 sm:w-12 rounded-lg bg-blue-600 text-white text-lg font-bold">
                 2
               </div>
             </div>
-            <div className="flex-grow">
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">Classify</h2>
-              <p className="text-gray-600 mb-4">
-                The system automatically categorizes the maintenance request. Is it plumbing? Electrical?
-                General repairs? Knowing the type helps you dispatch to the right contractors and prioritize
-                your workload.
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">Automatically organize the request</h2>
+              <p className="text-gray-600 mb-3">
+                Maintenance OS instantly understands what&apos;s wrong and organizes it for you.
               </p>
-              <p className="text-gray-600">
-                You can also manually adjust the classification and set priority levels (urgent, standard,
-                low priority) based on the severity of the issue.
+              <p className="text-gray-600 mb-3">
+                It categorizes the issue and helps prioritize it so it goes to the right
+                contractors without guesswork.
+              </p>
+              <p className="text-gray-500 text-sm">
+                Plumbing, electrical, HVAC, roofing — handled automatically.
               </p>
             </div>
           </div>
-        </div>
 
-        {/* Step 3 */}
-        <div className="mb-16">
-          <div className="flex gap-8 items-start">
+          {/* Step 3 */}
+          <div className="flex gap-5 sm:gap-8 items-start">
             <div className="flex-shrink-0">
-              <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-blue-600 text-white text-lg font-bold">
+              <div className="flex items-center justify-center h-11 w-11 sm:h-12 sm:w-12 rounded-lg bg-blue-600 text-white text-lg font-bold">
                 3
               </div>
             </div>
-            <div className="flex-grow">
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">Dispatch</h2>
-              <p className="text-gray-600 mb-4">
-                Once classified, dispatch the request to your contractors. Maintenance OS sends SMS or email
-                notifications automatically to relevant contractors with the issue details and your property
-                information.
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">Send to multiple contractors at once</h2>
+              <p className="text-gray-600 mb-3">
+                Instead of reaching out one by one, send the issue once and contact multiple
+                contractors at the same time.
               </p>
-              <p className="text-gray-600 mb-4">
-                Contractors can respond quickly using simple reply tokens. They either accept the job,
-                decline it, or respond with a preliminary quote. This cuts down on phone tag and email chains.
+              <p className="text-gray-600 mb-3">
+                They can reply with pricing, availability, or questions — all tied to the
+                same request.
               </p>
-              <Link
-                href="/features/contractor-dispatch"
-                className="text-blue-600 hover:text-blue-700 font-medium"
-              >
-                Learn more about contractor dispatch →
-              </Link>
+              <p className="text-gray-500 text-sm">
+                One request out. Multiple responses back.
+              </p>
             </div>
           </div>
-        </div>
 
-        {/* Step 4 */}
-        <div className="mb-16">
-          <div className="flex gap-8 items-start">
+          {/* Step 4 */}
+          <div className="flex gap-5 sm:gap-8 items-start">
             <div className="flex-shrink-0">
-              <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-blue-600 text-white text-lg font-bold">
+              <div className="flex items-center justify-center h-11 w-11 sm:h-12 sm:w-12 rounded-lg bg-blue-600 text-white text-lg font-bold">
                 4
               </div>
             </div>
-            <div className="flex-grow">
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">Compare</h2>
-              <p className="text-gray-600 mb-4">
-                When you get responses back, Maintenance OS displays all contractor quotes and proposals side
-                by side. Compare prices, timelines, and contractor details at a glance.
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">Compare responses in one place</h2>
+              <p className="text-gray-600 mb-3">
+                See pricing, timing, and contractor details side by side.
               </p>
-              <p className="text-gray-600 mb-4">
-                You can easily see who quoted what, and make an informed decision. Evaluate past performance
-                and ratings alongside the quotes to choose the best contractor for the job.
+              <p className="text-gray-600 mb-3">
+                No more digging through messages or trying to remember who said what.
               </p>
-              <Link
-                href="/features/quote-comparison"
-                className="text-blue-600 hover:text-blue-700 font-medium"
-              >
-                Learn more about quote comparison →
-              </Link>
+              <p className="text-gray-500 text-sm">
+                Everything is already organized so you can make a decision quickly.
+              </p>
             </div>
           </div>
-        </div>
 
-        {/* Step 5 */}
-        <div className="mb-16">
-          <div className="flex gap-8 items-start">
+          {/* Step 5 */}
+          <div className="flex gap-5 sm:gap-8 items-start">
             <div className="flex-shrink-0">
-              <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-blue-600 text-white text-lg font-bold">
+              <div className="flex items-center justify-center h-11 w-11 sm:h-12 sm:w-12 rounded-lg bg-blue-600 text-white text-lg font-bold">
                 5
               </div>
             </div>
-            <div className="flex-grow">
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">Track</h2>
-              <p className="text-gray-600 mb-4">
-                Once a contractor is hired, track progress through to completion. Update status as work begins,
-                progresses, and finishes. Keep all documentation—photos, invoices, completion notes—in one place.
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">Track the job and keep the history</h2>
+              <p className="text-gray-600 mb-3">
+                Once you choose a contractor, track the repair through completion.
               </p>
-              <p className="text-gray-600 mb-4">
-                Your complete repair history stays searchable and organized. Filter by property, date, issue
-                type, or contractor. Use it for maintenance planning, insurance documentation, or resale
-                disclosure.
+              <p className="text-gray-600">
+                Every repair becomes part of your property&apos;s history — so you always know
+                what was done, when, and by whom.
               </p>
-              <Link
-                href="/features/repair-history"
-                className="text-blue-600 hover:text-blue-700 font-medium"
-              >
-                Learn more about repair history →
-              </Link>
             </div>
           </div>
         </div>
 
-        {/* Why This Matters */}
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-6 sm:p-8 lg:p-12 border border-green-100 mb-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Why This Matters</h2>
-          <ul className="space-y-3 text-gray-700">
-            <li className="flex gap-3">
-              <span className="text-green-600 font-bold">✓</span>
-              <span>
-                <strong>Less Time on Coordination:</strong> No more chasing contractors by phone or email.
-              </span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-green-600 font-bold">✓</span>
-              <span>
-                <strong>Better Decisions:</strong> Compare quotes side by side instead of juggling multiple
-                conversations.
-              </span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-green-600 font-bold">✓</span>
-              <span>
-                <strong>Complete Record:</strong> Keep a searchable history of all repairs for every property.
-              </span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-green-600 font-bold">✓</span>
-              <span>
-                <strong>Tenant Satisfaction:</strong> Tenants can report issues easily and see progress.
-              </span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-green-600 font-bold">✓</span>
-              <span>
-                <strong>Scale Easily:</strong> Manage one property or dozens with the same simple system.
-              </span>
-            </li>
-          </ul>
-        </div>
-
-        {/* Who It's For */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:p-8 lg:p-12 mb-16">
-          <div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">For Homeowners</h3>
-            <p className="text-gray-600 mb-4">
-              Keep all your home repair information organized. Track what's been done, when, and by whom.
-              Compare contractor quotes easily without spreadsheets.
-            </p>
-            <Link
-              href="/for-homeowners"
-              className="text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Learn more →
-            </Link>
+        {/* Why This Works Better */}
+        <section className="mt-16 sm:mt-24 rounded-2xl bg-gray-50 border border-gray-200 p-6 sm:p-8 lg:p-12">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">Why this works better</h2>
+          <div className="space-y-4">
+            {[
+              { title: 'Stop chasing contractors', desc: 'Send one request instead of following up across texts and emails.' },
+              { title: 'Make faster decisions', desc: 'Compare quotes and availability in one place.' },
+              { title: 'Stay organized', desc: 'Keep a complete repair history for every property.' },
+              { title: 'Reduce back-and-forth', desc: 'Everything lives in one thread tied to the issue.' },
+              { title: 'Works as you scale', desc: 'Use it for one home or multiple properties.' },
+            ].map((item) => (
+              <div key={item.title} className="flex gap-3">
+                <span className="text-blue-600 font-bold flex-shrink-0">&#10003;</span>
+                <div>
+                  <span className="font-medium text-gray-900">{item.title}:</span>{' '}
+                  <span className="text-gray-600">{item.desc}</span>
+                </div>
+              </div>
+            ))}
           </div>
-          <div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">For Landlords</h3>
-            <p className="text-gray-600 mb-4">
-              Manage maintenance across multiple properties. Collect tenant requests systematically. Maintain
-              detailed repair records for each unit.
-            </p>
-            <Link
-              href="/for-landlords"
-              className="text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Learn more →
-            </Link>
-          </div>
-        </div>
+        </section>
 
-        {/* CTA */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 sm:p-8 lg:p-12 text-center border border-blue-100">
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">
-            Ready to streamline your maintenance?
+        {/* Final CTA */}
+        <section className="mt-16 sm:mt-24 rounded-2xl bg-blue-50 border border-blue-100 p-6 sm:p-8 md:p-12 text-center">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">
+            Start managing repairs the simple way
           </h2>
-          <p className="text-gray-600 mb-6 text-lg">
-            Start with our free tier today. No credit card required.
+          <p className="text-gray-600 mb-6">
+            Report your first issue and see how everything stays organized from the start.
           </p>
-          <Link
-            href="/sign-up"
-            className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-          >
-            Get Started Free
-          </Link>
-        </div>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href="/sign-up"
+              className="inline-flex justify-center rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+            >
+              Get started for free
+            </Link>
+            <Link
+              href="/pricing"
+              className="inline-flex justify-center rounded-xl border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              View pricing
+            </Link>
+          </div>
+          <p className="mt-4 text-xs text-gray-500">
+            No credit card required while we&apos;re in beta.
+          </p>
+        </section>
       </main>
     </PublicLayout>
   );
