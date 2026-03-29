@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default function PropertyMaintenanceTrackingPage() {
   return (
     <PublicLayout>
-      <main className="mx-auto max-w-5xl px-6 py-16">
+      <main className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16">
         {/* Header */}
         <div className="mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
@@ -74,7 +74,7 @@ export default function PropertyMaintenanceTrackingPage() {
         </div>
 
         {/* Why It Matters */}
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-12 border border-green-100 mb-16">
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-6 sm:p-8 lg:p-12 border border-green-100 mb-16">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Why Property Tracking Matters</h2>
 
           <div className="space-y-4">
@@ -185,7 +185,7 @@ export default function PropertyMaintenanceTrackingPage() {
         </div>
 
         {/* CTA */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-12 text-center border border-blue-100">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 sm:p-8 lg:p-12 text-center border border-blue-100">
           <h2 className="text-3xl font-bold text-gray-900 mb-3">
             Start tracking your property maintenance today
           </h2>

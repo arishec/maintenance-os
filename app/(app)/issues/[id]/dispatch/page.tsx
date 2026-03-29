@@ -160,12 +160,12 @@ export default function DispatchPage() {
         {/* Issue Summary */}
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-start justify-between gap-4">
+            <div className="space-y-2">
               <div>
                 <div className="font-medium">{issue.title ?? 'Untitled issue'}</div>
                 <div className="mt-1 text-sm text-muted-foreground">{issue.description.slice(0, 150)}</div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 {issue.category && <Badge>{issue.category}</Badge>}
                 {issue.urgency && <Badge>{issue.urgency}</Badge>}
               </div>
@@ -205,24 +205,31 @@ export default function DispatchPage() {
                   return (
                     <div
                       key={contractor.id}
-                      className={`flex items-center gap-4 rounded-xl border p-4 cursor-pointer transition-colors ${isSelected ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'}`}
+                      className={`flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 rounded-xl border p-4 cursor-pointer transition-colors ${isSelected ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'}`}
                       onClick={() => toggleContractor(contractor)}
                     >
-                      <input type="checkbox" checked={isSelected} readOnly className="h-4 w-4 rounded" />
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium">{contractor.name}</div>
-                        <div className="text-xs text-muted-foreground">{contractor.trade.replace(/_/g, ' ')}</div>
+                      <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                        <input type="checkbox" checked={isSelected} readOnly className="h-5 w-5 rounded flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium">{contractor.name}</div>
+                          <div className="text-xs text-muted-foreground">{contractor.trade.replace(/_/g, ' ')}</div>
+                          <div className="text-xs text-muted-foreground mt-0.5 sm:hidden truncate">
+                            {contractor.phone && <span>{contractor.phone}</span>}
+                            {contractor.phone && contractor.email && <span> · </span>}
+                            {contractor.email && <span>{contractor.email}</span>}
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="hidden sm:block text-sm text-muted-foreground flex-shrink-0">
                         {contractor.phone && <div>{contractor.phone}</div>}
-                        {contractor.email && <div>{contractor.email}</div>}
+                        {contractor.email && <div className="truncate max-w-[200px]">{contractor.email}</div>}
                       </div>
                       {isSelected && (
                         <select
                           value={sel?.channel}
                           onChange={e => { e.stopPropagation(); setChannel(contractor.id, e.target.value as 'sms' | 'email'); }}
                           onClick={e => e.stopPropagation()}
-                          className="rounded-lg border border-border bg-white px-2 py-1 text-sm"
+                          className="rounded-lg border border-border bg-white px-3 py-2 text-sm ml-8 sm:ml-0 w-fit"
                         >
                           {contractor.phone && <option value="sms">SMS</option>}
                           {contractor.email && <option value="email">Email</option>}
@@ -249,7 +256,7 @@ export default function DispatchPage() {
               />
             </div>
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={includePhotos} onChange={e => setIncludePhotos(e.target.checked)} className="h-4 w-4 rounded" />
+              <input type="checkbox" checked={includePhotos} onChange={e => setIncludePhotos(e.target.checked)} className="h-5 w-5 rounded" />
               Include photos in request
             </label>
           </CardContent>

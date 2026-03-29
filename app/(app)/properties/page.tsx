@@ -32,7 +32,7 @@ export default async function PropertiesPage() {
   return (
     <LayoutShell>
       <div className="flex items-center justify-between gap-3 mb-6">
-        <h1 className="text-2xl font-bold">Properties</h1>
+        <h1 className="text-xl sm:text-2xl font-bold">Properties</h1>
         <Link href="/properties/new">
           <Button size="sm">Add Property</Button>
         </Link>

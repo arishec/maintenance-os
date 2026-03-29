@@ -378,7 +378,7 @@ export default function NewIssuePage() {
 
               {/* Photo previews */}
               {photos.length > 0 && (
-                <div className="mt-3 grid grid-cols-3 gap-2">
+                <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {photos.map((photo) => (
                     <div key={photo.id} className="relative">
                       <div className="relative h-24 w-full overflow-hidden rounded-lg bg-muted">
@@ -423,7 +423,7 @@ export default function NewIssuePage() {
                       type="checkbox"
                       id={`signal_${opt.value}`}
                       name={`signal_${opt.value}`}
-                      className="h-4 w-4 rounded border-border"
+                      className="h-5 w-5 rounded border-border"
                     />
                     <label htmlFor={`signal_${opt.value}`} className="text-sm">
                       {opt.label}

@@ -3380,3 +3380,58 @@ REMAINING PENDING ITEMS:
   - Configure status callback URL if not yet set (/api/webhooks/twilio/status)
   - Database indexes applied via `prisma db push` ✅ (done this session)
   - For larger scale: swap in-memory rate limiter for Upstash Redis
+  - Upgrade Supabase from Free to Pro plan ($25/mo) for daily backups — currently NO backups on Free plan
+    - Do this in Supabase dashboard: Organization Settings → Billing → Upgrade to Pro
+    - PITR (point-in-time recovery) is an additional add-on on Pro if needed later
+
+========================================
+SESSION STATUS (March 29, 2026)
+========================================
+All development work COMPLETE. App is beta-ready for real users.
+
+Summary of what's live:
+  - Beta mode: all features free, paywalls commented out with // BETA: markers
+  - 7 bugs fixed from thorough code review
+  - Error boundaries catch crashes gracefully
+  - Rate limiting protects AI credits and SMS/email spend
+  - SMS delivery notice warns users about A2P 10DLC pending approval
+  - TypeScript: 0 errors
+  - Database indexes applied
+
+MOBILE RESPONSIVENESS OVERHAUL (March 29, 2026):
+
+  Critical fixes:
+  - PUBLIC LAYOUT: Added mobile hamburger menu (components/mobile-nav-toggle.tsx)
+    - Slide-down panel with nav links + auth buttons
+    - Desktop nav hidden below lg: breakpoint, hamburger shows on mobile
+    - Backdrop overlay for closing
+  - PUBLIC LAYOUT PADDING: All public pages changed from px-8 to px-4 sm:px-6 lg:px-8
+    - Updated: public-layout.tsx footer, all feature pages, pricing, contact, how-it-works,
+      for-homeowners, for-landlords, landing page
+
+  Component fixes:
+  - NOTIFICATIONS DROPDOWN: Added sm:max-w-[calc(100vw-1.5rem)] to prevent overflow on narrow phones
+  - PHOTO GRID (issues/new): Changed from grid-cols-3 to grid-cols-2 sm:grid-cols-3
+  - BUTTON TOUCH TARGETS: Bumped all sizes up (default h-10→h-11, sm h-9→h-10, lg h-11→h-12)
+  - CHECKBOX TOUCH TARGETS: All checkboxes changed from h-4 w-4 to h-5 w-5
+  - DISPATCH PAGE: Contractor rows now stack vertically on mobile (flex-col sm:flex-row)
+    - Contact info shown inline on mobile, separate column on desktop
+    - Channel select dropdown has larger touch target (px-3 py-2)
+
+  Typography/spacing:
+  - Landing page hero: text-3xl sm:text-4xl md:text-5xl (was text-4xl md:text-5xl)
+  - Section margins: mt-16 sm:mt-24 (was mt-24 everywhere — too much space on mobile)
+  - Section headings: text-xl sm:text-2xl for responsive sizing
+  - All page titles (Dashboard, Issues, Properties, Settings): responsive sizing added
+  - How-it-works grid: grid-cols-2 sm:grid-cols-3 md:grid-cols-5 (was md:grid-cols-5 only)
+  - Features grid: grid-cols-2 md:grid-cols-4 (was md:grid-cols-4 only)
+  - Issues filter tabs: py-1.5→py-2 for better touch targets
+
+  Files changed: ~20 files total
+  TypeScript: 0 errors
+
+Before charging users later:
+  - Uncomment // BETA: paywall blocks in: api/issues/route.ts, api/issues/[id]/dispatch/route.ts
+  - Restore paywall-modal.tsx to Stripe checkout flow
+  - Update pricing page, settings page, landing page CTAs
+  - All existing free users keep their data — just flip plan field

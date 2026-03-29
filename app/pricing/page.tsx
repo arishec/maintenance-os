@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default function PricingPage() {
   return (
     <PublicLayout>
-      <main className="mx-auto max-w-3xl px-6 py-24 text-center">
+      <main className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-24 text-center">
         <div className="inline-block bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-6">
           Beta
         </div>
@@ -28,7 +28,7 @@ export default function PricingPage() {
         </p>
 
         {/* What's included */}
-        <div className="border border-gray-200 rounded-xl p-8 text-left max-w-md mx-auto mb-10">
+        <div className="border border-gray-200 rounded-xl p-4 sm:p-6 lg:p-8 text-left max-w-md mx-auto mb-10">
           <h2 className="text-lg font-bold text-gray-900 mb-4">Everything included</h2>
           <div className="space-y-3">
             {[

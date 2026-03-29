@@ -126,7 +126,7 @@ export function NotificationsBell({ dropDirection = 'up' }: { dropDirection?: 'u
       </button>
 
       {isOpen && (
-        <div className={`absolute ${dropDirection === 'up' ? 'bottom-full left-0 mb-2' : 'top-full right-0 mt-2'} w-80 max-w-[calc(100vw-2rem)] rounded-lg border border-border bg-white shadow-lg z-50`}>
+        <div className={`absolute ${dropDirection === 'up' ? 'bottom-full left-0 mb-2' : 'top-full right-0 mt-2'} w-80 max-w-[calc(100vw-1.5rem)] sm:max-w-[calc(100vw-2rem)] rounded-lg border border-border bg-white shadow-lg z-50`}>
           <div className="border-b border-border px-4 py-3 flex items-center justify-between">
             <h3 className="font-semibold">Notifications</h3>
             {unreadCount > 0 && (

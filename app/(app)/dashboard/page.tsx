@@ -38,7 +38,7 @@ export default async function DashboardPage() {
     <LayoutShell>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-semibold">Dashboard</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold">Dashboard</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {isNewUser ? 'Welcome! Get set up in 3 quick steps.' : 'What needs your attention today.'}
           </p>

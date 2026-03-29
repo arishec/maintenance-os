@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { auth } from '@clerk/nextjs/server';
 import { headers } from 'next/headers';
+import { MobileNavToggle } from '@/components/mobile-nav-toggle';
 
 export async function PublicLayout({ children }: { children: React.ReactNode }) {
   const { userId } = await auth();
@@ -20,15 +21,15 @@ export async function PublicLayout({ children }: { children: React.ReactNode }) 
     <div className="flex min-h-screen flex-col bg-white">
       {/* Header */}
       <header className="border-b border-gray-200">
-        <div className="mx-auto max-w-6xl px-8 py-4 flex items-center justify-between">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="text-2xl font-bold text-gray-900 hover:opacity-80 cursor-pointer transition-opacity flex items-center gap-2">
+          <Link href="/" className="text-xl sm:text-2xl font-bold text-gray-900 hover:opacity-80 cursor-pointer transition-opacity flex items-center gap-2">
             Maintenance OS
             <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">Beta</span>
           </Link>
 
-          {/* Nav Links */}
-          <nav className="hidden md:flex items-center gap-8">
+          {/* Nav Links — desktop only */}
+          <nav className="hidden lg:flex items-center gap-8">
             {navLinks.map((link) => {
               const isActive = pathname === link.href || pathname.startsWith(link.href + '/');
               return (
@@ -47,8 +48,8 @@ export async function PublicLayout({ children }: { children: React.ReactNode }) 
             })}
           </nav>
 
-          {/* Buttons */}
-          <div className="flex items-center gap-4">
+          {/* Desktop buttons */}
+          <div className="hidden sm:flex items-center gap-4">
             {isSignedIn ? (
               <Link
                 href="/dashboard"
@@ -73,6 +74,9 @@ export async function PublicLayout({ children }: { children: React.ReactNode }) 
               </>
             )}
           </div>
+
+          {/* Mobile hamburger */}
+          <MobileNavToggle navLinks={navLinks} isSignedIn={isSignedIn} pathname={pathname} />
         </div>
       </header>
 
@@ -81,7 +85,7 @@ export async function PublicLayout({ children }: { children: React.ReactNode }) 
 
       {/* Footer */}
       <footer className="border-t border-gray-200 bg-gray-50 mt-16">
-        <div className="mx-auto max-w-6xl px-8 py-12">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             {/* Product Column */}
             <div>

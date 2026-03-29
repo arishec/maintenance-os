@@ -20,12 +20,12 @@ export default async function HomePage() {
     <>
       <SoftwareJsonLd />
       <PublicLayout>
-        <main className="mx-auto max-w-6xl px-6 py-16">
+        <main className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
 
           {/* Hero */}
           <section className="grid gap-10 md:grid-cols-2 md:items-center">
             <div>
-              <h1 className="text-4xl font-bold tracking-tight text-gray-900 md:text-5xl">
+              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 md:text-5xl">
                 Stop chasing contractors and losing track of repairs
               </h1>
               <p className="mt-5 max-w-2xl text-lg text-gray-600">
@@ -77,7 +77,7 @@ export default async function HomePage() {
           </section>
 
           {/* Problem */}
-          <section className="mt-24">
+          <section className="mt-16 sm:mt-24">
             <h2 className="text-2xl font-bold text-gray-900">
               Most repairs get lost in texts, calls, and memory
             </h2>
@@ -88,8 +88,8 @@ export default async function HomePage() {
           </section>
 
           {/* Core Value */}
-          <section className="mt-24 rounded-2xl bg-blue-50 border border-blue-100 p-8 md:p-12">
-            <h2 className="text-2xl font-bold text-gray-900">
+          <section className="mt-16 sm:mt-24 rounded-2xl bg-blue-50 border border-blue-100 p-6 sm:p-8 md:p-12">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
               Send one issue. Get multiple responses.
             </h2>
             <p className="mt-4 max-w-3xl text-base text-gray-600">
@@ -111,9 +111,9 @@ export default async function HomePage() {
           </section>
 
           {/* How it works */}
-          <section className="mt-24">
-            <h2 className="text-2xl font-bold text-gray-900">How it works</h2>
-            <div className="mt-8 grid gap-6 md:grid-cols-5">
+          <section className="mt-16 sm:mt-24">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">How it works</h2>
+            <div className="mt-8 grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
               {[
                 { step: '1', title: 'Report the issue' },
                 { step: '2', title: 'Send to contractors' },
@@ -135,8 +135,8 @@ export default async function HomePage() {
           </section>
 
           {/* Why this is better */}
-          <section className="mt-24">
-            <h2 className="text-2xl font-bold text-gray-900">Stop doing this the hard way</h2>
+          <section className="mt-16 sm:mt-24">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Stop doing this the hard way</h2>
             <div className="mt-6 space-y-3">
               {[
                 'No more texting multiple contractors individually',
@@ -152,7 +152,7 @@ export default async function HomePage() {
           </section>
 
           {/* Use cases */}
-          <section className="mt-24 grid gap-8 md:grid-cols-2">
+          <section className="mt-16 sm:mt-24 grid gap-6 md:grid-cols-2">
             <div className="rounded-2xl border border-gray-200 p-6">
               <h2 className="text-xl font-bold text-gray-900">For homeowners</h2>
               <p className="mt-3 text-gray-600">
@@ -175,9 +175,9 @@ export default async function HomePage() {
           </section>
 
           {/* Features */}
-          <section className="mt-24">
-            <h2 className="text-2xl font-bold text-gray-900">Everything in one place</h2>
-            <div className="mt-8 grid gap-6 md:grid-cols-4">
+          <section className="mt-16 sm:mt-24">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Everything in one place</h2>
+            <div className="mt-8 grid gap-4 grid-cols-2 md:grid-cols-4">
               {[
                 { title: 'Issue tracking', href: '/features/property-maintenance-tracking' },
                 { title: 'Contractor dispatch', href: '/features/contractor-dispatch' },
@@ -197,7 +197,7 @@ export default async function HomePage() {
           </section>
 
           {/* Final CTA */}
-          <section className="mt-24 rounded-2xl bg-blue-50 border border-blue-100 p-8 md:p-12 text-center">
+          <section className="mt-16 sm:mt-24 rounded-2xl bg-blue-50 border border-blue-100 p-6 sm:p-8 md:p-12 text-center">
             <h2 className="text-2xl font-bold text-gray-900">
               We&apos;re in beta — everything is free
             </h2>

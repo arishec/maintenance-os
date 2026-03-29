@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <PublicLayout>
-      <main className="mx-auto max-w-5xl px-6 py-16">
+      <main className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16">
         {/* Header */}
         <div className="mb-16 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
@@ -25,9 +25,9 @@ export default function ContactPage() {
         </div>
 
         {/* Contact Methods */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:p-8 lg:p-12 mb-16">
           {/* Email */}
-          <div className="border border-gray-200 rounded-lg p-8">
+          <div className="border border-gray-200 rounded-lg p-4 sm:p-6 lg:p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Email</h2>
             <p className="text-gray-600 mb-6">
               Have a question about features, pricing, or need custom support? Send us an email.
@@ -44,7 +44,7 @@ export default function ContactPage() {
           </div>
 
           {/* Feedback */}
-          <div className="border border-gray-200 rounded-lg p-8">
+          <div className="border border-gray-200 rounded-lg p-4 sm:p-6 lg:p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Feature Requests & Feedback</h2>
             <p className="text-gray-600 mb-6">
               Have an idea for a feature? Want to suggest an improvement? We'd love to hear your feedback.
@@ -141,7 +141,7 @@ export default function ContactPage() {
         </div>
 
         {/* Quick Links */}
-        <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-12 border border-gray-200 mb-16">
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-6 sm:p-8 lg:p-12 border border-gray-200 mb-16">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Links</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Link href="/features" className="text-blue-600 hover:text-blue-700 font-medium">
@@ -166,7 +166,7 @@ export default function ContactPage() {
         </div>
 
         {/* CTA */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-12 text-center border border-blue-100">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 sm:p-8 lg:p-12 text-center border border-blue-100">
           <h2 className="text-3xl font-bold text-gray-900 mb-3">
             Ready to get started?
           </h2>

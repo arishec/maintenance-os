@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default function HowItWorksPage() {
   return (
     <PublicLayout>
-      <main className="mx-auto max-w-5xl px-6 py-16">
+      <main className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16">
         {/* Header */}
         <div className="mb-16 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
@@ -158,7 +158,7 @@ export default function HowItWorksPage() {
         </div>
 
         {/* Why This Matters */}
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-12 border border-green-100 mb-16">
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-6 sm:p-8 lg:p-12 border border-green-100 mb-16">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Why This Matters</h2>
           <ul className="space-y-3 text-gray-700">
             <li className="flex gap-3">
@@ -196,7 +196,7 @@ export default function HowItWorksPage() {
         </div>
 
         {/* Who It's For */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:p-8 lg:p-12 mb-16">
           <div>
             <h3 className="text-xl font-bold text-gray-900 mb-3">For Homeowners</h3>
             <p className="text-gray-600 mb-4">
@@ -226,7 +226,7 @@ export default function HowItWorksPage() {
         </div>
 
         {/* CTA */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-12 text-center border border-blue-100">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 sm:p-8 lg:p-12 text-center border border-blue-100">
           <h2 className="text-3xl font-bold text-gray-900 mb-3">
             Ready to streamline your maintenance?
           </h2>

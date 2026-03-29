@@ -132,7 +132,7 @@ export default async function IssuesPage({
       <div className="space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between gap-3">
-          <h1 className="text-2xl font-bold">Issues</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">Issues</h1>
           <Link href="/issues/new">
             <Button size="sm">Report Issue</Button>
           </Link>
@@ -148,7 +148,7 @@ export default async function IssuesPage({
                 href={buildFilterUrl({ view: key === 'all' ? undefined : key, ...currentFilters }, {})}
               >
                 <button
-                  className={`px-3 py-1.5 text-sm rounded-md transition-colors whitespace-nowrap ${
+                  className={`px-3 py-2 text-sm rounded-md transition-colors whitespace-nowrap ${
                     isActive
                       ? 'bg-foreground text-background font-medium'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted'
