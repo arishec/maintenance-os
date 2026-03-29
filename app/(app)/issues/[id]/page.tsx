@@ -483,7 +483,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
                               <p className="text-sm font-medium text-blue-800">Your reply:</p>
                               <p className="text-sm text-blue-900 mt-1">{reply.messageBody}</p>
                               <p className="text-xs text-blue-600 mt-2">
-                                Sent via {reply.channel === 'sms' ? 'SMS' : 'Email'} · Delivered · {new Date(reply.createdAt).toLocaleDateString()} at{' '}
+                                Sent via {reply.channel === 'sms' ? 'SMS' : 'Email'} · {new Date(reply.createdAt).toLocaleDateString()} at{' '}
                                 {new Date(reply.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
                               </p>
                             </div>

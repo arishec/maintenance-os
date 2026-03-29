@@ -9,7 +9,7 @@ import { sendRepairRequestSms } from '@/lib/twilio';
 const replySchema = z.object({
   message: z.string().min(1, 'Message is required').max(2000),
   channel: z.enum(['email', 'sms']),
-  contractorId: z.string().uuid().optional(),
+  contractorId: z.string().uuid('contractorId is required'),
   contractorResponseId: z.string().uuid().optional(),
 });
 
@@ -39,18 +39,12 @@ export async function POST(
       return NextResponse.json({ error: 'Issue not found.' }, { status: 404 });
     }
 
-    // Find the right dispatch — prefer specific contractorId if provided
-    let activeDispatch = body.contractorId
-      ? issue.dispatches.find((d) => d.contractorId === body.contractorId)
-      : issue.dispatches[0];
-
-    if (!activeDispatch) {
-      activeDispatch = issue.dispatches[0];
-    }
+    // Find the dispatch for the specified contractor — no silent fallback
+    const activeDispatch = issue.dispatches.find((d) => d.contractorId === body.contractorId);
 
     if (!activeDispatch) {
       return NextResponse.json(
-        { error: 'No active contractor dispatch found for this issue.' },
+        { error: 'No active dispatch found for this contractor on this issue.' },
         { status: 400 }
       );
     }

@@ -71,7 +71,7 @@ function buildIssueSummary(issue: {
     responses: Array<Record<string, unknown>>;
     contractor: { name: string; companyName?: string | null } | null;
   }>;
-  jobs: Array<{ status: string; scheduledDate?: Date | null; contractor: { name: string } | null }>;
+  jobs: Array<{ status: string; scheduledFor?: Date | null; contractor: { name: string } | null }>;
 }) {
   const totalDispatches = issue.dispatches.length;
   const totalResponses = issue.dispatches.reduce((sum, d) => sum + d.responses.length, 0);
@@ -89,7 +89,7 @@ function buildIssueSummary(issue: {
     responses: totalResponses,
     selectedContractor,
     jobStatus: latestJob?.status ?? null,
-    jobScheduledDate: latestJob?.scheduledDate ?? null,
+    scheduledFor: latestJob?.scheduledFor ?? null,
   };
 }
 

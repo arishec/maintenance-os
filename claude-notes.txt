@@ -2790,3 +2790,81 @@ DNS CHANGES:
 TO DEPLOY:
 cd "~/dev projects/maintenance-os-v1"
 git add -A && git commit -m "Pre-launch fixes: public photo URLs, email notifications, onboarding flow, DMARC" && git push
+
+========================================
+SESSION 28b — CODE REVIEW FIX PASS
+Date: March 29, 2026
+========================================
+
+User uploaded full_code_review_new_work_fixes.txt — a 27-item code review.
+Executed all actionable fixes from the review.
+
+ITEMS VERIFIED ALREADY CORRECT (NO CHANGES NEEDED):
+- #5: Select contractor flow — strong, no changes
+- #6: Reply visibility / ContractorMessage — correct direction
+- #7: Internal lookup endpoint — great addition
+- #8: Photo URL fix — correct approach
+- #14: tidyQuestion() — raw toggle already exists, fine as-is
+- #15: Manual quotes — verified: creates ContractorResponse with same fields (flatEstimate, estimateLow, estimateHigh, availabilityText, notes, receivedAt, extractionConfidence=1.0, requiresReview=false). Only minor gap: availabilityDate not set (only availabilityText), acceptable for V1
+- #16: Notification emails — already non-blocking with try/catch
+- #20: Scheduling UI — verified: modal requires date pick, button disabled until date selected, sends scheduledFor to API
+
+FIXES APPLIED:
+
+1. FIX #9 — INTERNAL LOOKUP FIELD MISMATCH
+   File: app/api/internal/lookup/route.ts
+   - Changed buildIssueSummary type from scheduledDate → scheduledFor
+   - Changed response field from jobScheduledDate → scheduledFor
+   - Now matches actual Job model in Prisma schema
+
+2. FIX #11 — RESEND-DISPATCH NO LONGER OVERWRITES TOKEN
+   File: app/api/issues/[id]/resend-dispatch/route.ts
+   - BEFORE: Updated existing dispatch row with new replyToken (dangerous — late replies to original lost)
+   - AFTER: Creates a NEW Dispatch row for the resend
+   - Original dispatch + token preserved for late replies
+   - Timeline event now logs both originalDispatchId and newDispatchId
+
+3. FIX #12 — REPLY-TO-CONTRACTOR TIGHTENED
+   File: app/api/issues/[id]/reply-to-contractor/route.ts
+   - Made contractorId REQUIRED in Zod schema (was optional)
+   - Removed dangerous fallback to issue.dispatches[0]
+   - Now: if no dispatch found for specified contractor, returns 400 error
+   - Prevents accidental reply to wrong contractor
+
+4. FIX #13 — REMOVED FAKE "DELIVERED" LABEL
+   File: app/(app)/issues/[id]/page.tsx
+   - Removed "Delivered ·" from outbound reply display
+   - Now shows: "Sent via Email · [date] at [time]"
+   - Will only show delivery status once real tracking is implemented
+
+5. FIX (from Vercel build error) — DASHBOARD isActive → isArchived
+   File: app/(app)/dashboard/page.tsx
+   - Changed contractor count query from isActive: true to isArchived: false
+   - isActive doesn't exist on Contractor model; isArchived does
+
+ITEMS THAT NEED LOCAL ACTION (user must run):
+- #1-4: Prisma client regeneration + Clerk type resolution
+  Run: npm install && npx prisma generate && npx tsc --noEmit
+  If still fails: rm -rf node_modules package-lock.json && npm install && npx prisma generate
+
+ITEMS FOR FUTURE SESSIONS:
+- #17: Reply visibility should show success toast immediately (UX polish)
+- #18: Contractor question label could be stronger (UX polish)
+- #19: Selected contractor confidence — success toast + banner (UX polish)
+- #21-22: Inbound email/SMS token matching — needs real-world testing
+- #23-24: requiresReview / confidence tuning — already improved, monitor with real data
+- #25: Centralize status labels — already have lib/status.ts, ensure consistent usage
+- #26: Webhook idempotency tables — clean up or adopt fully
+- #27: Internal lookup security — already protected, just verify no accidental exposure
+
+FILES CHANGED:
+- app/api/internal/lookup/route.ts (field name fix)
+- app/api/issues/[id]/resend-dispatch/route.ts (create new dispatch instead of overwrite)
+- app/api/issues/[id]/reply-to-contractor/route.ts (require contractorId, remove fallback)
+- app/(app)/issues/[id]/page.tsx (remove fake Delivered label)
+- app/(app)/dashboard/page.tsx (isActive → isArchived)
+
+TO DEPLOY:
+cd "~/dev projects/maintenance-os-v1"
+npm install && npx prisma generate
+git add -A && git commit -m "Code review fixes: lookup field names, safe resend dispatch, strict reply routing, remove fake delivery status" && git push

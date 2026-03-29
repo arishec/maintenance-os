@@ -82,15 +82,18 @@ export async function POST(
     }
 
     if (sentSuccessfully) {
-      // Update the dispatch with new token and re-sent timestamp
-      await prisma.dispatch.update({
-        where: { id: dispatch.id },
+      // Create a NEW dispatch row for the resend — preserves the original token
+      // so late replies to the first message still match correctly.
+      const newDispatch = await prisma.dispatch.create({
         data: {
+          issueId,
+          contractorId: contractor.id,
+          channel: dispatch.channel,
           replyToken,
+          outboundMessage: message,
           status: 'sent',
           sentAt: new Date(),
           providerMessageId,
-          failedAt: null, // clear any previous failure
         },
       });
 
@@ -104,6 +107,8 @@ export async function POST(
           payload: {
             contractorName: contractor.name,
             channel: dispatch.channel,
+            originalDispatchId: dispatch.id,
+            newDispatchId: newDispatch.id,
           },
         });
       } catch (e) {
