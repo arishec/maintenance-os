@@ -3021,3 +3021,47 @@ FILES CHANGED:
 TO DEPLOY:
 cd "~/dev projects/maintenance-os-v1"
 git add -A && git commit -m "Dashboard refinement: always-visible attention, grouped activity, action-oriented cards, urgency colors" && git push
+
+========================================
+SESSION 29c — ATTENTION LOGIC EXPANSION
+Date: March 29, 2026
+========================================
+
+Problem: "You're all caught up" was showing even with active jobs and high urgency issues.
+Root cause: attention rules were too narrow — only covered quotes, questions, unscheduled jobs, stale dispatches, missing cost.
+
+EXPANDED ATTENTION RULES (lib/dashboard.ts):
+
+Original 5 rules kept:
+1. quotes_received → "Review quotes" (high)
+2. Contractor question with no reply → "Reply" (high)
+3. Job selected, no scheduledFor → "Schedule" (medium)
+4. Stale dispatch (72h+, no reply) → "Follow up" (medium/high)
+5. Completed job missing actualCost → "Add cost" (low)
+
+NEW rules added:
+6. Active jobs in_progress → "View job" (low, medium if >3 days)
+   Shows "Job in progress with [name] · Xd"
+7. Jobs scheduled TODAY → "View" (medium)
+   Shows "[name] scheduled today"
+8. High urgency issues still open → "View" (high)
+   Shows "High priority — needs progress"
+   Skips issues already in attention for another reason (no double-count)
+9. Unread notifications with issueId → "View" (medium)
+   Shows "New notification"
+   Skips issues already in attention (no double-count)
+
+OTHER CHANGES:
+- Overview card: "1 issue need work" → "1 issue needs attention" (action-oriented)
+- Activity section demoted: smaller header ("Recent activity" now text-sm muted), moved below overview cards
+- Attention section is now visually dominant — first and largest section
+- Layout order: Attention → Scheduled today → Waiting → Overview cards → Recent activity (small)
+
+FILES CHANGED:
+- lib/dashboard.ts (4 new attention rules)
+- components/dashboard/overview-cards.tsx (wording fix)
+- app/(app)/dashboard/page.tsx (layout reorder, activity demoted)
+
+TO DEPLOY:
+cd "~/dev projects/maintenance-os-v1"
+git add -A && git commit -m "Expand attention: active jobs, high urgency, today's schedule, unread notifications" && git push

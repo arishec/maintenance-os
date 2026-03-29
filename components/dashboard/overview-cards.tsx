@@ -6,7 +6,7 @@ const cards = [
   {
     key: 'openIssues' as const,
     label: 'Open Issues',
-    activeLabel: (n: number) => n > 0 ? `${n} issue${n !== 1 ? 's' : ''} need work` : 'No open issues',
+    activeLabel: (n: number) => n > 0 ? `${n} issue${n !== 1 ? 's' : ''} need${n === 1 ? 's' : ''} attention` : 'No open issues',
     icon: AlertCircle,
     color: 'text-red-600',
     activeColor: 'border-red-200 bg-red-50/50',

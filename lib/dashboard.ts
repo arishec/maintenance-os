@@ -202,7 +202,112 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
     });
   }
 
-  // 5. Completed jobs missing actual cost
+  // 5. Active jobs in progress — user should monitor / confirm completion
+  const activeJobs = await prisma.job.findMany({
+    where: {
+      issue: { propertyId: { in: propertyIds } },
+      status: 'in_progress',
+    },
+    select: {
+      issueId: true,
+      startedAt: true,
+      createdAt: true,
+      contractor: { select: { name: true } },
+      issue: { select: { title: true, propertyId: true } },
+    },
+  });
+  for (const job of activeJobs) {
+    const daysSinceStart = Math.floor((Date.now() - (job.startedAt ?? job.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+    items.push({
+      issueId: job.issueId,
+      issueTitle: job.issue.title ?? 'Untitled issue',
+      propertyName: propertyMap.get(job.issue.propertyId) ?? '',
+      reason: `Job in progress with ${job.contractor.name}${daysSinceStart > 0 ? ` · ${daysSinceStart}d` : ''}`,
+      actionLabel: 'View job',
+      actionHref: `/issues/${job.issueId}`,
+      urgency: daysSinceStart > 3 ? 'medium' : 'low',
+      timestamp: job.startedAt ?? job.createdAt,
+    });
+  }
+
+  // 6. Scheduled jobs happening today — user should be aware
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+  const scheduledToday = await prisma.job.findMany({
+    where: {
+      issue: { propertyId: { in: propertyIds } },
+      status: 'scheduled',
+      scheduledFor: { gte: startOfDay, lt: endOfDay },
+    },
+    select: {
+      issueId: true,
+      scheduledFor: true,
+      contractor: { select: { name: true } },
+      issue: { select: { title: true, propertyId: true } },
+    },
+  });
+  for (const job of scheduledToday) {
+    items.push({
+      issueId: job.issueId,
+      issueTitle: job.issue.title ?? 'Untitled issue',
+      propertyName: propertyMap.get(job.issue.propertyId) ?? '',
+      reason: `${job.contractor.name} scheduled today`,
+      actionLabel: 'View',
+      actionHref: `/issues/${job.issueId}`,
+      urgency: 'medium',
+      timestamp: job.scheduledFor ?? now,
+    });
+  }
+
+  // 7. High urgency issues still open — should not be ignored
+  const highUrgencyIssues = await prisma.issue.findMany({
+    where: {
+      propertyId: { in: propertyIds },
+      urgency: 'high',
+      status: { notIn: ['completed', 'canceled', 'archived', 'quotes_received'] }, // quotes_received already covered above
+    },
+    select: { id: true, title: true, propertyId: true, status: true, createdAt: true },
+  });
+  for (const issue of highUrgencyIssues) {
+    // Don't double-count if already in attention for another reason
+    if (items.some((i) => i.issueId === issue.id)) continue;
+    items.push({
+      issueId: issue.id,
+      issueTitle: issue.title ?? 'Untitled issue',
+      propertyName: propertyMap.get(issue.propertyId) ?? '',
+      reason: 'High priority — needs progress',
+      actionLabel: 'View',
+      actionHref: `/issues/${issue.id}`,
+      urgency: 'high',
+      timestamp: issue.createdAt,
+    });
+  }
+
+  // 8. Unread notifications — surface what the user hasn't seen
+  const unreadNotifications = await prisma.notification.findMany({
+    where: { userId, readAt: null },
+    select: { id: true, title: true, issueId: true, createdAt: true },
+    orderBy: { createdAt: 'desc' },
+    take: 5,
+  });
+  for (const notif of unreadNotifications) {
+    if (!notif.issueId) continue;
+    // Don't double-count
+    if (items.some((i) => i.issueId === notif.issueId)) continue;
+    items.push({
+      issueId: notif.issueId,
+      issueTitle: notif.title,
+      propertyName: '',
+      reason: 'New notification',
+      actionLabel: 'View',
+      actionHref: `/issues/${notif.issueId}`,
+      urgency: 'medium',
+      timestamp: notif.createdAt,
+    });
+  }
+
+  // 9. Completed jobs missing actual cost
   const missingCostJobs = await prisma.job.findMany({
     where: {
       issue: { propertyId: { in: propertyIds } },

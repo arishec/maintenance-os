@@ -116,32 +116,23 @@ export default async function DashboardPage() {
           </section>
         )}
 
-        {/* Two-column: Recent activity + Overview */}
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_1fr]">
-          {/* Section 4 — Recent activity */}
-          <section>
-            <h2 className="text-lg font-semibold mb-3">Recent activity</h2>
-            {recentActivity.length === 0 ? (
-              <Card>
-                <CardContent className="py-6 text-center">
-                  <p className="text-sm text-muted-foreground">No activity yet. Report an issue to get started.</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card>
-                <CardContent className="py-2">
-                  <RecentActivityList items={recentActivity} />
-                </CardContent>
-              </Card>
-            )}
-          </section>
+        {/* Overview cards — actionable, compact */}
+        <section>
+          <h2 className="text-lg font-semibold mb-3">Overview</h2>
+          <OverviewCards counts={counts} />
+        </section>
 
-          {/* Section 5 — Overview counts (secondary) */}
+        {/* Recent activity — secondary, compact */}
+        {recentActivity.length > 0 && (
           <section>
-            <h2 className="text-lg font-semibold mb-3">Overview</h2>
-            <OverviewCards counts={counts} />
+            <h2 className="text-sm font-medium text-muted-foreground mb-2">Recent activity</h2>
+            <Card>
+              <CardContent className="py-2">
+                <RecentActivityList items={recentActivity} />
+              </CardContent>
+            </Card>
           </section>
-        </div>
+        )}
       </div>
     </LayoutShell>
   );
