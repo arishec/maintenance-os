@@ -3065,3 +3065,51 @@ FILES CHANGED:
 TO DEPLOY:
 cd "~/dev projects/maintenance-os-v1"
 git add -A && git commit -m "Expand attention: active jobs, high urgency, today's schedule, unread notifications" && git push
+
+========================================
+SESSION 29d — DASHBOARD POLISH (Round 3)
+Date: March 29, 2026
+========================================
+
+User scored dashboard 9.5/10 but gave 6 final polish items. All addressed:
+
+1. ACTIONABLE ATTENTION REASONS (lib/dashboard.ts):
+   All 9 attention reason strings rewritten to tell user exactly what to DO + context:
+   - quotes_received → "Contractor sent a quote — pick a contractor or request more"
+   - Contractor question → "[Name] asked a question — waiting on your reply"
+   - No scheduledFor → "Contractor selected — set a date so the work can begin"
+   - Stale dispatch → "Waiting X days — [Name] hasn't replied"
+   - Active in_progress → "In progress X days with [Name] — check status or mark complete"
+   - Scheduled today → "[Name] arriving today — be available or confirm access"
+   - High urgency open → "High priority — review status and ensure this is moving forward"
+   - Unread notification → "New notification"
+   - Missing actualCost → "Job done — record what you paid for your records"
+
+2. TIME PRESSURE WORDING (components/dashboard/needs-attention-list.tsx):
+   - Renamed timeSince → timePressure
+   - Changed from past tense "Xh ago" to pressure framing "Waiting X hours", "Waiting X days"
+   - "Just now" for <1 hour
+
+3. ACTIVITY FEED DEMOTED FURTHER (app/(app)/dashboard/page.tsx):
+   - Section: opacity-80, xs uppercase tracking-wider "Activity log" header
+   - Wrapped in subtle rounded border with bg-white/80
+   - Clearly tertiary — last thing on page, barely visible
+
+4. OVERVIEW CARD GRAMMAR (components/dashboard/overview-cards.tsx):
+   - Fixed "1 issue need work" → "1 issue needs attention" (proper singular/plural)
+
+FILES CHANGED:
+- lib/dashboard.ts (all 9 reason strings rewritten)
+- components/dashboard/needs-attention-list.tsx (timePressure wording)
+- components/dashboard/overview-cards.tsx (grammar fix)
+- app/(app)/dashboard/page.tsx (activity section final demotion)
+
+User verdict: "ready for real users" — 9.5/10 daily-use readiness.
+
+NEXT PHASES (when ready):
+- Phase 2: Tenant-facing status page + Contractor performance metrics
+- Phase 3: Daily digest email + Satisfaction confirmation
+
+TO DEPLOY:
+cd "~/dev projects/maintenance-os-v1"
+git add -A && git commit -m "Dashboard polish: actionable wording, time pressure, demoted activity feed" && git push

@@ -23,12 +23,12 @@ function getIcon(reason: string) {
   return <AlertTriangle className="h-4 w-4 text-red-600" />;
 }
 
-function timeSince(date: Date): string {
+function timePressure(date: Date): string {
   const hours = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60));
-  if (hours < 1) return 'just now';
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 1) return 'Just now';
+  if (hours < 24) return `Waiting ${hours} hour${hours !== 1 ? 's' : ''}`;
   const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  return `Waiting ${days} day${days !== 1 ? 's' : ''}`;
 }
 
 export function NeedsAttentionList({ items }: { items: AttentionItem[] }) {
@@ -64,7 +64,7 @@ export function NeedsAttentionList({ items }: { items: AttentionItem[] }) {
                 <p className="text-xs font-medium mt-1" style={{ color: item.urgency === 'high' ? '#dc2626' : item.urgency === 'medium' ? '#d97706' : '#2563eb' }}>
                   {item.reason}
                 </p>
-                <p className="text-xs text-muted-foreground mt-0.5">{timeSince(item.timestamp)}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{timePressure(item.timestamp)}</p>
               </div>
             </div>
             <span className="shrink-0 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
