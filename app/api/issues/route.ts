@@ -4,6 +4,7 @@ import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { classifyIssue } from '@/lib/ai/classify-issue';
 import { logTimelineEvent } from '@/lib/timeline';
+import { generateIssueReference } from '@/lib/tokens';
 
 const issueSchema = z.object({
   propertyId: z.string().uuid(),
@@ -51,6 +52,7 @@ export async function POST(request: NextRequest) {
     // Create the issue first — this always succeeds
     const issue = await prisma.issue.create({
       data: {
+        reference: generateIssueReference(),
         propertyId: property.id,
         reportedByUserId: user.id,
         sourceType: 'owner_app',

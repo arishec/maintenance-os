@@ -2467,3 +2467,112 @@ TO DEPLOY:
 cd ~/maintenance-os-v1
 git add -A && git commit -m "Centralize status mappings in lib/status.ts"
 git push origin main
+
+========================================
+SESSION 24 — Full Account Reset & Site Test
+Date: March 28-29, 2026
+========================================
+
+WHAT WAS DONE:
+1. Account Reset via Supabase SQL Editor:
+   - Wiped ALL user data for ashechtman@gmail.com (issues, photos, dispatches, responses, jobs, timeline events, notifications, usage metrics, contractors, property links, properties)
+   - Upgraded plan to 'pro' for notification testing
+   - Reset issueCount to 0
+
+2. Full Site Test (browser automation via Chrome MCP):
+   a) Dashboard — verified clean state (all zeros, proper empty states)
+   b) Properties — created "Beach House" at 742 Oceanfront Drive, Miami Beach, FL 33139 (Single Family)
+   c) Issue Creation WITH PHOTO:
+      - Selected Beach House property
+      - Description: kitchen sink leaking from P-trap, water pooling, cabinet warping
+      - Uploaded a programmatically-generated test image (canvas-drawn sink with leak)
+      - Set location: Kitchen, signal: Water Damage
+      - Button correctly showed "Report Issue with 1 Photo"
+   d) AI Classification — WORKED PERFECTLY:
+      - Title: "Kitchen sink P-trap leak with water damage"
+      - Category: plumbing
+      - Urgency: HIGH
+      - Timeframe: within_24_hours
+      - Trade: plumbing
+      - Reasoning: detailed analysis of water damage risk, mold potential, cabinet warping
+   e) Issue Detail Page — all cards rendered correctly:
+      - Status badges: "Ready to Send" + "high"
+      - AI Classification card with reasoning, category, timeframe, trade
+      - Description card with location
+      - Photos card with uploaded image displayed
+      - CTA banner: "Send this issue to contractors to get quotes"
+   f) Contractor Creation:
+      - Added "Mike Rodriguez" / Miami Plumbing Pros
+      - Trade: plumbing, Email: ashechtman@icloud.com
+      - Marked as preferred
+   g) Dispatch Flow — WORKED:
+      - Dispatch page auto-matched Mike Rodriguez (plumbing trade)
+      - Selected contractor, channel: Email, include photos checked
+      - Sent dispatch — status changed to "Awaiting Quotes"
+      - Contractor Contacts card shows "Sent" + "Email" badges
+      - Email dispatched to ashechtman@icloud.com
+   h) Issues List Page — correct table with filters, badges, status
+   i) Dashboard (after dispatch) — updated stats: 1 open, 1 awaiting quotes, 0 received, 0 active
+   j) History — proper empty state ("No completed or canceled issues yet")
+   k) Settings — Account info correct, Notifications (contractor replies + job updates active), Billing shows "Pro plan — Active"
+
+ALL PAGES TESTED AND WORKING:
+✓ Dashboard (with data)
+✓ Properties (create + list)
+✓ Issues (create with photo + list + detail + filters)
+✓ Issue Detail (AI classification + dispatch)
+✓ Contractors (create + list)
+✓ History (empty state)
+✓ Settings (account + notifications + billing)
+
+TECHNICAL NOTES:
+- Photo upload via programmatic canvas-to-blob JavaScript injection (since sandbox filesystem isn't accessible to browser)
+- Used Chrome MCP (find, form_input, navigate, javascript_tool) for all browser automation
+- Computer-use MCP has "read" tier for Chrome, so all interaction goes through Chrome MCP tools
+- Supabase SQL Editor used for direct database manipulation (Monaco editor JS injection for setting SQL content)
+
+STATUS: Full site test PASSED. All core flows working end-to-end.
+NEXT: Centralized status mapping changes still need to be committed and pushed to git.
+
+========================================
+SESSION 25 — Bugfixes + Issue Reference + Admin Lookup
+Date: March 29, 2026
+========================================
+
+BUG FIX: Scheduling date timezone off-by-one
+- File: app/(app)/issues/[id]/job-lifecycle-panel.tsx line 60
+- Bug: `new Date(scheduleDate).toISOString()` treats "2026-03-30" as UTC midnight
+  → displays as 3/29 in US timezones
+- Fix: Parse date components and construct at noon local time:
+  `const [y, m, d] = scheduleDate.split('-').map(Number);`
+  `new Date(y, m - 1, d, 12, 0, 0).toISOString();`
+
+FEATURE: Issue Reference System (for debugging/admin lookup)
+- Added `reference` field to Issue model (String, @unique) in schema.prisma
+- Created lib/tokens.ts — shared token generator for both ISS-XXXXXX and MNT-XXXXXX
+- Moved generateReplyToken out of dispatch route into lib/tokens.ts (DRY)
+- Issue creation (POST /api/issues) now generates ISS-XXXXXX reference on create
+- Reference displayed on issue detail page (subtle, next to property name)
+- Migration SQL: prisma/migrations/add_issue_reference.sql (backfills existing issues)
+
+FEATURE: Admin Lookup API (developer debugging tool)
+- New route: GET /api/admin/lookup?ref=ISS-XXXXXX or ?ref=MNT-XXXXXX
+- Protected by email allowlist (ashechtman@gmail.com only)
+- ISS- prefix: looks up issue → dispatches → responses → jobs → notifications → timeline
+- MNT- prefix: looks up dispatch by replyToken → issue → full chain
+- Returns complete JSON for debugging email reply flow
+
+FILES CHANGED:
+- prisma/schema.prisma (added Issue.reference field)
+- lib/tokens.ts (NEW — shared token generators)
+- lib/utils.ts (reverted — kept clean of Node.js crypto import)
+- app/api/issues/route.ts (generates reference on create)
+- app/api/issues/[id]/dispatch/route.ts (imports from lib/tokens)
+- app/api/admin/lookup/route.ts (NEW — debug lookup endpoint)
+- app/(app)/issues/[id]/page.tsx (shows reference in header)
+- app/(app)/issues/[id]/job-lifecycle-panel.tsx (timezone fix)
+- prisma/migrations/add_issue_reference.sql (NEW — migration)
+
+TO DEPLOY:
+1. Run migration SQL in Supabase SQL Editor first
+2. Then: cd ~/maintenance-os-v1 && git add -A && git commit -m "Add issue reference, admin lookup, fix schedule timezone" && git push

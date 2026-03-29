@@ -57,7 +57,9 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
 
   const handleScheduleConfirm = () => {
     if (!scheduleDate) return;
-    const dateTime = new Date(scheduleDate).toISOString();
+    // Parse as local date (noon) to avoid timezone off-by-one
+    const [y, m, d] = scheduleDate.split('-').map(Number);
+    const dateTime = new Date(y, m - 1, d, 12, 0, 0).toISOString();
     setShowScheduleModal(false);
     handleStatusChange('scheduled', { scheduledFor: dateTime });
   };

@@ -1,22 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
 import { z } from 'zod';
 import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { sendRepairRequestSms } from '@/lib/twilio';
 import { sendRepairRequestEmail } from '@/lib/resend';
 import { logTimelineEvent } from '@/lib/timeline';
-
-/** Generate a short, unique dispatch reply token like MNT-7F4K2Q */
-function generateReplyToken(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I ambiguity
-  let token = '';
-  const bytes = crypto.randomBytes(6);
-  for (let i = 0; i < 6; i++) {
-    token += chars[bytes[i] % chars.length];
-  }
-  return `MNT-${token}`;
-}
+import { generateReplyToken } from '@/lib/tokens';
 
 const dispatchSchema = z.object({
   contractors: z.array(

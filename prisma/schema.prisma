@@ -171,6 +171,7 @@ model PropertyContractor {
 
 model Issue {
   id                 String              @id @default(uuid())
+  reference          String              @unique            // e.g. ISS-7F4K2Q — human-readable lookup key
   propertyId         String
   reportedByUserId   String?
   reporterName       String?

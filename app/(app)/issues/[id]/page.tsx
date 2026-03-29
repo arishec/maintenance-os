@@ -92,6 +92,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
             <h1 className="text-xl sm:text-2xl font-bold">{issue.title || 'Untitled Issue'}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {issue.property.nickname || issue.property.addressLine1}
+              {issue.reference && <span className="ml-2 text-xs text-muted-foreground/60 font-mono">{issue.reference}</span>}
             </p>
           </div>
           <div className="flex gap-2 flex-shrink-0">
