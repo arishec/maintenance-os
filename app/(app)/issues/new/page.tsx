@@ -98,6 +98,15 @@ export default function NewIssuePage() {
     e.target.value = '';
   };
 
+  // Track photo previews in a ref so cleanup on unmount always has the latest list
+  const photosRef = useRef(photos);
+  photosRef.current = photos;
+  useEffect(() => {
+    return () => {
+      photosRef.current.forEach((p) => URL.revokeObjectURL(p.preview));
+    };
+  }, []);
+
   const removePhoto = (id: string) => {
     setPhotos((prev) => {
       const photo = prev.find((p) => p.id === id);

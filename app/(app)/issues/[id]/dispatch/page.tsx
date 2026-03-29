@@ -55,7 +55,9 @@ export default function DispatchPage() {
       fetch('/api/contractors').then(r => r.json()),
     ]).then(([issueData, contractorData]) => {
       setIssue(issueData.issue);
-      setContractors(contractorData.contractors);
+      setContractors(contractorData.contractors ?? []);
+    }).catch(() => {
+      setError('Failed to load issue or contractors. Please refresh.');
     });
   }, [issueId]);
 
@@ -73,7 +75,7 @@ export default function DispatchPage() {
     general_handyman: ['handyman', 'general_contractor'],
   };
 
-  const relevantTrades = issue?.recommendedTrade ? (tradeMap[issue.category ?? ''] ?? []) : [];
+  const relevantTrades = issue?.category ? (tradeMap[issue.category] ?? []) : [];
   const filteredContractors = showAll || relevantTrades.length === 0
     ? contractors
     : contractors.filter(c => relevantTrades.includes(c.trade));

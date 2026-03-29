@@ -35,12 +35,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Update dispatch status based on message status
+    // Only set timestamps if not already set (Twilio retries webhooks)
     if (messageStatus === 'delivered') {
       await prisma.dispatch.update({
         where: { id: dispatch.id },
         data: {
           status: 'delivered',
-          deliveredAt: new Date(),
+          deliveredAt: dispatch.deliveredAt ?? new Date(),
         },
       });
     } else if (messageStatus === 'failed' || messageStatus === 'undelivered') {
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest) {
         where: { id: dispatch.id },
         data: {
           status: 'failed',
-          failedAt: new Date(),
+          failedAt: dispatch.failedAt ?? new Date(),
         },
       });
     }

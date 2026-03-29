@@ -75,16 +75,20 @@ export async function POST(request: NextRequest) {
 
     // Step 2: If no token match, fall back to phone-based lookup
     if (!matchingDispatch) {
+      // Limit to recent dispatches (last 30 days) to avoid loading entire history
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       const candidateDispatches = await prisma.dispatch.findMany({
         where: {
           channel: 'sms',
           status: { in: ['sent', 'delivered'] },
+          createdAt: { gte: thirtyDaysAgo },
         },
         include: {
           contractor: true,
           issue: { include: { property: true } },
         },
         orderBy: { createdAt: 'desc' },
+        take: 500,
       });
 
       const phoneCandidates = candidateDispatches.filter((dispatch) => {

@@ -3302,6 +3302,56 @@ BETA MODE CHANGES (same session):
   4. Add "Pricing" back to nav links in layout-shell.tsx and public-layout.tsx
   5. Restore pricing/page.tsx (git checkout)
 
+CODE REVIEW BUG FIXES (same session):
+  Ran thorough 3-way parallel code audit, verified all findings against actual code.
+  7 real bugs found, all fixed:
+
+  1. Dispatch page wrong tradeMap key (HIGH)
+     File: app/(app)/issues/[id]/dispatch/page.tsx line 76
+     Bug: Checked recommendedTrade but used category as lookup key
+     Fix: Changed to use issue.category directly as the tradeMap key
+
+  2. Twilio status webhook overwrites timestamps on retries (MEDIUM)
+     File: app/api/webhooks/twilio/status/route.ts lines 43, 51
+     Bug: deliveredAt/failedAt overwritten on every Twilio retry
+     Fix: Only set if not already set (dispatch.deliveredAt ?? new Date())
+
+  3. Dispatch page unhandled Promise.all rejection (HIGH)
+     File: app/(app)/issues/[id]/dispatch/page.tsx lines 52-60
+     Bug: No .catch() — page hangs on "Loading..." forever if API fails
+     Fix: Added .catch() that sets error state
+
+  4. Unbounded dispatch query in Twilio inbound webhook (MEDIUM)
+     File: app/api/webhooks/twilio/inbound/route.ts lines 78-88
+     Bug: Loaded ALL active SMS dispatches system-wide for phone matching
+     Fix: Added 30-day filter + take:500 limit
+
+  5. Object URL memory leak on unmount (LOW)
+     File: app/(app)/issues/new/page.tsx
+     Bug: URL.createObjectURL previews not revoked if user navigates away
+     Fix: Added ref-based cleanup effect on unmount
+
+  6. Issues list API: no pagination (LOW → HIGH at scale)
+     File: app/api/issues/route.ts GET handler
+     Bug: Returns all issues every time, no limit
+     Fix: Added ?limit=&offset= params, capped at 200, returns total count
+
+  7. parseFloat accepts garbage input (LOW)
+     File: app/api/jobs/[id]/complete/route.ts line 30
+     Bug: parseFloat("100abc") silently returns 100
+     Fix: Regex validation — only accept purely numeric strings
+
+  TypeScript check: 0 errors.
+
+  False positives investigated and cleared:
+  - Stripe webhook handler: fully implemented, not a stub
+  - Job status transitions: correctly enforced via JOB_VALID_TRANSITIONS
+  - Select contractor race condition: guard pattern is correct
+  - Notifications bell interval: cleanup is proper
+  - Issue detail auth: check happens before data fetch
+  - AI post-processing: conditional logic is sound
+  - Token entropy: appropriate for non-security correlation tokens
+
 REMAINING PENDING ITEMS:
   - Wait for A2P 10DLC campaign approval (2-3 weeks)
   - Test end-to-end SMS flow after approval

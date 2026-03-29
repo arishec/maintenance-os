@@ -27,8 +27,11 @@ export async function POST(
   try {
     const body = await request.json();
     if (body.actualCost != null && body.actualCost !== '') {
-      actualCost = parseFloat(body.actualCost);
-      if (isNaN(actualCost)) actualCost = null;
+      const costStr = String(body.actualCost).trim();
+      // Reject values that aren't purely numeric (parseFloat("100abc") silently returns 100)
+      if (/^\d+(\.\d+)?$/.test(costStr)) {
+        actualCost = parseFloat(costStr);
+      }
     }
     if (body.completionNotes && typeof body.completionNotes === 'string') {
       completionNotes = body.completionNotes.trim() || null;

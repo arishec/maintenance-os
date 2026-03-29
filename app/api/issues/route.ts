@@ -13,15 +13,26 @@ const issueSchema = z.object({
   signals: z.array(z.string()).optional(),
 });
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const user = await requireDbUser();
-    const issues = await prisma.issue.findMany({
-      where: { property: { ownerUserId: user.id } },
-      include: { property: true, usageMetrics: true },
-      orderBy: { createdAt: 'desc' },
-    });
-    return NextResponse.json({ issues });
+    const url = new URL(request.url);
+    const limit = Math.min(parseInt(url.searchParams.get('limit') ?? '100', 10) || 100, 200);
+    const offset = parseInt(url.searchParams.get('offset') ?? '0', 10) || 0;
+
+    const [issues, total] = await Promise.all([
+      prisma.issue.findMany({
+        where: { property: { ownerUserId: user.id } },
+        include: { property: true, usageMetrics: true },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        skip: offset,
+      }),
+      prisma.issue.count({
+        where: { property: { ownerUserId: user.id } },
+      }),
+    ]);
+    return NextResponse.json({ issues, total, limit, offset });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({ error: message }, { status: 401 });
