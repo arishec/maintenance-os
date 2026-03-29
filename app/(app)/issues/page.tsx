@@ -15,6 +15,7 @@ import {
   getUrgencyColor,
   getUrgencyLabel,
   getCategoryLabel,
+  JOB_STATUS_LABELS,
 } from '@/lib/status';
 
 // ──────────────────────────────────────────────
@@ -282,13 +283,14 @@ export default async function IssuesPage({
                 <table className="w-full text-sm">
                   <thead className="border-b border-border bg-muted/50">
                     <tr className="text-muted-foreground">
+                      <th className="text-left p-3 sm:p-4 font-medium w-0"></th>
                       <th className="text-left p-3 sm:p-4 font-medium">Issue</th>
                       <th className="text-left p-3 sm:p-4 font-medium hidden sm:table-cell">Property</th>
                       <th className="text-left p-3 sm:p-4 font-medium hidden lg:table-cell">Category</th>
-                      <th className="text-left p-3 sm:p-4 font-medium hidden lg:table-cell">Urgency</th>
                       <th className="text-left p-3 sm:p-4 font-medium">Status</th>
                       <th className="text-left p-3 sm:p-4 font-medium hidden md:table-cell">Contractor</th>
                       <th className="text-left p-3 sm:p-4 font-medium hidden md:table-cell">Updated</th>
+                      <th className="p-3 sm:p-4 w-0"></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -299,16 +301,28 @@ export default async function IssuesPage({
                         (sum, d) => sum + (d.responses?.length ?? 0), 0
                       ) ?? 0;
 
-                      // Status subtext
+                      // Derive a more specific status label
+                      let derivedStatus = ISSUE_STATUS_LABELS[issue.status] || issue.status;
                       let statusSub = '';
+                      if (issue.status === 'active_job' && activeJob) {
+                        derivedStatus = JOB_STATUS_LABELS[activeJob.status] || 'Active Job';
+                      }
                       if (issue.status === 'quotes_received' && totalReplies > 0) {
                         statusSub = `${totalReplies} response${totalReplies !== 1 ? 's' : ''}`;
                       } else if (issue.status === 'awaiting_quotes' && totalDispatches > 0) {
-                        statusSub = 'Waiting on replies';
+                        statusSub = `${totalDispatches} contacted`;
                       }
 
+                      // Urgency left border color
+                      const urgencyBorder = issue.urgency === 'emergency' || issue.urgency === 'high'
+                        ? 'border-l-red-400'
+                        : issue.urgency === 'medium'
+                          ? 'border-l-amber-400'
+                          : 'border-l-transparent';
+
                       return (
-                        <tr key={issue.id} className="border-b border-border hover:bg-muted/30 transition-colors cursor-pointer" onClick={undefined}>
+                        <tr key={issue.id} className={`border-b border-l-[3px] border-border hover:bg-muted/30 transition-colors ${urgencyBorder}`}>
+                          <td className="p-0 w-0"></td>
                           <td className="p-3 sm:p-4">
                             <Link href={`/issues/${issue.id}`} className="font-medium hover:underline">
                               {issue.title || 'Untitled Issue'}
@@ -318,24 +332,17 @@ export default async function IssuesPage({
                             </p>
                           </td>
                           <td className="p-3 sm:p-4 text-muted-foreground hidden sm:table-cell">
-                            <Link href={`/issues/${issue.id}`} className="hover:underline">
-                              {issue.property.nickname || issue.property.addressLine1 || 'Unnamed'}
-                            </Link>
+                            {issue.property.nickname || issue.property.addressLine1 || 'Unnamed'}
                           </td>
                           <td className="p-3 sm:p-4 hidden lg:table-cell">
                             <Badge className="border-slate-200 bg-slate-50 text-slate-700">
                               {getCategoryLabel(issue.category)}
                             </Badge>
                           </td>
-                          <td className="p-3 sm:p-4 hidden lg:table-cell">
-                            <Badge className={getUrgencyColor(issue.urgency)}>
-                              {getUrgencyLabel(issue.urgency)}
-                            </Badge>
-                          </td>
                           <td className="p-3 sm:p-4">
                             <div>
                               <Badge className={getIssueStatusColor(issue.status)}>
-                                {ISSUE_STATUS_LABELS[issue.status] || issue.status}
+                                {derivedStatus}
                               </Badge>
                               {statusSub && (
                                 <p className="text-xs text-muted-foreground mt-1">{statusSub}</p>
@@ -353,6 +360,14 @@ export default async function IssuesPage({
                           </td>
                           <td className="p-3 sm:p-4 text-muted-foreground text-xs hidden md:table-cell">
                             {new Date(issue.updatedAt).toLocaleDateString()}
+                          </td>
+                          <td className="p-3 sm:p-4">
+                            <Link
+                              href={`/issues/${issue.id}`}
+                              className="inline-flex items-center rounded-md bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary hover:bg-primary/20 transition-colors whitespace-nowrap"
+                            >
+                              {activeJob ? 'View job' : 'Open'} →
+                            </Link>
                           </td>
                         </tr>
                       );

@@ -3113,3 +3113,47 @@ NEXT PHASES (when ready):
 TO DEPLOY:
 cd "~/dev projects/maintenance-os-v1"
 git add -A && git commit -m "Dashboard polish: actionable wording, time pressure, demoted activity feed" && git push
+
+========================================
+SESSION 29e — DECISION UX TIGHTENING
+Date: March 29, 2026
+========================================
+
+User scored dashboard 9.5/10 and issues page 8/10. Six dashboard tweaks + four issues page upgrades.
+
+DASHBOARD CHANGES:
+
+1. Shortened attention copy — "High priority — review status and ensure this is moving forward" → "High priority — check job status" (command-style, scannable)
+
+2. Time context improved — "Waiting 11 hours" → "No update for 11 hours" (answers "waiting on WHAT?")
+
+3. Removed redundant urgency dot — red border + icon already convey urgency, dot was noise
+
+4. CTA alignment — "Review issue →" → "View job →" for active jobs (matches user intent)
+
+5. Overview card — "1 issue needs attention" → "1 needs action" (matches dashboard language)
+
+6. Activity log further demoted — opacity-60, 10px font, tracking-widest, border/50, bg-muted/30 (feels like history, not focus)
+
+ISSUES PAGE CHANGES:
+
+1. Urgency left border — red for high/emergency, amber for medium, transparent for low (visual scan priority without separate column)
+
+2. Derived status labels — "Active Job" now shows actual job status: "In Progress", "Scheduled", "Contractor Selected" (derived from job.status via JOB_STATUS_LABELS)
+
+3. Quick action button — every row has "View job →" or "Open →" pill button on right side
+
+4. Removed redundant Urgency column — urgency is now communicated via left border color (cleaner table)
+
+FILES CHANGED:
+- lib/dashboard.ts (shortened copy, CTAs)
+- components/dashboard/needs-attention-list.tsx (time context, removed urgency dot)
+- components/dashboard/overview-cards.tsx ("needs action" wording)
+- app/(app)/dashboard/page.tsx (activity log further demoted)
+- app/(app)/issues/page.tsx (urgency borders, derived status, action buttons, removed urgency column)
+
+TypeScript check: 0 errors.
+
+TO DEPLOY:
+cd "~/dev projects/maintenance-os-v1"
+git add -A && git commit -m "Decision UX: scannable copy, urgency borders, derived status, row actions" && git push

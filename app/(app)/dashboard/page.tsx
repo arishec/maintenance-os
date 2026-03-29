@@ -122,11 +122,11 @@ export default async function DashboardPage() {
           <OverviewCards counts={counts} />
         </section>
 
-        {/* Recent activity — tertiary, muted */}
+        {/* Recent activity — tertiary, barely visible */}
         {recentActivity.length > 0 && (
-          <section className="opacity-80">
-            <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Activity log</h2>
-            <div className="rounded-xl border border-border bg-white/80 px-2 py-1">
+          <section className="opacity-60 mt-2">
+            <h2 className="text-[10px] font-normal uppercase tracking-widest text-muted-foreground/70 mb-1.5">Activity log</h2>
+            <div className="rounded-lg border border-border/50 bg-muted/30 px-2 py-1">
               <RecentActivityList items={recentActivity} />
             </div>
           </section>

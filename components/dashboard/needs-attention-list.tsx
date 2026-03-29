@@ -8,12 +8,6 @@ const urgencyStyles = {
   low: 'border-l-blue-500 bg-blue-50/50',
 };
 
-const urgencyDots = {
-  high: 'bg-red-500',
-  medium: 'bg-amber-500',
-  low: 'bg-blue-400',
-};
-
 function getIcon(reason: string) {
   if (reason.includes('question')) return <MessageSquare className="h-4 w-4 text-amber-600" />;
   if (reason.includes('No response')) return <Clock className="h-4 w-4 text-red-600" />;
@@ -26,9 +20,9 @@ function getIcon(reason: string) {
 function timePressure(date: Date): string {
   const hours = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60));
   if (hours < 1) return 'Just now';
-  if (hours < 24) return `Waiting ${hours} hour${hours !== 1 ? 's' : ''}`;
+  if (hours < 24) return `No update for ${hours} hour${hours !== 1 ? 's' : ''}`;
   const days = Math.floor(hours / 24);
-  return `Waiting ${days} day${days !== 1 ? 's' : ''}`;
+  return `No update for ${days} day${days !== 1 ? 's' : ''}`;
 }
 
 export function NeedsAttentionList({ items }: { items: AttentionItem[] }) {
@@ -56,10 +50,7 @@ export function NeedsAttentionList({ items }: { items: AttentionItem[] }) {
             <div className="flex items-start gap-3 min-w-0">
               <div className="mt-0.5 shrink-0">{getIcon(item.reason)}</div>
               <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium truncate">{item.issueTitle}</p>
-                  <span className={`h-2 w-2 rounded-full shrink-0 ${urgencyDots[item.urgency]}`} />
-                </div>
+                <p className="text-sm font-medium truncate">{item.issueTitle}</p>
                 <p className="text-xs text-muted-foreground">{item.propertyName}</p>
                 <p className="text-xs font-medium mt-1" style={{ color: item.urgency === 'high' ? '#dc2626' : item.urgency === 'medium' ? '#d97706' : '#2563eb' }}>
                   {item.reason}
