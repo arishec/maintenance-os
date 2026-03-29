@@ -55,7 +55,7 @@ async function lookupByIssueReference(reference: string) {
   const issue = await prisma.issue.findUnique({
     where: { reference },
     include: {
-      property: { select: { id: true, name: true, address: true } },
+      property: { select: { id: true, nickname: true, addressLine1: true, city: true, state: true } },
       dispatches: {
         include: {
           contractor: { select: { id: true, name: true, companyName: true, email: true, phone: true } },
@@ -71,7 +71,7 @@ async function lookupByIssueReference(reference: string) {
       },
       notifications: { orderBy: { createdAt: 'desc' }, take: 20 },
       timelineEvents: { orderBy: { createdAt: 'desc' }, take: 30 },
-      photos: { select: { id: true, url: true, createdAt: true } },
+      photos: { select: { id: true, fileUrl: true, createdAt: true } },
     },
   });
 
@@ -94,7 +94,7 @@ async function lookupByDispatchToken(replyToken: string) {
       responses: true,
       issue: {
         include: {
-          property: { select: { id: true, name: true, address: true } },
+          property: { select: { id: true, nickname: true, addressLine1: true, city: true, state: true } },
           dispatches: {
             include: {
               contractor: { select: { id: true, name: true, companyName: true } },
