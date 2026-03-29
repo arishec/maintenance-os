@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { classifyIssue } from '@/lib/ai/classify-issue';
 import { logTimelineEvent } from '@/lib/timeline';
 import { generateIssueReference } from '@/lib/tokens';
+import { issueCreateLimiter } from '@/lib/rate-limit';
 
 const issueSchema = z.object({
   propertyId: z.string().uuid(),
@@ -41,6 +42,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 10 issue creations per minute (each triggers AI classification)
+    const ip = request.headers.get('x-forwarded-for') ?? 'unknown';
+    const { allowed } = issueCreateLimiter.check(ip);
+    if (!allowed) {
+      return NextResponse.json({ error: 'Too many requests. Please wait a moment.' }, { status: 429 });
+    }
+
     const user = await requireDbUser();
     const body = issueSchema.parse(await request.json());
 

@@ -3352,8 +3352,31 @@ CODE REVIEW BUG FIXES (same session):
   - AI post-processing: conditional logic is sound
   - Token entropy: appropriate for non-security correlation tokens
 
+PRODUCTION HARDENING (same session):
+  Three launch-blocking items addressed:
+
+  1. ERROR BOUNDARIES:
+     - app/(app)/error.tsx — catches all app route errors, shows "Something went wrong" + Try again / Dashboard buttons
+     - app/(app)/issues/[id]/error.tsx — issue-specific error page, links back to issues list
+     - Both log errors to console and provide recovery actions
+
+  2. RATE LIMITING:
+     - lib/rate-limit.ts — in-memory rate limiter (per serverless instance, good for beta)
+     - Three pre-built limiters: apiLimiter (30/min), issueCreateLimiter (10/min), dispatchLimiter (5/min)
+     - Wired into: POST /api/issues (protects AI credits), POST /api/issues/[id]/dispatch (protects SMS/email spend)
+     - Periodic cleanup prevents memory growth
+     - Returns 429 with friendly message
+
+  3. SMS DELIVERY NOTICE:
+     - app/(app)/issues/[id]/dispatch/page.tsx — amber banner appears when user selects SMS channel
+     - Says: "SMS delivery to US numbers may be delayed while carrier registration is being approved. Email dispatch is fully reliable right now."
+     - Remove once A2P 10DLC campaign is approved
+
+  TypeScript check: 0 errors.
+
 REMAINING PENDING ITEMS:
-  - Wait for A2P 10DLC campaign approval (2-3 weeks)
+  - Wait for A2P 10DLC campaign approval (2-3 weeks) → then remove SMS notice from dispatch page
   - Test end-to-end SMS flow after approval
   - Configure status callback URL if not yet set (/api/webhooks/twilio/status)
   - Database indexes applied via `prisma db push` ✅ (done this session)
+  - For larger scale: swap in-memory rate limiter for Upstash Redis

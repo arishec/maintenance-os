@@ -175,6 +175,13 @@ export default function DispatchPage() {
 
         {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 
+        {/* SMS notice — remove once A2P 10DLC campaign is approved */}
+        {selected.some(s => s.channel === 'sms') && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <strong>Heads up:</strong> SMS delivery to US numbers may be delayed while our carrier registration is being approved. Email dispatch is fully reliable right now.
+          </div>
+        )}
+
         {/* Contractor List */}
         <Card>
           <CardHeader>

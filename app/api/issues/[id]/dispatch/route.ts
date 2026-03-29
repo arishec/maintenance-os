@@ -6,6 +6,7 @@ import { sendRepairRequestSms } from '@/lib/twilio';
 import { sendRepairRequestEmail } from '@/lib/resend';
 import { logTimelineEvent } from '@/lib/timeline';
 import { generateReplyToken } from '@/lib/tokens';
+import { dispatchLimiter } from '@/lib/rate-limit';
 
 const dispatchSchema = z.object({
   contractors: z.array(
@@ -23,6 +24,13 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Rate limit: 5 dispatches per minute (each sends real SMS/email)
+    const ip = request.headers.get('x-forwarded-for') ?? 'unknown';
+    const { allowed } = dispatchLimiter.check(ip);
+    if (!allowed) {
+      return NextResponse.json({ error: 'Too many requests. Please wait a moment.' }, { status: 429 });
+    }
+
     const user = await requireDbUser();
     const { id: issueId } = await params;
     const body = dispatchSchema.parse(await request.json());
