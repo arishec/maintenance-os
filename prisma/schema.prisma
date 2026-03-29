@@ -333,3 +333,16 @@ model UnresolvedInboundMessage {
   resolvedAt      DateTime?
   resolutionNotes String?
 }
+
+// Webhook idempotency tables — prevent duplicate processing on retries
+model StripeEvent {
+  eventId   String   @id
+  type      String
+  createdAt DateTime @default(now())
+}
+
+model ProcessedWebhook {
+  id         String   @id
+  provider   String   // 'twilio' | 'resend'
+  createdAt  DateTime @default(now())
+}

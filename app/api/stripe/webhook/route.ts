@@ -47,18 +47,30 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Missing stripe-signature' }, { status: 400 });
   }
 
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    console.error('STRIPE_WEBHOOK_SECRET not configured');
+    return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 });
+  }
+
   let event: Stripe.Event;
 
   try {
-    event = getStripe().webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
+    event = getStripe().webhooks.constructEvent(body, signature, webhookSecret);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     console.error('Webhook signature verification failed:', message);
     return NextResponse.json({ error: `Webhook Error: ${message}` }, { status: 400 });
+  }
+
+  // Idempotency: prevent duplicate processing on webhook retries
+  try {
+    await prisma.stripeEvent.create({
+      data: { eventId: event.id, type: event.type },
+    });
+  } catch {
+    // Unique constraint violation means we already processed this event
+    return NextResponse.json({ received: true, deduplicated: true });
   }
 
   try {
@@ -121,6 +133,35 @@ export async function POST(request: NextRequest) {
           console.log(`User ${user.id} subscription cancelled, reverted to free`);
         } else {
           console.error(`Could not resolve user for deleted subscription ${subscription.id}`);
+        }
+        break;
+      }
+
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object as Stripe.Invoice;
+        const customerId =
+          typeof invoice.customer === 'string'
+            ? invoice.customer
+            : (invoice.customer as Stripe.Customer)?.id;
+
+        if (customerId) {
+          const user = await prisma.user.findFirst({
+            where: { stripeCustomerId: customerId },
+          });
+          if (user) {
+            console.warn(`Payment failed for user ${user.id}`);
+            try {
+              const { createNotification } = await import('@/lib/notifications');
+              await createNotification({
+                userId: user.id,
+                type: 'payment_failed',
+                title: 'Payment failed',
+                body: 'Your Pro subscription payment failed. Please update your payment method to keep your Pro features.',
+              });
+            } catch (e) {
+              console.error('Failed to create payment notification:', e);
+            }
+          }
         }
         break;
       }

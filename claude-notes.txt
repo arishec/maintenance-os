@@ -2338,3 +2338,68 @@ TO DEPLOY:
 cd ~/maintenance-os-v1
 git add -A && git commit -m "Final polish + onboarding flow"
 git push origin main
+
+========================================
+SESSION 22 (continued): Hardening + Billing
+Date: March 28, 2026
+========================================
+
+WHAT WAS DONE:
+Implemented remaining items from the "everything still to fix" checklist.
+
+KEY CHANGES:
+
+1. Stripe Webhook Idempotency
+   - Added StripeEvent model to schema (eventId as primary key)
+   - Added ProcessedWebhook model for Twilio/Resend (already had per-message dedup)
+   - Webhook handler now records event.id before processing; duplicate events return early
+   - Catches unique constraint race conditions for concurrent webhook deliveries
+
+2. Invoice Payment Failed Handler
+   - Added invoice.payment_failed case to Stripe webhook
+   - Creates in-app notification: "Your Pro subscription payment failed..."
+   - Uses dynamic import for createNotification to avoid circular deps
+
+3. Cancel Subscription Flow
+   - Created /api/stripe/portal route → generates Stripe Billing Portal session
+   - Created ManageSubscriptionButton client component
+   - Settings page now shows actual plan (Free/Pro) with status badge
+   - Pro users see "Manage Subscription" button → opens Stripe portal
+   - Free users see "Upgrade" link → /pricing
+   - Portal allows: update payment method, cancel subscription, view invoices
+
+4. Stripe Webhook Hardening
+   - Added STRIPE_WEBHOOK_SECRET env check (returns 500 if missing)
+   - Existing resolveUserForSubscription fallback chain was already correct
+
+5. Verification
+   - Private routes: (app) layout has noindex, sign-in/sign-up have noindex
+   - Sitemap excludes all private routes
+   - History page empty state already has good copy
+   - Twilio/Resend webhooks already had idempotency via providerInboundId
+   - Already-Pro guard already existed in checkout route
+   - Logo already has hover:opacity-80 + cursor-pointer
+   - Nav active states already working
+   - Pricing copy: no "unlimited SMS", free plan says "Track up to 3 issues"
+
+NEW FILES:
+- app/api/stripe/portal/route.ts (billing portal session)
+- app/(app)/settings/manage-subscription-button.tsx (client component)
+
+MODIFIED FILES:
+- prisma/schema.prisma (StripeEvent + ProcessedWebhook models)
+- app/api/stripe/webhook/route.ts (idempotency + payment_failed handler)
+- app/(app)/settings/page.tsx (dynamic plan display + manage button)
+
+SCHEMA CHANGES REQUIRED:
+- prisma db push needed for StripeEvent and ProcessedWebhook tables
+
+ENV VARS NEEDED:
+- STRIPE_WEBHOOK_SECRET (for signature verification)
+- STRIPE_PRO_PRICE_ID (already exists for checkout)
+
+TO DEPLOY:
+cd ~/maintenance-os-v1
+git add -A && git commit -m "Stripe hardening + cancel subscription + webhook idempotency"
+git push origin main
+npx prisma db push
