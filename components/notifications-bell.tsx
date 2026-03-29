@@ -21,7 +21,7 @@ export function NotificationsBell({ dropDirection = 'up' }: { dropDirection?: 'u
 
   useEffect(() => {
     fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 30000);
+    const interval = setInterval(fetchUnreadCount, 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -43,10 +43,9 @@ export function NotificationsBell({ dropDirection = 'up' }: { dropDirection?: 'u
 
   const fetchUnreadCount = async () => {
     try {
-      const response = await fetch('/api/notifications?unreadOnly=true');
+      const response = await fetch('/api/notifications?countOnly=true');
       const data = await response.json();
-      const count = data.notifications?.length || 0;
-      setUnreadCount(count);
+      setUnreadCount(data.count ?? 0);
     } catch (error) {
       console.error('Failed to fetch unread count:', error);
     }

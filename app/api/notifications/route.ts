@@ -11,9 +11,17 @@ export async function GET(request: NextRequest) {
   try {
     const user = await requireDbUser();
 
-    // Check for unreadOnly query parameter
     const searchParams = request.nextUrl.searchParams;
     const unreadOnly = searchParams.get('unreadOnly') === 'true';
+    const countOnly = searchParams.get('countOnly') === 'true';
+
+    // Lightweight count-only mode for polling (no data transfer)
+    if (countOnly) {
+      const count = await prisma.notification.count({
+        where: { userId: user.id, readAt: null },
+      });
+      return NextResponse.json({ count });
+    }
 
     const notifications = await prisma.notification.findMany({
       where: {
@@ -21,6 +29,7 @@ export async function GET(request: NextRequest) {
         ...(unreadOnly && { readAt: null }),
       },
       orderBy: { createdAt: 'desc' },
+      take: 50,
     });
 
     return NextResponse.json({ notifications });
