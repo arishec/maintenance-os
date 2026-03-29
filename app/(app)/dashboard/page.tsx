@@ -11,7 +11,7 @@ export default async function DashboardPage() {
   const properties = await prisma.property.findMany({ where: { ownerUserId: user.id } });
   const propertyIds = properties.map((p) => p.id);
 
-  const contractorCount = await prisma.contractor.count({ where: { ownerUserId: user.id, isActive: true } });
+  const contractorCount = await prisma.contractor.count({ where: { ownerUserId: user.id, isArchived: false } });
   const issueCount = await prisma.issue.count({ where: { propertyId: { in: propertyIds } } });
 
   const isNewUser = properties.length === 0 || contractorCount === 0 || issueCount === 0;
