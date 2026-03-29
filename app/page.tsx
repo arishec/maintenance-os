@@ -5,9 +5,9 @@ import { SoftwareJsonLd } from '@/components/seo/software-jsonld';
 import { PublicLayout } from '@/components/public-layout';
 
 export const metadata: Metadata = {
-  title: 'Maintenance OS — Stop Chasing Contractors and Losing Track of Repairs',
+  title: 'Maintenance OS — Stop Chasing Contractors. Keep Every Repair Organized.',
   description:
-    'Report issues, send them to contractors, compare responses, and keep everything organized in one place.',
+    'Report an issue once, send it to contractors, compare responses, and track everything in one place.',
   alternates: {
     canonical: '/',
   },
@@ -26,22 +26,25 @@ export default async function HomePage() {
           <section className="grid gap-10 md:grid-cols-2 md:items-center">
             <div>
               <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 md:text-5xl">
-                Stop chasing contractors and losing track of repairs
+                Stop chasing contractors. Keep every repair organized.
               </h1>
               <p className="mt-5 max-w-2xl text-lg text-gray-600">
-                Report issues, send them to contractors, compare responses, and keep
-                everything organized in one place.
+                Report an issue once, send it to contractors, compare responses, and track
+                everything in one place.
               </p>
-              <div className="mt-8 flex gap-3">
+              <p className="mt-3 max-w-2xl text-sm text-gray-500">
+                Everything gets organized automatically — no chasing, no scattered messages.
+              </p>
+              <div className="mt-8 flex flex-col sm:flex-row gap-3">
                 <Link
                   href={isSignedIn ? '/dashboard' : '/sign-up'}
-                  className="inline-flex rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                  className="inline-flex justify-center rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
                 >
-                  {isSignedIn ? 'Go to dashboard' : 'Join the beta — free'}
+                  {isSignedIn ? 'Go to dashboard' : 'Get started'}
                 </Link>
                 <Link
                   href="/how-it-works"
-                  className="inline-flex rounded-xl border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="inline-flex justify-center rounded-xl border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                 >
                   See how it works
                 </Link>
@@ -78,12 +81,16 @@ export default async function HomePage() {
 
           {/* Problem */}
           <section className="mt-16 sm:mt-24">
-            <h2 className="text-2xl font-bold text-gray-900">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
               Most repairs get lost in texts, calls, and memory
             </h2>
             <p className="mt-4 max-w-3xl text-base text-gray-600">
-              Contractor responses come from everywhere. Pricing is unclear.
-              And it&apos;s hard to remember what was done and when.
+              Contractor responses come from everywhere — texts, emails, and calls.
+              Pricing is unclear. And it&apos;s hard to remember what was done and when.
+            </p>
+            <p className="mt-3 max-w-3xl text-base text-gray-600">
+              Things fall through the cracks. Follow-ups get missed. You end up chasing
+              updates instead of managing the work.
             </p>
           </section>
 
@@ -93,8 +100,12 @@ export default async function HomePage() {
               Send one issue. Get multiple responses.
             </h2>
             <p className="mt-4 max-w-3xl text-base text-gray-600">
-              Instead of calling or texting contractors one by one, send the issue once
-              and compare responses in one place.
+              Instead of contacting contractors one by one, send the issue once and
+              compare responses in one place.
+            </p>
+            <p className="mt-3 max-w-3xl text-base text-gray-600">
+              Pricing, availability, and messages stay organized automatically — so
+              you can make a decision quickly.
             </p>
             <div className="mt-6 space-y-2">
               {[
@@ -116,7 +127,7 @@ export default async function HomePage() {
             <div className="mt-8 grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
               {[
                 { step: '1', title: 'Report the issue' },
-                { step: '2', title: 'Send to contractors' },
+                { step: '2', title: 'We send it to contractors' },
                 { step: '3', title: 'Compare responses' },
                 { step: '4', title: 'Track the job' },
                 { step: '5', title: 'Keep the history' },
@@ -134,14 +145,14 @@ export default async function HomePage() {
             </div>
           </section>
 
-          {/* Why this is better */}
+          {/* Pain removal */}
           <section className="mt-16 sm:mt-24">
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Stop doing this the hard way</h2>
             <div className="mt-6 space-y-3">
               {[
-                'No more texting multiple contractors individually',
-                'No more scattered estimates',
-                'No more guessing what was fixed',
+                'No more texting contractors one by one',
+                'No more scattered quotes and messages',
+                'No more guessing what was done or when',
               ].map((item) => (
                 <div key={item} className="flex items-center gap-3">
                   <span className="text-gray-400">&#8212;</span>
@@ -151,7 +162,7 @@ export default async function HomePage() {
             </div>
           </section>
 
-          {/* Use cases */}
+          {/* Audience */}
           <section className="mt-16 sm:mt-24 grid gap-6 md:grid-cols-2">
             <div className="rounded-2xl border border-gray-200 p-6">
               <h2 className="text-xl font-bold text-gray-900">For homeowners</h2>
@@ -198,17 +209,17 @@ export default async function HomePage() {
 
           {/* Final CTA */}
           <section className="mt-16 sm:mt-24 rounded-2xl bg-blue-50 border border-blue-100 p-6 sm:p-8 md:p-12 text-center">
-            <h2 className="text-2xl font-bold text-gray-900">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
               We&apos;re in beta — everything is free
             </h2>
             <p className="mt-3 text-gray-600">
-              Sign up, report your first issue, and help us build the best way to manage property repairs.
+              Sign up, report your first issue, and help shape a better way to manage property repairs.
             </p>
             <Link
               href={isSignedIn ? '/dashboard' : '/sign-up'}
               className="mt-6 inline-flex rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
             >
-              {isSignedIn ? 'Go to dashboard' : 'Join the beta'}
+              {isSignedIn ? 'Go to dashboard' : 'Get started for free'}
             </Link>
           </section>
 
