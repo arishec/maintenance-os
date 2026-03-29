@@ -60,21 +60,28 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Increment user's issue count
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { issueCount: { increment: 1 } },
-    });
+    // Side effects — non-blocking
+    try {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { issueCount: { increment: 1 } },
+      });
+    } catch (e) {
+      console.error('Issue count increment failed:', e);
+    }
 
-    // Log timeline event for issue creation
-    await logTimelineEvent({
-      propertyId: property.id,
-      issueId: issue.id,
-      actorType: 'user',
-      actorLabel: user.email,
-      eventType: 'issue_created',
-      payload: { sourceType: 'owner_app' },
-    });
+    try {
+      await logTimelineEvent({
+        propertyId: property.id,
+        issueId: issue.id,
+        actorType: 'user',
+        actorLabel: user.email,
+        eventType: 'issue_created',
+        payload: { sourceType: 'owner_app' },
+      });
+    } catch (e) {
+      console.error('Timeline event failed:', e);
+    }
 
     // Try AI classification — if it fails (missing API key, etc), still return the issue
     try {

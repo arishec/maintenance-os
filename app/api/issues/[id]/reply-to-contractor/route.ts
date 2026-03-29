@@ -48,50 +48,62 @@ export async function POST(
     }
 
     const contractor = activeDispatch.contractor;
-
-    // Send via the selected channel
-    if (body.channel === 'email') {
-      if (!contractor.email) {
-        return NextResponse.json({ error: 'Contractor has no email address.' }, { status: 400 });
-      }
-
-      const replyTo = process.env.RESEND_FROM_EMAIL || undefined;
-      await sendRepairRequestEmail(
-        contractor.email,
-        `Re: ${issue.title || 'Maintenance request'}`,
-        `<div style="font-family: sans-serif; font-size: 14px; line-height: 1.6;">
-          <p>${body.message.replace(/\n/g, '<br>')}</p>
-          <hr style="border: none; border-top: 1px solid #eee; margin: 16px 0;">
-          <p style="color: #888; font-size: 12px;">
-            Sent via Maintenance OS regarding: ${issue.title || 'Maintenance request'}<br>
-            Property: ${issue.property.nickname || issue.property.addressLine1}
-          </p>
-        </div>`,
-        replyTo
-      );
-    } else {
-      if (!contractor.phone) {
-        return NextResponse.json({ error: 'Contractor has no phone number.' }, { status: 400 });
-      }
-
-      await sendRepairRequestSms(
-        contractor.phone,
-        `Re: ${issue.title || 'Maintenance request'}\n\n${body.message}`
-      );
+    if (!contractor) {
+      return NextResponse.json({ error: 'Contractor not found for this dispatch.' }, { status: 400 });
     }
 
-    // Log timeline event for the reply
-    await logTimelineEvent({
-      propertyId: issue.propertyId,
-      issueId,
-      actorType: 'user',
-      eventType: 'owner_reply_sent',
-      payload: {
-        channel: body.channel,
-        contractorName: contractor.name,
-        messagePreview: body.message.substring(0, 100),
-      },
-    });
+    // Send via the selected channel
+    try {
+      if (body.channel === 'email') {
+        if (!contractor.email) {
+          return NextResponse.json({ error: 'Contractor has no email address.' }, { status: 400 });
+        }
+
+        const replyTo = process.env.RESEND_FROM_EMAIL || undefined;
+        await sendRepairRequestEmail(
+          contractor.email,
+          `Re: ${issue.title || 'Maintenance request'}`,
+          `<div style="font-family: sans-serif; font-size: 14px; line-height: 1.6;">
+            <p>${body.message.replace(/\n/g, '<br>')}</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 16px 0;">
+            <p style="color: #888; font-size: 12px;">
+              Sent via Maintenance OS regarding: ${issue.title || 'Maintenance request'}<br>
+              Property: ${issue.property.nickname || issue.property.addressLine1}
+            </p>
+          </div>`,
+          replyTo
+        );
+      } else {
+        if (!contractor.phone) {
+          return NextResponse.json({ error: 'Contractor has no phone number.' }, { status: 400 });
+        }
+
+        await sendRepairRequestSms(
+          contractor.phone,
+          `Re: ${issue.title || 'Maintenance request'}\n\n${body.message}`
+        );
+      }
+    } catch (sendError) {
+      console.error('Failed to send reply:', sendError);
+      return NextResponse.json({ error: 'Failed to send message. Please try again.' }, { status: 500 });
+    }
+
+    // Log timeline event (non-blocking — don't fail the request)
+    try {
+      await logTimelineEvent({
+        propertyId: issue.propertyId,
+        issueId,
+        actorType: 'user',
+        eventType: 'owner_reply_sent',
+        payload: {
+          channel: body.channel,
+          contractorName: contractor.name,
+          messagePreview: body.message.substring(0, 100),
+        },
+      });
+    } catch (e) {
+      console.error('Timeline event failed:', e);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -24,7 +24,7 @@ const dispatchSchema = z.object({
       contractorId: z.string().uuid(),
       channel: z.enum(['sms', 'email']),
     })
-  ),
+  ).min(1, 'Select at least one contractor'),
   includePhotos: z.boolean().optional().default(false),
   customMessage: z.string().optional(),
 });
@@ -217,53 +217,58 @@ export async function POST(
       console.error(`All ${dispatchRecords.length} dispatches failed for issue ${issueId}`);
     }
 
-    // Update or create usage metrics
-    const existingMetrics = await prisma.usageMetricsIssueCost.findUnique({
-      where: { issueId },
-    });
-
-    const smsCost = smsCount * 0.0079;
-    const emailCost = emailCount * 0.001;
-
-    if (existingMetrics) {
-      await prisma.usageMetricsIssueCost.update({
+    // Side effects — non-blocking
+    try {
+      const existingMetrics = await prisma.usageMetricsIssueCost.findUnique({
         where: { issueId },
-        data: {
-          outboundSmsCount: { increment: smsCount },
-          outboundEmailCount: { increment: emailCount },
-          estimatedSmsCost: { increment: smsCost },
-          estimatedEmailCost: { increment: emailCost },
-          estimatedTotalCost: {
-            increment: smsCost + emailCost,
+      });
+
+      const smsCost = smsCount * 0.0079;
+      const emailCost = emailCount * 0.001;
+
+      if (existingMetrics) {
+        await prisma.usageMetricsIssueCost.update({
+          where: { issueId },
+          data: {
+            outboundSmsCount: { increment: smsCount },
+            outboundEmailCount: { increment: emailCount },
+            estimatedSmsCost: { increment: smsCost },
+            estimatedEmailCost: { increment: emailCost },
+            estimatedTotalCost: { increment: smsCost + emailCost },
           },
-        },
-      });
-    } else {
-      await prisma.usageMetricsIssueCost.create({
-        data: {
-          issueId,
-          outboundSmsCount: smsCount,
-          outboundEmailCount: emailCount,
-          estimatedSmsCost: smsCost,
-          estimatedEmailCost: emailCost,
-          estimatedTotalCost: smsCost + emailCost,
-        },
-      });
+        });
+      } else {
+        await prisma.usageMetricsIssueCost.create({
+          data: {
+            issueId,
+            outboundSmsCount: smsCount,
+            outboundEmailCount: emailCount,
+            estimatedSmsCost: smsCost,
+            estimatedEmailCost: emailCost,
+            estimatedTotalCost: smsCost + emailCost,
+          },
+        });
+      }
+    } catch (e) {
+      console.error('Usage metrics update failed:', e);
     }
 
-    // Log timeline event
-    await logTimelineEvent({
-      propertyId: issue.propertyId,
-      issueId,
-      actorType: 'user',
-      eventType: 'dispatch_sent',
-      payload: {
-        contractorCount: dispatchRecords.length,
-        smsCount,
-        emailCount,
-        channels: [...new Set(body.contractors.map(c => c.channel))],
-      },
-    });
+    try {
+      await logTimelineEvent({
+        propertyId: issue.propertyId,
+        issueId,
+        actorType: 'user',
+        eventType: 'dispatch_sent',
+        payload: {
+          contractorCount: dispatchRecords.length,
+          smsCount,
+          emailCount,
+          channels: [...new Set(body.contractors.map(c => c.channel))],
+        },
+      });
+    } catch (e) {
+      console.error('Timeline event failed:', e);
+    }
 
     return NextResponse.json({ dispatches: dispatchRecords }, { status: 201 });
   } catch (error) {

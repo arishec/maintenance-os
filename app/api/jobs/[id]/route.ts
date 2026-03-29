@@ -69,6 +69,21 @@ export async function PATCH(
       updateData.notes = body.notes;
     }
     if (body.status !== undefined) {
+      // Validate status transitions
+      const validTransitions: Record<string, string[]> = {
+        selected: ['scheduled', 'in_progress', 'canceled'],
+        scheduled: ['in_progress', 'canceled'],
+        in_progress: ['completed', 'canceled'],
+        completed: [],
+        canceled: [],
+      };
+      const allowed = validTransitions[job.status] || [];
+      if (!allowed.includes(body.status)) {
+        return NextResponse.json(
+          { error: `Cannot transition from "${job.status}" to "${body.status}".` },
+          { status: 400 }
+        );
+      }
       updateData.status = body.status;
     }
 
@@ -107,24 +122,32 @@ export async function PATCH(
       // selected/scheduled/in_progress all keep issue at active_job (already set on selection)
     }
 
-    await logTimelineEvent({
-      propertyId: job.issue.propertyId,
-      issueId: job.issueId,
-      jobId: id,
-      actorType: 'user',
-      eventType: 'job_updated',
-      payload: body,
-    });
-
-    // Create notification for job completion
-    if (body.status === 'completed') {
-      await createNotification({
-        userId: user.id,
-        type: 'job_completed',
-        title: 'Job completed',
-        body: `${job.issue.title || 'A maintenance issue'} was marked completed`,
+    // Side effects — non-blocking
+    try {
+      await logTimelineEvent({
+        propertyId: job.issue.propertyId,
         issueId: job.issueId,
+        jobId: id,
+        actorType: 'user',
+        eventType: 'job_updated',
+        payload: body,
       });
+    } catch (e) {
+      console.error('Timeline event failed:', e);
+    }
+
+    if (body.status === 'completed') {
+      try {
+        await createNotification({
+          userId: user.id,
+          type: 'job_completed',
+          title: 'Job completed',
+          body: `${job.issue.title || 'A maintenance issue'} was marked completed`,
+          issueId: job.issueId,
+        });
+      } catch (e) {
+        console.error('Notification failed:', e);
+      }
     }
 
     return NextResponse.json({ job: updatedJob });

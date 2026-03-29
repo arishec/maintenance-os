@@ -214,7 +214,7 @@ export default async function IssuesPage({
         </div>
 
         {/* View tabs */}
-        <div className="flex flex-wrap gap-1">
+        <div className="flex overflow-x-auto gap-1 -mx-1 px-1 pb-1 no-scrollbar">
           {Object.entries(VIEW_LABELS).map(([key, label]) => {
             const isActive = currentView === key;
             return (
@@ -223,7 +223,7 @@ export default async function IssuesPage({
                 href={buildFilterUrl({ view: key === 'all' ? undefined : key, ...currentFilters }, {})}
               >
                 <button
-                  className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                  className={`px-3 py-1.5 text-sm rounded-md transition-colors whitespace-nowrap ${
                     isActive
                       ? 'bg-foreground text-background font-medium'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted'
@@ -237,7 +237,7 @@ export default async function IssuesPage({
         </div>
 
         {/* Filter bar */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex overflow-x-auto items-center gap-2 no-scrollbar pb-1">
           {/* Property filter */}
           {properties.length > 1 && (
             <div className="flex items-center gap-1">
@@ -358,13 +358,13 @@ export default async function IssuesPage({
                 <table className="w-full text-sm">
                   <thead className="border-b border-border bg-muted/50">
                     <tr className="text-muted-foreground">
-                      <th className="text-left p-4 font-medium">Issue</th>
-                      <th className="text-left p-4 font-medium">Property</th>
-                      <th className="text-left p-4 font-medium">Category</th>
-                      <th className="text-left p-4 font-medium">Urgency</th>
-                      <th className="text-left p-4 font-medium">Status</th>
-                      <th className="text-left p-4 font-medium">Contractor</th>
-                      <th className="text-left p-4 font-medium">Updated</th>
+                      <th className="text-left p-3 sm:p-4 font-medium">Issue</th>
+                      <th className="text-left p-3 sm:p-4 font-medium hidden sm:table-cell">Property</th>
+                      <th className="text-left p-3 sm:p-4 font-medium hidden lg:table-cell">Category</th>
+                      <th className="text-left p-3 sm:p-4 font-medium hidden lg:table-cell">Urgency</th>
+                      <th className="text-left p-3 sm:p-4 font-medium">Status</th>
+                      <th className="text-left p-3 sm:p-4 font-medium hidden md:table-cell">Contractor</th>
+                      <th className="text-left p-3 sm:p-4 font-medium hidden md:table-cell">Updated</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -385,27 +385,30 @@ export default async function IssuesPage({
 
                       return (
                         <tr key={issue.id} className="border-b border-border hover:bg-muted/30 transition-colors cursor-pointer" onClick={undefined}>
-                          <td className="p-4">
+                          <td className="p-3 sm:p-4">
                             <Link href={`/issues/${issue.id}`} className="font-medium hover:underline">
                               {issue.title || 'Untitled Issue'}
                             </Link>
+                            <p className="text-xs text-muted-foreground mt-0.5 sm:hidden">
+                              {issue.property.nickname || issue.property.addressLine1 || 'Unnamed'}
+                            </p>
                           </td>
-                          <td className="p-4 text-muted-foreground">
+                          <td className="p-3 sm:p-4 text-muted-foreground hidden sm:table-cell">
                             <Link href={`/issues/${issue.id}`} className="hover:underline">
                               {issue.property.nickname || issue.property.addressLine1 || 'Unnamed'}
                             </Link>
                           </td>
-                          <td className="p-4">
+                          <td className="p-3 sm:p-4 hidden lg:table-cell">
                             <Badge className="border-slate-200 bg-slate-50 text-slate-700">
                               {categoryLabel(issue.category)}
                             </Badge>
                           </td>
-                          <td className="p-4">
+                          <td className="p-3 sm:p-4 hidden lg:table-cell">
                             <Badge className={urgencyColor(issue.urgency)}>
                               {urgencyLabel(issue.urgency)}
                             </Badge>
                           </td>
-                          <td className="p-4">
+                          <td className="p-3 sm:p-4">
                             <div>
                               <Badge className={statusColor(issue.status)}>
                                 {STATUS_DISPLAY[issue.status] || issue.status}
@@ -415,7 +418,7 @@ export default async function IssuesPage({
                               )}
                             </div>
                           </td>
-                          <td className="p-4 text-muted-foreground text-xs">
+                          <td className="p-3 sm:p-4 text-muted-foreground text-xs hidden md:table-cell">
                             {activeJob?.contractor?.companyName || activeJob?.contractor?.name
                               ? (activeJob?.contractor?.companyName || activeJob?.contractor?.name)
                               : totalDispatches > 0
@@ -424,7 +427,7 @@ export default async function IssuesPage({
                                   : `${totalDispatches} contacted`
                                 : '—'}
                           </td>
-                          <td className="p-4 text-muted-foreground text-xs">
+                          <td className="p-3 sm:p-4 text-muted-foreground text-xs hidden md:table-cell">
                             {new Date(issue.updatedAt).toLocaleDateString()}
                           </td>
                         </tr>

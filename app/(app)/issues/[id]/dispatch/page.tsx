@@ -47,6 +47,7 @@ export default function DispatchPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPaywall, setShowPaywall] = useState(false);
+  const [successCount, setSuccessCount] = useState<number | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -118,12 +119,32 @@ export default function DispatchPage() {
       return;
     }
 
-    router.push(`/issues/${issueId}`);
-    router.refresh();
+    setSuccessCount(selected.length);
+    setLoading(false);
+    setTimeout(() => {
+      router.push(`/issues/${issueId}`);
+      router.refresh();
+    }, 2000);
   }
 
   if (!issue) {
     return <LayoutShell><div className="py-12 text-center text-sm text-muted-foreground">Loading...</div></LayoutShell>;
+  }
+
+  if (successCount !== null) {
+    return (
+      <LayoutShell>
+        <div className="mx-auto max-w-md py-16 text-center space-y-4">
+          <div className="mx-auto w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600"><path d="M20 6 9 17l-5-5"/></svg>
+          </div>
+          <h2 className="text-xl font-semibold">Request sent to {successCount} contractor{successCount !== 1 ? 's' : ''}</h2>
+          <p className="text-sm text-muted-foreground">
+            You&apos;ll be notified when they respond. Status: <span className="font-medium text-foreground">Awaiting quotes</span>
+          </p>
+        </div>
+      </LayoutShell>
+    );
   }
 
   return (

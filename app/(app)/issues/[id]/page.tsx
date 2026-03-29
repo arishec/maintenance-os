@@ -140,6 +140,20 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
         </div>
 
         {/* Status Banners */}
+        {(issue.status === 'classified' || issue.status === 'awaiting_dispatch') && (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-blue-800">
+                Send this issue to contractors to get quotes
+              </p>
+              <p className="text-xs text-blue-700 mt-0.5">Select contractors from your list and they&apos;ll receive your request via SMS or email.</p>
+            </div>
+            <Link href={`/issues/${issue.id}/dispatch`} className="flex-shrink-0 ml-4">
+              <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">Contact Contractors</Button>
+            </Link>
+          </div>
+        )}
+
         {issue.status === 'quotes_received' && hasResponses && (() => {
           const totalResponses = allResponses.length;
           return (

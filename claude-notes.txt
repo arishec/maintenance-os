@@ -2247,3 +2247,94 @@ cd ~/maintenance-os-v1
 git add -A && git commit -m "Status simplification + review refinements"
 git push origin main
 npx prisma db push
+
+========================================
+SESSION 22: Final Polish + Onboarding Flow
+Date: March 28, 2026
+========================================
+
+WHAT WAS DONE:
+Implemented the full "Final Polish Checklist + First 2-Minute Onboarding Flow" spec.
+
+KEY CHANGES:
+
+1. Settings Page — Real Content
+   - Replaced placeholder text with actual Notifications section (contractor replies, job updates, email digests)
+   - Added Billing section with plan info + upgrade link
+   - No more "coming soon" or placeholder copy anywhere in the app
+
+2. Empty Dashboard Onboarding CTA
+   - Replaced plain text empty state with prominent card: wrench icon, descriptive copy, blue "Report Issue" button
+   - Added "Add Property" button when user has zero properties
+   - Updated subtitle copy: "Welcome! Add a property to get started."
+
+3. Post-Classification Banner (Issue Detail)
+   - New blue banner on classified/awaiting_dispatch issues: "Send this issue to contractors to get quotes"
+   - Includes "Contact Contractors" button inline — guides user to next step
+   - This is the key onboarding moment after AI classifies the issue
+
+4. Dispatch Success Feedback
+   - After sending requests to contractors, shows success screen:
+     - Green checkmark, "Request sent to N contractor(s)", status "Awaiting quotes"
+   - 2-second display then auto-redirects to issue detail
+   - Previously just silently redirected with no confirmation
+
+5. Mobile Responsiveness — Issues Table
+   - Table columns now hide responsively:
+     - Mobile: Issue + Status only (property name shown as subtitle under issue title)
+     - sm+: Property column appears
+     - md+: Contractor + Updated columns appear
+     - lg+: Category + Urgency columns appear
+   - View tabs: horizontal scroll with hidden scrollbar instead of wrapping
+   - Filter bar: horizontal scroll with hidden scrollbar
+   - Added .no-scrollbar utility to globals.css
+
+6. Error Handling Hardening (All API Routes)
+   - reply-to-contractor: Wrapped SMS/email sends in try-catch with clean error message; added contractor null check
+   - jobs PATCH: Added status transition validation (state machine — can't go from completed → scheduled, etc.)
+   - jobs PATCH: Wrapped timeline + notification side effects in try-catch
+   - issues POST: Wrapped issue count increment + timeline in try-catch
+   - dispatch POST: Wrapped usage metrics + timeline in try-catch; added .min(1) to contractors array validation
+   - Pattern: All side effects (timeline, notifications, metrics) are now non-blocking — they log errors but don't crash the main operation
+
+FILES MODIFIED:
+- app/(app)/settings/page.tsx (real notification + billing sections)
+- app/(app)/dashboard/page.tsx (onboarding CTA, add property button)
+- app/(app)/issues/[id]/page.tsx (post-classification banner)
+- app/(app)/issues/[id]/dispatch/page.tsx (success feedback screen)
+- app/(app)/issues/page.tsx (responsive table, scrollable tabs/filters)
+- app/globals.css (no-scrollbar utility)
+- app/api/issues/[id]/reply-to-contractor/route.ts (error handling)
+- app/api/jobs/[id]/route.ts (status transitions, error handling)
+- app/api/issues/route.ts (side effect error handling)
+- app/api/issues/[id]/dispatch/route.ts (min(1) validation, error handling)
+
+CHECKLIST STATUS (from spec):
+[x] 1. State clarity — enforced via status simplification (Session 21)
+[x] 2. Dashboard accuracy — correct counts, working queries
+[x] 3. Notifications — clickable, linked to issues, latest 5 shown
+[x] 4. Quote card completeness — name, price, availability, notes, timestamp, source badge
+[x] 5. Select contractor flow — modal, atomic transaction, double-submit prevention
+[x] 6. Post-selection confidence — toast + banner
+[x] 7. Job tracking panel — progress bar, status labels, microcopy
+[x] 8. Scheduling — date picker modal
+[x] 9. Issues table — "N replied / N contacted" format
+[x] 10. Text truncation — line-clamp-2 on description
+[x] 11. Label consistency — Awaiting quotes, Quotes received, Active job, Completed
+[x] 12. Contractor notification — job title, location, price, reply instruction
+[x] 13. Error handling — all APIs wrapped, side effects non-blocking
+[x] 14. Loading states — all action buttons have disabled + loading text
+[x] 15. No placeholder text — settings page replaced, no "coming soon" anywhere
+
+ONBOARDING FLOW STATUS:
+[x] Step 1-2: Landing → signup → empty dashboard with CTA
+[x] Step 3: Issue creation with AI classification
+[x] Step 4: AI "wow" moment (category + urgency shown)
+[x] Step 5: Post-classification banner → "Contact Contractors"
+[x] Step 6-7: Contractor selection → dispatch → success feedback
+[x] Step 8-10: Notification → return → decision moment (quote review → select)
+
+TO DEPLOY:
+cd ~/maintenance-os-v1
+git add -A && git commit -m "Final polish + onboarding flow"
+git push origin main
