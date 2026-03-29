@@ -34,7 +34,7 @@ export default async function DashboardPage() {
 
   const stats: Array<{ label: string; subtext: string; value: number; href: string; highlight?: boolean; badge?: string }> = [
     { label: 'Open issues', subtext: 'Issues that need attention', value: openIssues, href: '/issues?view=open' },
-    { label: 'Awaiting quotes', subtext: 'Waiting on contractor responses', value: awaitingQuotes, href: '/issues?view=awaiting_quotes' },
+    { label: 'Awaiting quotes', subtext: 'Waiting on replies', value: awaitingQuotes, href: '/issues?view=awaiting_quotes' },
     {
       label: 'Quotes received',
       subtext: 'Ready for you to review',
