@@ -20,7 +20,7 @@ export async function PublicLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="flex min-h-screen flex-col bg-white">
       {/* Header */}
-      <header className="border-b border-gray-200">
+      <header className="relative border-b border-gray-200">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="text-xl sm:text-2xl font-bold text-gray-900 hover:opacity-80 cursor-pointer transition-opacity flex items-center gap-2">
