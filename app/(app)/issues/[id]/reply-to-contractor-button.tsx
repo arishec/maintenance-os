@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 
 interface ReplyToContractorButtonProps {
   issueId: string;
+  contractorId: string;
+  contractorResponseId?: string;
   contractorName: string;
   contractorEmail?: string | null;
   contractorPhone?: string | null;
@@ -15,6 +17,8 @@ interface ReplyToContractorButtonProps {
 
 export function ReplyToContractorButton({
   issueId,
+  contractorId,
+  contractorResponseId,
   contractorName,
   contractorEmail,
   contractorPhone,
@@ -43,7 +47,12 @@ export function ReplyToContractorButton({
       const res = await fetch(`/api/issues/${issueId}/reply-to-contractor`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: message.trim(), channel }),
+        body: JSON.stringify({
+          message: message.trim(),
+          channel,
+          contractorId,
+          contractorResponseId,
+        }),
       });
 
       if (!res.ok) {

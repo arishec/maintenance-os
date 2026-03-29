@@ -2576,3 +2576,52 @@ FILES CHANGED:
 TO DEPLOY:
 1. Run migration SQL in Supabase SQL Editor first
 2. Then: cd ~/maintenance-os-v1 && git add -A && git commit -m "Add issue reference, admin lookup, fix schedule timezone" && git push
+
+========================================
+SESSION 26 — Outbound Reply Visibility
+Date: March 29, 2026
+========================================
+
+FEATURE: ContractorMessage system (outbound reply tracking)
+Spec: outbound_reply_visibility_spec.txt
+
+WHAT WAS BUILT:
+1. ContractorMessage Prisma model with:
+   - uuid() IDs (consistent with rest of schema)
+   - MessageDirection enum (inbound/outbound) — type-safe, no string typos
+   - DispatchChannel enum (reused existing) — for channel field
+   - FK relations to Issue, Contractor, ContractorResponse
+   - Composite index on (issueId, contractorId, createdAt)
+   - Index on contractorResponseId
+
+2. Updated reply-to-contractor route:
+   - Now accepts optional contractorId + contractorResponseId in request body
+   - Creates ContractorMessage record after successful send
+   - Enhanced timeline logging with contractorId and responseId
+
+3. Updated issue detail page:
+   - Query now includes outboundMessages (latest 1) per ContractorResponse
+   - "Your reply" blue card renders below contractor question
+   - Shows: message body, channel (Email/SMS), timestamp
+
+4. Updated ReplyToContractorButton:
+   - Now receives and passes contractorId + contractorResponseId
+   - Links reply to specific contractor response for proper threading
+
+FILES CHANGED:
+- prisma/schema.prisma (ContractorMessage model, MessageDirection enum, relations on Issue/Contractor/ContractorResponse)
+- app/api/issues/[id]/reply-to-contractor/route.ts (creates ContractorMessage, accepts IDs)
+- app/(app)/issues/[id]/page.tsx (query includes outboundMessages, renders "Your reply" block)
+- app/(app)/issues/[id]/reply-to-contractor-button.tsx (passes contractorId + responseId)
+- prisma/migrations/add_contractor_message.sql (DDL with enum types)
+- app/api/admin/lookup/route.ts (fixed Property/Photo field names from prev session)
+- app/api/intake/[token]/route.ts (added missing reference field)
+
+MIGRATIONS RUN:
+- add_issue_reference.sql (from session 25)
+- add_contractor_message.sql (dropped TEXT version, recreated with enum types)
+
+TO DEPLOY:
+cd ~/maintenance-os-v1
+rm .git/HEAD.lock (if exists)
+git add -A && git commit -m "Add outbound reply tracking with ContractorMessage model" && git push

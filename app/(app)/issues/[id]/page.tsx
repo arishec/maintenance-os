@@ -40,7 +40,18 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
       property: true,
       photos: { orderBy: { sortOrder: 'asc' } },
       dispatches: {
-        include: { contractor: true, responses: true },
+        include: {
+          contractor: true,
+          responses: {
+            include: {
+              outboundMessages: {
+                where: { direction: 'outbound' },
+                orderBy: { createdAt: 'desc' },
+                take: 1,
+              },
+            },
+          },
+        },
         orderBy: { createdAt: 'desc' },
       },
       jobs: {
@@ -401,6 +412,21 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
                       </div>
                     )}
 
+                    {/* Outbound reply */}
+                    {response.outboundMessages?.[0] && (() => {
+                      const reply = response.outboundMessages[0];
+                      return (
+                        <div className="rounded-lg bg-blue-50 border border-blue-200 p-3">
+                          <p className="text-sm font-medium text-blue-800">Your reply:</p>
+                          <p className="text-sm text-blue-900 mt-1">{reply.messageBody}</p>
+                          <p className="text-xs text-blue-600 mt-2">
+                            Sent via {reply.channel === 'sms' ? 'SMS' : 'Email'} · {new Date(reply.createdAt).toLocaleDateString()} at{' '}
+                            {new Date(reply.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                          </p>
+                        </div>
+                      );
+                    })()}
+
                     {/* Notes */}
                     {response.notes && (
                       <p className="text-sm text-muted-foreground">{response.notes}</p>
@@ -435,6 +461,8 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
                         )}
                         <ReplyToContractorButton
                           issueId={issue.id}
+                          contractorId={dispatch.contractorId}
+                          contractorResponseId={response.id}
                           contractorName={dispatch.contractor.name}
                           contractorEmail={dispatch.contractor.email}
                           contractorPhone={dispatch.contractor.phone}

@@ -83,6 +83,11 @@ enum DispatchChannel {
   email
 }
 
+enum MessageDirection {
+  inbound
+  outbound
+}
+
 enum DispatchStatus {
   queued
   sent
@@ -153,9 +158,10 @@ model Contractor {
   createdAt         DateTime             @default(now())
   updatedAt         DateTime             @updatedAt
   owner             User                 @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
-  propertyLinks     PropertyContractor[]
-  dispatches        Dispatch[]
-  jobs              Job[]
+  propertyLinks      PropertyContractor[]
+  dispatches         Dispatch[]
+  jobs               Job[]
+  contractorMessages ContractorMessage[]
 }
 
 model PropertyContractor {
@@ -196,6 +202,7 @@ model Issue {
   photos             IssuePhoto[]
   dispatches         Dispatch[]
   jobs               Job[]
+  contractorMessages ContractorMessage[]
   timelineEvents     TimelineEvent[]
   notifications      Notification[]
   usageMetrics       UsageMetricsIssueCost?
@@ -232,23 +239,45 @@ model Dispatch {
 }
 
 model ContractorResponse {
-  id                   String    @id @default(uuid())
+  id                   String               @id @default(uuid())
   dispatchId           String
-  providerInboundId    String?   @unique
+  providerInboundId    String?              @unique
   rawMessage           String
   availabilityText     String?
   availabilityDate     DateTime?
-  estimateLow          Decimal?  @db.Decimal(10,2)
-  estimateHigh         Decimal?  @db.Decimal(10,2)
-  flatEstimate         Decimal?  @db.Decimal(10,2)
+  estimateLow          Decimal?             @db.Decimal(10,2)
+  estimateHigh         Decimal?             @db.Decimal(10,2)
+  flatEstimate         Decimal?             @db.Decimal(10,2)
   notes                String?
   followUpQuestion     String?
-  extractionConfidence Decimal?  @db.Decimal(5,4)
-  requiresReview       Boolean   @default(false)
+  extractionConfidence Decimal?             @db.Decimal(5,4)
+  requiresReview       Boolean              @default(false)
   receivedAt           DateTime
-  createdAt            DateTime  @default(now())
-  dispatch             Dispatch  @relation(fields: [dispatchId], references: [id], onDelete: Cascade)
+  createdAt            DateTime             @default(now())
+  dispatch             Dispatch             @relation(fields: [dispatchId], references: [id], onDelete: Cascade)
   jobs                 Job[]
+  outboundMessages     ContractorMessage[]
+}
+
+model ContractorMessage {
+  id                   String              @id @default(uuid())
+  issueId              String
+  contractorId         String
+  contractorResponseId String?
+  direction            MessageDirection
+  channel              DispatchChannel
+  messageBody          String
+  providerMessageId    String?
+  sendStatus           String              @default("sent")
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  issue                Issue               @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  contractor           Contractor          @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  contractorResponse   ContractorResponse? @relation(fields: [contractorResponseId], references: [id], onDelete: SetNull)
+
+  @@index([issueId, contractorId, createdAt])
+  @@index([contractorResponseId])
 }
 
 model Job {

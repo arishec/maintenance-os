@@ -9,6 +9,8 @@ import { sendRepairRequestSms } from '@/lib/twilio';
 const replySchema = z.object({
   message: z.string().min(1, 'Message is required').max(2000),
   channel: z.enum(['email', 'sms']),
+  contractorId: z.string().uuid().optional(),
+  contractorResponseId: z.string().uuid().optional(),
 });
 
 export async function POST(
@@ -29,7 +31,6 @@ export async function POST(
           where: { status: { in: ['sent', 'delivered', 'replied', 'accepted'] } },
           include: { contractor: true },
           orderBy: { createdAt: 'desc' },
-          take: 1,
         },
       },
     });
@@ -38,8 +39,15 @@ export async function POST(
       return NextResponse.json({ error: 'Issue not found.' }, { status: 404 });
     }
 
-    // Find the active dispatch (prefer accepted, then most recent)
-    const activeDispatch = issue.dispatches[0];
+    // Find the right dispatch — prefer specific contractorId if provided
+    let activeDispatch = body.contractorId
+      ? issue.dispatches.find((d) => d.contractorId === body.contractorId)
+      : issue.dispatches[0];
+
+    if (!activeDispatch) {
+      activeDispatch = issue.dispatches[0];
+    }
+
     if (!activeDispatch) {
       return NextResponse.json(
         { error: 'No active contractor dispatch found for this issue.' },
@@ -88,7 +96,25 @@ export async function POST(
       return NextResponse.json({ error: 'Failed to send message. Please try again.' }, { status: 500 });
     }
 
-    // Log timeline event (non-blocking — don't fail the request)
+    // Create ContractorMessage record (durable history of outbound reply)
+    try {
+      await prisma.contractorMessage.create({
+        data: {
+          issueId,
+          contractorId: contractor.id,
+          contractorResponseId: body.contractorResponseId ?? null,
+          direction: 'outbound',
+          channel: body.channel,
+          messageBody: body.message,
+          sendStatus: 'sent',
+        },
+      });
+    } catch (e) {
+      console.error('Failed to create ContractorMessage record:', e);
+      // Don't fail the request — message was already sent
+    }
+
+    // Log timeline event (non-blocking)
     try {
       await logTimelineEvent({
         propertyId: issue.propertyId,
@@ -98,6 +124,8 @@ export async function POST(
         payload: {
           channel: body.channel,
           contractorName: contractor.name,
+          contractorId: contractor.id,
+          contractorResponseId: body.contractorResponseId ?? null,
           messagePreview: body.message.substring(0, 100),
         },
       });
