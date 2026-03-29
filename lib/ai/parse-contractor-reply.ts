@@ -62,5 +62,31 @@ ${cleanedReply}`;
   text = text.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
 
   const parsed = contractorReplySchema.parse(JSON.parse(text));
+
+  // Post-process: enforce confidence and requiresReview based on extraction results
+  const hasPrice = parsed.estimateLow != null || parsed.estimateHigh != null || parsed.flatEstimate != null;
+  const hasAvailability = parsed.availabilityText != null || parsed.availabilityDate != null;
+
+  if (hasPrice && hasAvailability) {
+    // Both key fields extracted — high confidence, no review needed
+    parsed.confidenceScore = Math.max(parsed.confidenceScore, 0.85);
+    parsed.requiresReview = false;
+  } else if (hasPrice) {
+    // Price but no availability — decent confidence
+    parsed.confidenceScore = Math.max(parsed.confidenceScore, 0.7);
+    parsed.requiresReview = false;
+  } else if (hasAvailability) {
+    // Availability but no price — moderate confidence, may need review
+    parsed.confidenceScore = Math.max(parsed.confidenceScore, 0.6);
+  }
+  // If neither price nor availability, leave AI's confidence and requiresReview as-is
+
+  console.log('[parseContractorReply] Post-processed:', {
+    hasPrice,
+    hasAvailability,
+    confidence: parsed.confidenceScore,
+    requiresReview: parsed.requiresReview,
+  });
+
   return parsed;
 }

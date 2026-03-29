@@ -2679,3 +2679,52 @@ TO DEPLOY:
 cd ~/maintenance-os-v1
 rm -f .git/HEAD.lock
 git add -A && git commit -m "Add manual quote entry, timeline UI, resend dispatch, contractor dedup" && git push
+
+========================================
+SESSION 27 — ADMIN HARDENING + AI CONFIDENCE FIX
+========================================
+Date: March 29, 2026
+
+CONTEXT:
+User uploaded final_combined_spec.txt combining admin hardening, backend polish, and system safety items.
+Analyzed overlap with already-completed work and implemented the remaining items.
+
+WHAT WAS DONE:
+
+1. ADMIN ENDPOINT HARDENED
+   - Moved /api/admin/lookup → /api/internal/lookup (new route file)
+   - Added x-admin-secret header check (process.env.ADMIN_SECRET)
+   - Added console.log audit trail: logs ref, user email, timestamp on every lookup
+   - Error responses now use structured format: { error: "CODE", message: "..." }
+   - Old /api/admin/lookup route left in place (couldn't delete from sandbox — user should delete locally)
+
+2. SUMMARY BLOCK ADDED TO LOOKUP RESPONSE
+   - Both ISS- and MNT- lookups now return a summary object at top level:
+     { type, reference, summary: { status, contractorsContacted, responses, selectedContractor, jobStatus, jobScheduledDate }, data: { ...full objects } }
+   - buildIssueSummary() helper computes counts from nested relations
+
+3. AI EXTRACTION CONFIDENCE FIXED
+   - Added post-processing in lib/ai/parse-contractor-reply.ts after AI returns
+   - If both price AND availability extracted → confidence = max(ai_score, 0.85), requiresReview = false
+   - If price only → confidence = max(ai_score, 0.7), requiresReview = false
+   - If availability only → confidence = max(ai_score, 0.6), requiresReview unchanged
+   - If neither → AI's original values kept
+   - Uses Math.max so AI can still score higher if it's more confident
+
+FILES CREATED:
+- app/api/internal/lookup/route.ts (new hardened endpoint)
+
+FILES CHANGED:
+- lib/ai/parse-contractor-reply.ts (confidence post-processing)
+
+FILES TO DELETE LOCALLY:
+- app/api/admin/lookup/route.ts (replaced by internal/lookup)
+- app/api/admin/ directory (should be empty after)
+
+ENV VAR NEEDED:
+- ADMIN_SECRET: add to Vercel env vars. Any random string. Pass via x-admin-secret header when using lookup.
+
+TO DEPLOY:
+cd "~/dev projects/maintenance-os-v1"
+rm -rf app/api/admin
+git add -A && git commit -m "Harden admin lookup: rename to /internal, add secret header, summary block, fix AI confidence" && git push
