@@ -1,0 +1,141 @@
+MAINTENANCE OS
+FINAL HOMEPAGE COPY (READY TO PASTE)
+
+==================================================
+HERO SECTION
+==================================================
+
+HEADLINE:
+Stop chasing contractors and losing track of repairs
+
+SUBHEADLINE:
+Report issues, send them to contractors, compare responses, and keep everything organized in one place.
+
+PRIMARY CTA:
+Start free — no credit card
+
+SECONDARY CTA:
+See how it works
+
+--------------------------------------------------
+
+SUPPORTING VISUAL IDEA (RIGHT SIDE):
+Show a simple mock:
+
+Issue: “Leaking sink”
+
+Plumber A → $250, tomorrow  
+Plumber B → $180, Friday  
+Plumber C → $300, today  
+
+==================================================
+PROBLEM SECTION
+==================================================
+
+HEADLINE:
+Most repairs get lost in texts, calls, and memory
+
+BODY:
+Contractor responses come from everywhere. Pricing is unclear. And it’s hard to remember what was done and when.
+
+==================================================
+CORE VALUE SECTION
+==================================================
+
+HEADLINE:
+Send one issue. Get multiple responses.
+
+BODY:
+Instead of calling or texting contractors one by one, send the issue once and compare responses in one place.
+
+BULLETS:
+- Send to multiple contractors at once  
+- See pricing and timing side-by-side  
+- Choose the best option quickly  
+
+==================================================
+HOW IT WORKS SECTION
+==================================================
+
+HEADLINE:
+How it works
+
+STEP 1:
+Report the issue
+
+STEP 2:
+Send to contractors
+
+STEP 3:
+Compare responses
+
+STEP 4:
+Track the job
+
+STEP 5:
+Keep the history
+
+==================================================
+WHY THIS IS BETTER SECTION
+==================================================
+
+HEADLINE:
+Stop doing this the hard way
+
+BULLETS:
+- No more texting multiple contractors individually  
+- No more scattered estimates  
+- No more guessing what was fixed  
+
+==================================================
+USE CASE SECTION
+==================================================
+
+LEFT COLUMN:
+For homeowners
+
+TEXT:
+Track repairs, compare quotes, and keep your home’s repair history organized.
+
+CTA:
+Learn more
+
+--------------------------------------------------
+
+RIGHT COLUMN:
+For landlords
+
+TEXT:
+Manage issues across properties, coordinate contractors, and keep maintenance organized.
+
+CTA:
+Learn more
+
+==================================================
+FEATURES SECTION
+==================================================
+
+HEADLINE:
+Everything in one place
+
+FEATURES:
+- Issue tracking  
+- Contractor dispatch (SMS & email)  
+- Quote comparison  
+- Repair history  
+
+==================================================
+FINAL CTA SECTION
+==================================================
+
+HEADLINE:
+Start tracking repairs the right way
+
+BODY:
+See how Maintenance OS works with your first issue — no credit card required.
+
+CTA:
+Start free
+
+==================================================
+END OF DOCUMENT

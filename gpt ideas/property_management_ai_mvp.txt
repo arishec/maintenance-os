@@ -1,0 +1,244 @@
+PROPERTY MANAGEMENT AI MVP – FULL SPEC
+
+========================
+1. MVP GOAL
+========================
+Tenant issue → AI categorization → contractor outreach → quote collection → landlord decision.
+
+Do NOT build:
+- payments
+- contractor marketplace
+- AI calling
+- accounting integrations
+
+========================
+2. CORE USERS
+========================
+- Property Manager
+- Tenant
+- Contractor
+
+========================
+3. MVP FEATURES
+========================
+
+A. Tenant Intake
+- Web form submission
+- Fields: property, unit, description, photo, contact info
+
+B. AI Classification
+Outputs:
+- category
+- subcategory
+- urgency
+- summary
+- confidence
+
+Categories:
+- Plumbing, Electrical, HVAC, Appliance, Structural, Pest, Lock/Security, Other
+
+Urgency:
+- Emergency, Urgent, Routine, Low
+
+C. Contractor Dispatch
+- Send to preferred vendors
+- SMS/email with structured request
+
+D. Contractor Response
+- Simple form:
+  - price
+  - availability
+  - notes
+  - inspection required
+
+E. Dashboard
+- Issue summary
+- urgency
+- contractors
+- quotes
+- recommendation
+- approve button
+
+F. Recommendation Logic
+Based on:
+- price
+- availability
+- vendor priority
+- response quality
+
+========================
+4. 2-WEEK BUILD PLAN
+========================
+
+Week 1:
+- Auth, properties, contractors
+- Issue form
+- AI classification
+- Dashboard base
+- Contractor dispatch
+- Response form
+
+Week 2:
+- Approval flow
+- Notifications
+- Status system
+- Edge cases
+- UI polish
+
+========================
+5. DATABASE SCHEMA
+========================
+
+users
+- id, role, name, email, phone
+
+properties
+- id, manager_id, address
+
+units
+- id, property_id, tenant_id
+
+contractors
+- id, company_name, contact info
+
+property_contractors
+- property_id, contractor_id, priority
+
+maintenance_issues
+- id, property_id, unit_id
+- raw_description
+- ai_summary
+- category
+- urgency
+- status
+
+issue_images
+- issue_id, image_url
+
+contractor_requests
+- issue_id, contractor_id, status
+
+contractor_quotes
+- issue_id, contractor_id
+- price
+- availability
+- notes
+
+issue_recommendations
+- issue_id, recommended_contractor_id
+- scores
+
+========================
+6. AI USAGE
+========================
+
+1. Intake classification
+2. Photo understanding
+3. Quote parsing (later)
+4. Recommendation explanation
+
+AI = support layer, not decision-maker
+
+========================
+7. SMS / EMAIL FLOWS
+========================
+
+Tenant confirmation:
+“We received your request…”
+
+Contractor request:
+“Kitchen sink leak… send quote + availability…”
+
+Manager alert:
+“2 quotes received…”
+
+Approval:
+“You’ve been selected…”
+
+========================
+8. DASHBOARD UI
+========================
+
+Layout:
+- 2 column (65% / 35%)
+
+Top KPIs:
+- Open issues
+- Urgent
+- Awaiting quotes
+- Approved
+
+Issue table:
+- Unit, Category, Urgency, Status
+
+Detail panel:
+- Tenant report
+- AI summary
+- Photos
+- Contractors
+- Quotes
+- Recommendation
+- Approve button
+
+========================
+9. TECH STACK
+========================
+
+Frontend:
+- Next.js
+- Tailwind
+
+Backend:
+- Supabase
+
+Messaging:
+- Twilio (SMS)
+- Resend/Postmark (email)
+
+AI:
+- OpenAI (structured output)
+
+Hosting:
+- Vercel
+
+========================
+10. SCORING LOGIC
+========================
+
+total_score =
+  price * 0.35 +
+  availability * 0.35 +
+  vendor_priority * 0.20 +
+  response_quality * 0.10
+
+========================
+11. V2 FEATURES
+========================
+
+- SMS parsing
+- Cost benchmarking
+- Scheduling
+- Integrations
+- Vendor ratings
+
+========================
+12. BIGGEST RISK
+========================
+
+Contractors must respond quickly.
+
+Start with:
+- existing vendor lists
+- simple response flow
+
+========================
+13. POSITIONING
+========================
+
+“Maintenance triage and quote coordination for property managers”
+
+NOT:
+“AI property manager”
+
+========================
+END

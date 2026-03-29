@@ -1,0 +1,436 @@
+MAINTENANCE OS
+FINAL PERFECTION CHECKLIST
+
+Purpose:
+This document defines what “perfect” should mean for Maintenance OS before calling the V1 truly locked.
+
+Important framing:
+Perfection in software does not mean “no future improvements.”
+It means:
+- no broken core workflow
+- no unsafe or misleading behavior
+- no fake UI
+- no silent data corruption
+- no obvious production mistakes
+
+==================================================
+1. CORE PRODUCT STANDARD
+==================================================
+
+The app should feel trustworthy, complete, and hard to break.
+
+A user must be able to:
+
+1. create an issue
+2. have the issue classified
+3. contact contractors
+4. receive replies
+5. compare replies
+6. select a contractor
+7. create a job
+8. track the job
+9. complete the job
+10. find the issue later in history
+
+This must work consistently.
+
+==================================================
+2. CODE CORRECTNESS CHECKLIST
+==================================================
+
+Before calling the app locked, confirm all of the following:
+
+- zero TypeScript errors
+- zero build errors
+- no placeholder routes
+- no dead buttons
+- no dead API endpoints
+- no fake forms that do not save
+- no unsafe route casts
+- no loose typing in important logic paths
+- no `any` in core backend workflow unless absolutely intentional
+- Prisma query objects use Prisma types where appropriate
+- no sensitive env files included in repo or distributable archives
+- `.env.example` exists and is accurate
+- all required env vars are documented
+
+Specific code areas to verify:
+- auth bootstrap
+- property CRUD
+- contractor CRUD
+- issue CRUD
+- dispatch route
+- Twilio inbound webhook
+- Twilio status webhook
+- email inbound webhook
+- select contractor route
+- job update route
+- tenant intake route
+- notifications route or notification creation logic
+- timeline logging helper
+- AI client
+- classification service
+- contractor reply parser
+
+==================================================
+3. WORKFLOW CORRECTNESS CHECKLIST
+==================================================
+
+These are the most important product behaviors.
+
+--------------------------------------------------
+3.1 Issue creation
+--------------------------------------------------
+
+Confirm:
+- issue saves correctly
+- required fields validate properly
+- optional fields do not break submission
+- photos attach correctly if present
+- issue shows in list immediately after creation
+- issue status starts in the correct state
+
+--------------------------------------------------
+3.2 Issue classification
+--------------------------------------------------
+
+Confirm:
+- Claude classification runs successfully
+- category is stored correctly
+- urgency is stored correctly
+- recommended trade is stored correctly
+- classification failure does not lose the issue
+- fallback behavior is clear if classification fails
+
+--------------------------------------------------
+3.3 Contractor dispatch
+--------------------------------------------------
+
+Confirm:
+- selecting contractors creates dispatch rows
+- replyToken is created for each dispatch
+- token is included in outbound SMS
+- token is included in outbound email
+- send success/failure is stored correctly
+- issue moves to `awaiting_quotes` only when at least one dispatch succeeds
+- if all sends fail, issue stays in a recoverable state
+
+--------------------------------------------------
+3.4 Inbound SMS replies
+--------------------------------------------------
+
+Confirm:
+- Twilio signature validation works
+- SMS reply is received
+- replyToken matching works
+- fallback only happens when exactly one valid candidate exists
+- ambiguous replies are never attached to the wrong issue
+- raw inbound message is stored
+- parsed response is stored
+- dispatch status updates correctly
+- metrics update does not break reply ingestion
+
+--------------------------------------------------
+3.5 Inbound email replies
+--------------------------------------------------
+
+Confirm:
+- email webhook signature validation works
+- email reply is received
+- replyToken matching works
+- fallback does not guess when multiple candidates exist
+- raw message is stored
+- parsed response is stored
+- metrics update is defensive
+- issue timeline reflects the reply
+
+--------------------------------------------------
+3.6 Contractor selection
+--------------------------------------------------
+
+Confirm:
+- user can select exactly one contractor for an issue
+- duplicate jobs cannot be created for same issue
+- selected response is linked correctly
+- issue status updates correctly
+- job record is created correctly
+
+--------------------------------------------------
+3.7 Job lifecycle
+--------------------------------------------------
+
+Confirm:
+- contractor_selected → scheduled works
+- scheduled → in_progress works
+- in_progress → completed works
+- canceled works
+- issue status always stays in sync with job status
+- completed timestamps are stored correctly
+
+--------------------------------------------------
+3.8 Cancel / archive behavior
+--------------------------------------------------
+
+Confirm:
+- cancel does not delete data
+- canceled issues leave active views
+- canceled issues remain in history
+- archive hides issue from active UI
+- archived issues remain searchable if intended
+- delete is not user-facing unless explicitly designed as admin-only
+
+==================================================
+4. DATA INTEGRITY CHECKLIST
+==================================================
+
+These are the “never break this” rules.
+
+Confirm all of the following:
+
+- contractor replies can never attach to the wrong issue
+- one issue cannot have duplicate active jobs
+- dashboard counts always match filtered views
+- status transitions are valid and predictable
+- issue history is preserved
+- raw contractor reply is always stored
+- AI output never replaces raw source data
+- tenant submissions do not disappear if classification fails
+- ambiguous inbound messages are not guessed into the wrong record
+- metrics rows are created defensively
+- webhook retries do not create duplicate logical state if idempotency is implemented
+
+==================================================
+5. UI / UX PERFECTION CHECKLIST
+==================================================
+
+The app should not merely function. It should make sense instantly.
+
+--------------------------------------------------
+5.1 Dashboard
+--------------------------------------------------
+
+Confirm:
+- cards are clickable
+- cards link to correct filtered views
+- card counts match the list shown after click
+- selected filter is visually obvious on the destination page
+- empty states are clean and helpful
+- no misleading metrics
+
+--------------------------------------------------
+5.2 Issues page
+--------------------------------------------------
+
+Confirm:
+- filter tabs work correctly
+- property filter works correctly
+- urgency filter works correctly
+- category filter works correctly
+- search works correctly
+- table columns are clear
+- issue statuses use friendly labels, not raw DB jargon
+- no confusing overlap in top-level views
+
+--------------------------------------------------
+5.3 Issue detail page
+--------------------------------------------------
+
+Confirm:
+- page clearly shows current status
+- next available actions are obvious
+- user can understand what to do next
+- contractor responses are understandable
+- selected contractor state is obvious
+- action buttons do not appear when invalid
+- cancel/archive/complete actions are clearly separated
+
+--------------------------------------------------
+5.4 Contractor comparison UI
+--------------------------------------------------
+
+Confirm:
+- raw reply is visible
+- extracted fields are visible
+- low-confidence parses are marked clearly
+- user can manually correct a bad parse
+- selecting a contractor feels deliberate and obvious
+
+--------------------------------------------------
+5.5 Forms
+--------------------------------------------------
+
+Confirm:
+- every form validates correctly
+- inline errors are understandable
+- success states are shown
+- failure states are shown
+- there are no forms that appear interactive but do nothing
+- mobile form behavior is smooth
+
+--------------------------------------------------
+5.6 Mobile UX
+--------------------------------------------------
+
+Confirm:
+- issue reporting works comfortably on phone
+- photo upload is easy on phone
+- cards and buttons are easily tappable
+- no critical controls are hidden off-screen
+- major tables degrade acceptably or switch to card layout if needed
+
+==================================================
+6. LIVE PRODUCTION BEHAVIOR CHECKLIST
+==================================================
+
+This is where “almost perfect” becomes “real.”
+
+--------------------------------------------------
+6.1 Real SMS test
+--------------------------------------------------
+
+Run a live test with a real Twilio number:
+
+- create an issue
+- dispatch to a real phone
+- receive the message
+- reply naturally
+- confirm reply is parsed and attached correctly
+
+--------------------------------------------------
+6.2 Real email test
+--------------------------------------------------
+
+Run a live test with Resend:
+
+- send contractor request by email
+- reply from real inbox
+- confirm webhook receives it
+- confirm reply is parsed and attached correctly
+
+--------------------------------------------------
+6.3 Multiple issue ambiguity test
+--------------------------------------------------
+
+Test:
+- same contractor receives two active issue requests
+- reply once with token
+- confirm correct issue matched
+- reply once without token
+- confirm unresolved/safe behavior, not guessing
+
+--------------------------------------------------
+6.4 Failure mode tests
+--------------------------------------------------
+
+Test:
+- Claude classification failure
+- Claude parsing failure
+- Twilio send failure
+- Resend send failure
+- invalid webhook signature
+- missing metrics row
+- duplicate webhook retry
+- duplicate contractor response
+
+Confirm:
+- no silent corruption
+- user-facing behavior stays understandable
+- data remains recoverable
+
+==================================================
+7. SECURITY AND SAFETY CHECKLIST
+==================================================
+
+Confirm:
+- webhook signatures are validated
+- property access checks are enforced everywhere
+- tenant intake tokens are revocable
+- uploaded images are not publicly exposed without intention
+- contractor data is scoped correctly per user/account
+- environment variables are not leaked in archives
+- no test credentials remain in production config
+
+==================================================
+8. TIMELINE / HISTORY CHECKLIST
+==================================================
+
+The app is partly a system of record. History must feel trustworthy.
+
+Confirm timeline events exist for:
+- issue created
+- issue classified
+- contractor contacted
+- contractor reply received
+- contractor selected
+- job scheduled
+- job in progress
+- job completed
+- issue canceled
+- issue archived
+- tenant issue submitted
+
+Confirm:
+- timestamps are correct
+- actor labels make sense
+- history is understandable when read later
+
+==================================================
+9. COUNTS / FILTERS CONSISTENCY CHECKLIST
+==================================================
+
+This is easy to overlook and makes the app feel sloppy if wrong.
+
+Confirm:
+- Open issues card count matches `/issues?view=open`
+- Awaiting quotes card count matches `/issues?view=awaiting_quotes`
+- Active jobs card count matches `/issues?view=active_jobs`
+- Properties card count matches actual properties
+- issue counts do not drift because of separate query logic
+- same shared status map is used everywhere
+
+==================================================
+10. WHAT “PERFECT V1” SHOULD MEAN FOR THIS APP
+==================================================
+
+You should be able to truthfully say all of the following:
+
+- Nothing important is broken
+- Nothing important is fake
+- The core workflow works end-to-end
+- State transitions are trustworthy
+- Replies do not attach incorrectly
+- History is preserved
+- Users can understand the app without guessing
+- Real SMS and email flow work in production
+- The app feels calm, clean, and intentional
+- The app is ready for real users, even if future enhancements still exist
+
+==================================================
+11. FINAL LAUNCH STANDARD
+==================================================
+
+Do not ask:
+“Is it perfect forever?”
+
+Ask:
+“Would I trust a real homeowner or landlord to use this without embarrassing failures?”
+
+If the answer is yes, then the V1 is ready.
+
+==================================================
+12. RECOMMENDED FINAL ORDER OF OPERATIONS
+==================================================
+
+1. zero TypeScript / build errors
+2. verify every form and action saves real data
+3. run all core workflow tests
+4. run real SMS and email tests
+5. verify dashboard/filter consistency
+6. verify cancel/archive/history behavior
+7. verify mobile issue reporting
+8. verify packaging and env hygiene
+9. do one final UI polish pass
+10. launch to a very small real user group
+
+==================================================
+END OF DOCUMENT

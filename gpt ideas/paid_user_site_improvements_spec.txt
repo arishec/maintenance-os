@@ -1,0 +1,987 @@
+MAINTENANCE OS
+HIRING + JOB LIFECYCLE SPEC
+(CLEANLY PLUGGED INTO THE SYSTEM YOU ALREADY BUILT)
+
+==================================================
+PURPOSE
+==================================================
+
+This document defines the missing core workflow after quote collection:
+
+QUOTE RECEIVED → SELECT CONTRACTOR → CREATE JOB → TRACK JOB → COMPLETE JOB
+
+It is designed to plug into what you already have:
+
+Already built:
+- issues
+- contractors
+- dispatches
+- inbound SMS replies
+- inbound email replies
+- AI parsing
+- quote response UI
+- dashboard
+- issue list
+- notifications framework
+- Twilio outbound/inbound
+- Resend outbound/inbound
+
+This document does NOT redesign the system.
+It finishes the system.
+
+==================================================
+HIGH-LEVEL PRODUCT RULE
+==================================================
+
+Your product should not stop at:
+- collecting quotes
+
+It should continue through:
+- choosing who to hire
+- confirming the hire
+- tracking the job
+- preserving final history
+
+This is what turns the product from:
+- quote organizer
+
+into:
+- repair workflow system
+
+==================================================
+1. CORE USER FLOW
+==================================================
+
+STEP 1
+Issue is dispatched to contractors
+
+STEP 2
+One or more contractors reply by SMS/email
+
+STEP 3
+Replies are parsed and shown on the issue page
+
+STEP 4
+User reviews responses and clicks:
+SELECT CONTRACTOR
+
+STEP 5
+System creates a Job
+
+STEP 6
+Issue status changes from:
+quotes_received → active_job
+
+STEP 7
+Selected contractor is shown everywhere relevant
+
+STEP 8
+Other quote options are visually closed
+
+STEP 9
+User tracks job until completion
+
+STEP 10
+Issue and job move into history
+
+==================================================
+2. REQUIRED DATABASE / DATA MODEL BEHAVIOR
+==================================================
+
+This spec assumes you already have:
+- Issue
+- Contractor
+- Dispatch
+- ContractorResponse
+- Job
+
+If Job already exists, use it.
+If it does not fully include these fields, add what is missing.
+
+--------------------------------------------------
+2.1 ISSUE MODEL
+--------------------------------------------------
+
+Issue should support:
+
+- id
+- propertyId
+- title
+- description
+- category
+- urgency
+- status
+- selectedContractorId (nullable)
+- selectedResponseId (nullable)
+- createdAt
+- updatedAt
+- completedAt (nullable)
+
+Status options should include:
+- new
+- classified
+- awaiting_dispatch
+- awaiting_quotes
+- quotes_received
+- active_job
+- completed
+- canceled
+- archived
+
+IMPORTANT:
+If you currently use:
+- contractor_selected
+- scheduled
+- in_progress
+
+you may either:
+A. keep them as internal job-specific states, or
+B. simplify issue status to active_job and let job carry the stage
+
+RECOMMENDATION:
+Keep issue simpler:
+- awaiting_quotes
+- quotes_received
+- active_job
+- completed
+- canceled
+- archived
+
+Let Job carry finer tracking state.
+
+--------------------------------------------------
+2.2 JOB MODEL
+--------------------------------------------------
+
+Job should include:
+
+- id
+- issueId
+- contractorId
+- selectedResponseId (nullable)
+- status
+- agreedPrice (nullable)
+- estimatedAvailability (nullable)
+- notes (nullable)
+- scheduledFor (nullable)
+- startedAt (nullable)
+- completedAt (nullable)
+- canceledAt (nullable)
+- createdAt
+- updatedAt
+
+Recommended Job status values:
+- selected
+- scheduled
+- in_progress
+- completed
+- canceled
+
+--------------------------------------------------
+2.3 CONTRACTOR RESPONSE MODEL
+--------------------------------------------------
+
+ContractorResponse should include or already contain:
+
+- id
+- issueId
+- contractorId
+- dispatchId
+- rawMessage
+- parsedPrice
+- parsedAvailability
+- parsedQuestionOrNotes
+- sourceChannel (sms | email)
+- receivedAt
+- isSelected (boolean, default false)
+
+If you do not already have `isSelected`, add it.
+This simplifies UI.
+
+--------------------------------------------------
+2.4 DISPATCH MODEL
+--------------------------------------------------
+
+Dispatch should include:
+- id
+- issueId
+- contractorId
+- replyToken
+- channel
+- status
+- providerMessageId
+- createdAt
+- updatedAt
+
+Recommended dispatch statuses:
+- draft
+- sent
+- delivered
+- replied
+- accepted
+- closed
+- failed
+
+IMPORTANT:
+Once contractor is chosen:
+- selected contractor dispatch → accepted
+- all other open dispatches → closed
+
+==================================================
+3. EXACT HIRING ACTION
+==================================================
+
+This is the missing first-class action.
+
+--------------------------------------------------
+3.1 WHERE IT APPEARS
+--------------------------------------------------
+
+On the Issue Detail page, inside each contractor response card.
+
+Example card:
+
+--------------------------------------------------
+Test Plumber
+$450
+Available: Tomorrow
+Question: What is the address and can I park there?
+
+[Select Contractor]   [Reply]
+--------------------------------------------------
+
+--------------------------------------------------
+3.2 USER CLICK FLOW
+--------------------------------------------------
+
+When user clicks:
+[Select Contractor]
+
+Show confirmation modal:
+
+Title:
+Hire Test Plumber?
+
+Body:
+This will mark Test Plumber as the selected contractor for this issue and start the job workflow.
+
+Summary:
+- Quote: $450
+- Availability: Tomorrow
+
+Buttons:
+[Confirm Selection]
+[Cancel]
+
+--------------------------------------------------
+3.3 CONFIRMATION RESULT
+--------------------------------------------------
+
+When user confirms:
+
+System must do ALL of the following atomically if possible:
+
+1. mark selected response:
+- ContractorResponse.isSelected = true
+
+2. update issue:
+- selectedContractorId = contractorId
+- selectedResponseId = responseId
+- status = active_job
+
+3. create job:
+- issueId = issue.id
+- contractorId = contractor.id
+- selectedResponseId = response.id
+- agreedPrice = parsedPrice
+- estimatedAvailability = parsedAvailability
+- status = selected
+
+4. update dispatches:
+- dispatch for selected contractor = accepted
+- all other sent/replied dispatches = closed
+
+5. create notification(s)
+6. create timeline event(s)
+
+IMPORTANT:
+Do not allow partial state where contractor is selected but job does not exist.
+
+==================================================
+4. BACKEND API SPEC
+==================================================
+
+--------------------------------------------------
+4.1 NEW ROUTE
+--------------------------------------------------
+
+Create route:
+
+POST /api/issues/[id]/select-contractor
+
+Body:
+{
+  "responseId": "..."
+}
+
+Authenticated user only.
+User must own the issue/property.
+
+--------------------------------------------------
+4.2 VALIDATION RULES
+--------------------------------------------------
+
+Before selection:
+
+1. confirm issue exists and belongs to user
+2. confirm response exists
+3. confirm response belongs to this issue
+4. confirm issue is in state:
+   - quotes_received
+   OR
+   - active_job only if you support re-selection (not recommended for V1)
+5. confirm no completed/canceled job already exists for this issue in conflicting way
+6. confirm contractor exists
+
+--------------------------------------------------
+4.3 V1 RULE: ONE ACTIVE SELECTION
+--------------------------------------------------
+
+For V1:
+- issue can only have one selected contractor at a time
+- once selected, changing contractor should require explicit “Replace contractor” flow later
+- do NOT build replacement flow now unless you need it
+
+If issue already has active job:
+Return:
+409 conflict
+{
+  "error": "CONTRACTOR_ALREADY_SELECTED"
+}
+
+==================================================
+5. EXACT ISSUE STATUS TRANSITIONS
+==================================================
+
+This is the clean state model.
+
+--------------------------------------------------
+5.1 ISSUE STATUS FLOW
+--------------------------------------------------
+
+new
+→ classified
+→ awaiting_dispatch
+→ awaiting_quotes
+→ quotes_received
+→ active_job
+→ completed
+
+Alternative exits:
+→ canceled
+→ archived
+
+--------------------------------------------------
+5.2 WHEN STATUS BECOMES quotes_received
+--------------------------------------------------
+
+As soon as first valid ContractorResponse is created.
+
+This should happen automatically in inbound SMS/email processing.
+
+Do NOT leave issue in awaiting_quotes after real reply exists.
+
+--------------------------------------------------
+5.3 WHEN STATUS BECOMES active_job
+--------------------------------------------------
+
+As soon as user selects contractor.
+
+NOT when contractor replies.
+NOT when contractor is contacted.
+Only when user confirms selection.
+
+--------------------------------------------------
+5.4 WHEN STATUS BECOMES completed
+--------------------------------------------------
+
+When job status becomes completed.
+
+==================================================
+6. JOB LIFECYCLE (DETAILED)
+==================================================
+
+--------------------------------------------------
+6.1 JOB STATE FLOW
+--------------------------------------------------
+
+selected
+→ scheduled
+→ in_progress
+→ completed
+
+Alternative:
+selected / scheduled / in_progress
+→ canceled
+
+--------------------------------------------------
+6.2 WHAT EACH STATE MEANS
+--------------------------------------------------
+
+selected
+- contractor hired
+- no explicit appointment locked yet
+
+scheduled
+- date/time agreed or expected
+
+in_progress
+- work has begun
+
+completed
+- work finished
+
+canceled
+- job canceled after selection
+
+--------------------------------------------------
+6.3 UI LABELS
+--------------------------------------------------
+
+Use user-facing labels:
+
+selected → Contractor selected
+scheduled → Scheduled
+in_progress → In progress
+completed → Completed
+canceled → Canceled
+
+==================================================
+7. ISSUE DETAIL PAGE SPEC
+==================================================
+
+This is the most important screen in the product.
+
+--------------------------------------------------
+7.1 TOP SECTION
+--------------------------------------------------
+
+Show:
+- issue title
+- property
+- category
+- urgency
+- issue status
+
+Add a status banner depending on state.
+
+If status = quotes_received:
+
+Banner:
+You have 1 contractor response ready to review
+
+If status = active_job:
+
+Banner:
+Test Plumber has been selected for this job
+
+If status = completed:
+
+Banner:
+This repair is complete
+
+--------------------------------------------------
+7.2 QUOTE RESPONSES SECTION
+--------------------------------------------------
+
+Each response card should show:
+
+- contractor name
+- business name
+- price
+- availability
+- parsed question/notes
+- source channel (SMS or Email)
+- received time
+- raw message toggle
+
+Actions:
+- Select Contractor
+- Reply
+
+Example:
+
+--------------------------------------------------
+Test Plumber
+Ari's Plumbing
+
+Quote: $450
+Available: Tomorrow
+Question: What is the address and can I park there?
+Received via Email · 4:12 PM
+
+[Select Contractor]   [Reply]   [View raw message]
+--------------------------------------------------
+
+--------------------------------------------------
+7.3 AFTER CONTRACTOR IS SELECTED
+--------------------------------------------------
+
+The selected contractor card should change to:
+
+--------------------------------------------------
+Selected Contractor
+Test Plumber
+Ari's Plumbing
+
+Quote: $450
+Available: Tomorrow
+
+[Selected]
+--------------------------------------------------
+
+Other responses should become visually inactive:
+
+- lighter border
+- badge: Not selected
+- no primary action
+
+==================================================
+8. REPLY ACTION (AFTER QUOTE)
+==================================================
+
+You already have SMS and email infrastructure.
+Use that.
+
+--------------------------------------------------
+8.1 WHY REPLY IS NEEDED
+--------------------------------------------------
+
+Contractor may ask:
+- address?
+- parking?
+- timing?
+- more photos?
+
+User should be able to respond from inside the app.
+
+--------------------------------------------------
+8.2 V1 IMPLEMENTATION OPTIONS
+--------------------------------------------------
+
+OPTION A (RECOMMENDED NOW)
+Reply action opens:
+- preferred channel action
+- email composer or SMS composer using existing dispatch thread context
+
+OPTION B
+Full in-app threaded messaging
+This is more work.
+Do NOT require this for V1.
+
+--------------------------------------------------
+8.3 RECOMMENDED V1 BEHAVIOR
+--------------------------------------------------
+
+On response card:
+[Reply]
+
+Click opens modal:
+
+Reply to Test Plumber
+
+Message box:
+[textarea]
+
+Channel:
+- Email
+- SMS
+(preselected based on original source or contractor available contact)
+
+Buttons:
+[Send reply]
+[Cancel]
+
+Use existing messaging providers:
+- Twilio for SMS
+- Resend for email
+
+IMPORTANT:
+Store outbound reply in timeline/history even if you do not build full threaded transcript UI yet.
+
+==================================================
+9. DASHBOARD SPEC
+==================================================
+
+Dashboard must communicate momentum clearly.
+
+--------------------------------------------------
+9.1 SUMMARY CARDS
+--------------------------------------------------
+
+Recommended cards:
+
+Open issues
+Awaiting quotes
+Quotes received
+Active jobs
+Properties
+
+This is the best set.
+
+--------------------------------------------------
+9.2 CARD DEFINITIONS
+--------------------------------------------------
+
+Open issues
+- count of issues NOT in completed/canceled/archived
+
+Awaiting quotes
+- issues with dispatches but no responses
+
+Quotes received
+- issues with at least one ContractorResponse and no contractor selected yet
+
+Active jobs
+- issues with active_job OR jobs in selected/scheduled/in_progress
+
+Properties
+- total properties
+
+--------------------------------------------------
+9.3 RECENT ISSUES SECTION
+--------------------------------------------------
+
+Each issue card should show:
+- title
+- property
+- short description
+- category
+- urgency
+- status
+- one line of next-action context
+
+Examples:
+
+Awaiting quotes:
+Waiting for contractor responses
+1 contacted
+
+Quotes received:
+1 response received
+Review quotes and select a contractor
+
+Active job:
+Contractor selected
+Track scheduling and progress
+
+==================================================
+10. NOTIFICATIONS SPEC
+==================================================
+
+Notifications are currently underused.
+This is a core product feature.
+
+--------------------------------------------------
+10.1 CREATE NOTIFICATIONS FOR
+--------------------------------------------------
+
+1. first contractor reply received
+2. any new contractor reply received
+3. contractor selected
+4. job completed
+5. contractor asks a follow-up question
+
+--------------------------------------------------
+10.2 EXAMPLES
+--------------------------------------------------
+
+New contractor reply
+Test Plumber sent a $450 quote
+
+New contractor question
+Test Plumber asked: “What is the address and can I park there?”
+
+Contractor selected
+You selected Test Plumber for Kitchen sink leak under cabinet
+
+Job completed
+Kitchen sink leak under cabinet was marked completed
+
+--------------------------------------------------
+10.3 DASHBOARD PANEL
+--------------------------------------------------
+
+Do not show:
+No new notifications
+
+when actual events occurred.
+
+Show latest 3–5 items.
+Clickable → issue detail page or job detail later.
+
+==================================================
+11. ISSUES TABLE SPEC
+==================================================
+
+Your current issues table is close.
+Keep it, but standardize logic.
+
+--------------------------------------------------
+11.1 CONTRACTOR COLUMN
+--------------------------------------------------
+
+Before selection:
+- show reply activity, not blank
+
+Examples:
+1 replied / 3 contacted
+1 contacted
+2 replied / 4 contacted
+
+After selection:
+- show contractor name
+
+--------------------------------------------------
+11.2 STATUS COLUMN
+--------------------------------------------------
+
+Use clear labels:
+
+Awaiting quotes
+Quotes received
+Active job
+Completed
+Canceled
+Archived
+
+Optional subtext:
+- 1 response received
+- waiting on replies
+
+==================================================
+12. PROPERTIES PAGE SPEC
+==================================================
+
+Current page is too flat.
+
+Each property card/row should show:
+
+- property name
+- address
+- open issues count
+- awaiting quotes count
+- quotes received count (optional)
+- total historical issues/jobs
+
+Example:
+
+--------------------------------------------------
+Test Home
+123 Main Street, Miami, FL 33101
+
+3 open issues
+2 awaiting quotes
+1 ready to review
+3 total lifetime issues
+--------------------------------------------------
+
+Click should open property detail later.
+For now, property card should at least link to:
+Issues filtered by that property.
+
+==================================================
+13. CONTRACTORS PAGE SPEC
+==================================================
+
+Current page is too static.
+
+Each contractor card should show:
+
+- contractor name
+- business name
+- trade/category
+- phone
+- email
+- jobs completed
+- response rate or simple activity indicator
+- last used date
+
+Example:
+
+--------------------------------------------------
+Test Plumber
+Ari's Plumbing
+Plumbing
+
+Phone: 215-285-2211
+Email: ashechtman@icloud.com
+
+Used 2 times
+1 quote sent this week
+
+[Edit] [Remove] [Set preferred]
+--------------------------------------------------
+
+If you cannot support all metrics yet, start with:
+- used count
+- last used
+
+==================================================
+14. HISTORY PAGE SPEC
+==================================================
+
+Current history page is too empty and too narrow.
+
+It should not only mean “completed issues”.
+It should represent final outcomes.
+
+Recommended include:
+- completed
+- canceled
+
+For each item show:
+- issue title
+- property
+- selected contractor
+- final price if known
+- completed/canceled date
+
+Empty state should say:
+
+No completed or canceled issues yet.
+Once a repair is finished or canceled, it will appear here with its final details.
+
+==================================================
+15. SETTINGS PAGE SPEC
+==================================================
+
+Current settings page feels placeholder.
+
+Keep it simple but intentional.
+
+Section 1:
+Account
+- name
+- email
+- plan
+- billing status
+
+Section 2:
+Notifications
+- email notifications on/off
+- contractor reply notifications on/off
+
+Section 3:
+Billing
+- current plan
+- manage subscription
+
+Do not leave “more settings coming soon” as the main body if you can avoid it.
+
+==================================================
+16. PAID PLAN EXPERIENCE RULES
+==================================================
+
+Because these are paid-user screens, every screen should reinforce value.
+
+That means:
+- visible responses
+- visible progress
+- visible decision points
+- no dead empty states when real activity exists
+
+If paid user receives a quote and sees:
+No new notifications
+and no clear hire action
+
+that weakens perceived value immediately.
+
+==================================================
+17. REQUIRED NEW ROUTES / ACTIONS
+==================================================
+
+Minimum actions still needed or to confirm:
+
+1. POST /api/issues/[id]/select-contractor
+2. PATCH /api/jobs/[id] for:
+   - scheduled
+   - in_progress
+   - completed
+   - canceled
+3. POST /api/issues/[id]/reply-to-contractor (or equivalent)
+4. notification creation on reply/selection/completion
+
+==================================================
+18. MICROCOPY STANDARDS
+==================================================
+
+Use:
+- Awaiting quotes
+- Quotes received
+- Active job
+- Completed
+
+Use:
+- Hvac or HVAC consistently
+- Plumbing
+- General Handyman
+
+Avoid raw/internal strings like:
+- awaiting_quotes
+- general_handyman
+
+Use helpful microcopy:
+
+Instead of:
+No new notifications
+
+Use:
+No new activity yet
+
+Instead of:
+No completed issues yet
+
+Use:
+No completed or canceled issues yet
+
+==================================================
+19. IMPLEMENTATION PRIORITY ORDER
+==================================================
+
+Do these in this order:
+
+1. Add Select Contractor flow
+2. Create Job on selection
+3. Update issue status to active_job
+4. Expand quote cards with price, availability, notes, reply
+5. Add notifications for contractor replies
+6. Fix dashboard summary + recent issue context
+7. Improve issues table contractor/status clarity
+8. Improve properties summary
+9. Improve contractors page with usage context
+10. Improve history + settings copy/content
+
+==================================================
+20. FINAL PRODUCT TRUTH
+==================================================
+
+Your product is already:
+- clean
+- structured well
+- functional
+- close to launchable
+
+But the paid user experience still needs one crucial improvement:
+
+The app must feel like it helps the user
+MAKE A DECISION and MOVE FORWARD,
+not just store data.
+
+That means every screen should help answer:
+- what is happening now?
+- what changed?
+- what should I do next?
+
+==================================================
+END OF DOCUMENT

@@ -1,0 +1,562 @@
+MAINTENANCE OS
+ROBUSTNESS + POLISH IMPLEMENTATION SPEC
+
+==================================================
+PURPOSE
+==================================================
+
+This document explains exactly how to tighten the product from:
+
+- good V1
+to
+- robust, trustworthy, launch-ready V1
+
+This is NOT about redesigning the app.
+This is about making the current system harder to break, clearer to use,
+and more trustworthy.
+
+The work is split into 4 passes:
+
+1. Robustness pass
+2. State-discipline pass
+3. UX-confidence pass
+4. Build-integrity pass
+
+==================================================
+PASS 1 — ROBUSTNESS
+==================================================
+
+Goal:
+Make the app hard to break in real-world usage.
+
+--------------------------------------------------
+1. WEBHOOK IDEMPOTENCY
+--------------------------------------------------
+
+PROBLEM:
+Twilio, Resend/email providers, and Stripe can retry webhooks.
+Without idempotency:
+- duplicate contractor responses
+- duplicate notifications
+- duplicate billing state updates
+- inflated metrics
+- inconsistent UI
+
+--------------------------------------------------
+1A. TWILIO SMS WEBHOOK
+--------------------------------------------------
+
+Use:
+- MessageSid
+
+REQUIRED RULE:
+Before processing inbound SMS:
+- check if this MessageSid has already been processed
+- if yes, return 200 and do nothing
+
+IMPLEMENTATION OPTIONS:
+Option A:
+- add processedProviderMessageId field to ContractorResponse or inbound event log
+Option B:
+- create generic ProcessedWebhookEvent table
+
+Recommended table fields:
+- id
+- provider (twilio | resend | stripe)
+- providerEventId
+- createdAt
+
+Pseudo-logic:
+
+1. read MessageSid
+2. lookup ProcessedWebhookEvent where provider=twilio and providerEventId=MessageSid
+3. if found → return success
+4. else process normally
+5. store ProcessedWebhookEvent row
+
+--------------------------------------------------
+1B. EMAIL WEBHOOK
+--------------------------------------------------
+
+Use:
+- provider inbound message ID if available
+
+REQUIRED RULE:
+Before processing inbound email:
+- check if provider message ID already exists
+- if yes, ignore reprocessing
+
+If your email provider does not provide a durable inbound ID,
+store a hash of:
+- from
+- subject
+- normalized body
+- received timestamp window
+
+Use provider ID if possible; only use hash as fallback.
+
+--------------------------------------------------
+1C. STRIPE WEBHOOK
+--------------------------------------------------
+
+Use:
+- Stripe event.id
+
+REQUIRED RULE:
+Before processing event:
+- if event.id already processed → return success
+- otherwise process and store
+
+This is very important because Stripe will retry events.
+
+==================================================
+2. TRANSACTION SAFETY
+==================================================
+
+PROBLEM:
+Important multi-step actions can partially succeed unless carefully controlled.
+
+--------------------------------------------------
+2A. CONTRACTOR SELECTION MUST BE ATOMIC
+--------------------------------------------------
+
+When user selects contractor, all of these must happen together:
+
+- response marked selected
+- issue updated
+- job created
+- winning dispatch accepted
+- other dispatches closed
+
+If one fails, none should commit.
+
+REQUIRED:
+Use prisma.$transaction for selection flow.
+
+--------------------------------------------------
+2B. DUPLICATE JOB PREVENTION
+--------------------------------------------------
+
+Before creating a job:
+- check for existing non-canceled active job for issue
+
+If found:
+- return 409 conflict
+
+Frontend:
+- disable Confirm Selection button while in flight
+- show loading text:
+  “Confirming…”
+
+--------------------------------------------------
+2C. PAYWALL / ISSUE CREATION CONSISTENCY
+--------------------------------------------------
+
+Free issue count should only increment after issue creation succeeds.
+
+Do NOT:
+- increment before create
+- leave user blocked because of failed create
+
+Correct order:
+1. check if free user allowed
+2. create issue
+3. increment issueCount
+
+==================================================
+3. STATE GUARDS
+==================================================
+
+PROBLEM:
+Users or code paths should not be able to push the system into invalid states.
+
+--------------------------------------------------
+3A. ISSUE STATE GUARDS
+--------------------------------------------------
+
+Only allow transitions such as:
+
+awaiting_quotes → quotes_received
+quotes_received → active_job
+active_job → completed
+active_job → canceled
+
+Do NOT allow:
+- awaiting_quotes → completed
+- quotes_received → scheduled (unless routed through job creation)
+- completed → active_job
+
+--------------------------------------------------
+3B. JOB STATE GUARDS
+--------------------------------------------------
+
+Only allow:
+
+selected → scheduled
+selected → in_progress
+scheduled → in_progress
+in_progress → completed
+selected/scheduled/in_progress → canceled
+
+Do NOT allow:
+- completed → in_progress
+- canceled → completed
+- selected → completed directly (unless you explicitly want this)
+
+Implement this in the PATCH /api/jobs/[id] route.
+
+If invalid transition requested:
+- return 400 with clean message
+
+==================================================
+4. FALLBACK RESOLUTION HARDENING
+==================================================
+
+--------------------------------------------------
+4A. STRIPE USER RESOLUTION
+--------------------------------------------------
+
+When webhook arrives, resolve user in this order:
+
+1. subscription.metadata.userId
+2. User where stripeSubscriptionId = subscription.id
+3. User where stripeCustomerId = subscription.customer
+
+If none found:
+- log clearly
+- do not silently fail
+
+--------------------------------------------------
+4B. SMS / EMAIL REPLY MATCHING
+--------------------------------------------------
+
+Always:
+1. token first
+2. fallback only if EXACTLY one valid candidate exists
+3. never guess if multiple candidates
+
+If ambiguous:
+- create unresolved inbound record
+- do not attach to issue
+
+==================================================
+PASS 2 — STATE DISCIPLINE
+==================================================
+
+Goal:
+Prevent drift between system truth and UI truth.
+
+--------------------------------------------------
+5. SIMPLIFY ISSUE VS JOB RESPONSIBILITY
+--------------------------------------------------
+
+Current risk:
+Issue.status and Job.status overlap too much.
+
+RECOMMENDED MODEL:
+
+Issue.status:
+- awaiting_quotes
+- quotes_received
+- active_job
+- completed
+- canceled
+- archived
+
+Job.status:
+- selected
+- scheduled
+- in_progress
+- completed
+- canceled
+
+WHY:
+Issue = where this repair stands globally
+Job = what is happening operationally
+
+--------------------------------------------------
+6. CENTRALIZE STATE MAPPING
+--------------------------------------------------
+
+Create a shared file such as:
+lib/status.ts
+
+Define:
+- display labels
+- dashboard grouping
+- issue table grouping
+- card subtext
+- badge colors
+
+Example responsibilities:
+- getIssueDisplayStatus(issue)
+- isIssueOpen(status)
+- getDashboardBucket(status)
+- getIssueStatusCopy(status)
+
+This prevents:
+- one page saying “Awaiting quotes”
+- another saying “Quotes received”
+- dashboard counting differently than issue list
+
+--------------------------------------------------
+7. NOTIFICATION STATE RULES
+--------------------------------------------------
+
+Define exactly which events create notifications:
+
+- first contractor reply
+- each contractor reply
+- contractor follow-up question
+- contractor selected
+- job completed
+
+Never leave notifications panel empty if recent events exist.
+
+==================================================
+PASS 3 — UX CONFIDENCE
+==================================================
+
+Goal:
+Make users trust that the system did what they expected.
+
+--------------------------------------------------
+8. EVERY STATE MUST SHOW A NEXT ACTION
+--------------------------------------------------
+
+On dashboard and issue cards, use microcopy:
+
+Awaiting quotes:
+“Waiting for contractor responses”
+
+Quotes received:
+“Review quotes and select a contractor”
+
+Active job:
+“Track scheduling and progress”
+
+Completed:
+“Completed and saved to history”
+
+--------------------------------------------------
+9. STRONG SUCCESS FEEDBACK
+--------------------------------------------------
+
+After dispatch:
+- toast/banner:
+  “Sent to 3 contractors”
+
+After contractor selection:
+- toast:
+  “Test Plumber selected. Job started.”
+
+After job completion:
+- toast:
+  “Kitchen sink leak marked completed”
+
+This prevents “did that work?” moments.
+
+--------------------------------------------------
+10. QUOTE CARD CLARITY
+--------------------------------------------------
+
+Each quote card should show:
+
+- contractor name
+- company
+- price
+- availability
+- received time
+- source channel
+- parsed question/notes
+- raw message toggle
+
+FOLLOW-UP QUESTIONS must be visually emphasized:
+
+Example:
+⚠ Contractor question:
+“What is the address and can I park there?”
+
+--------------------------------------------------
+11. SCHEDULING NEEDS A REAL DATE
+--------------------------------------------------
+
+When user marks job as scheduled:
+
+Open modal:
+- date picker
+- optional time
+- optional note
+
+Store:
+- job.scheduledFor
+
+Without this, “Scheduled” feels vague.
+
+--------------------------------------------------
+12. NOTIFICATIONS MUST FEEL ALIVE
+--------------------------------------------------
+
+Dashboard notifications panel should:
+- show latest 3–5
+- be clickable
+- never lie with empty state if activity exists
+
+Instead of:
+“No new notifications”
+
+Use:
+“No new activity yet”
+ONLY if truly no activity exists.
+
+--------------------------------------------------
+13. CONTRACTOR COLUMN CLARITY
+--------------------------------------------------
+
+Issue table contractor column should show:
+
+If contractor selected:
+- contractor name
+
+Else if dispatches exist:
+- “1 replied / 3 contacted”
+- “1 contacted”
+
+Else:
+- “—”
+
+Never show blank activity when outreach has happened.
+
+--------------------------------------------------
+14. EMPTY STATE QUALITY
+--------------------------------------------------
+
+Replace weak placeholder text.
+
+Examples:
+
+History:
+“No completed or canceled issues yet.
+Once a repair is finished or canceled, it will appear here with its final details.”
+
+Settings:
+“This is where you’ll manage billing, notifications, and account preferences.”
+
+Avoid:
+- “coming soon”
+- empty dead space
+- vague placeholders
+
+==================================================
+PASS 4 — BUILD INTEGRITY
+==================================================
+
+Goal:
+Make sure what feels stable is actually stable.
+
+--------------------------------------------------
+15. FULL TYPE / BUILD CLEAN PASS
+--------------------------------------------------
+
+Run:
+
+npm install
+npx prisma generate
+npx tsc --noEmit
+npm run build
+
+If using migrations:
+npx prisma migrate dev
+
+Fix ALL remaining:
+- TS errors
+- stale imports
+- nullable assumptions
+- schema/client drift
+- dead code warnings if they matter
+
+--------------------------------------------------
+16. ENV CONSISTENCY
+--------------------------------------------------
+
+Use one canonical public site URL variable:
+NEXT_PUBLIC_SITE_URL
+
+Use it for:
+- SEO metadataBase
+- sitemap
+- robots
+- JSON-LD URLs
+- Stripe success/cancel URLs (or a clearly named server-side APP_URL)
+
+Do not leave stale placeholder domains anywhere.
+
+--------------------------------------------------
+17. REMOVE DEAD / PLACEHOLDER COPY
+--------------------------------------------------
+
+Audit for:
+- “coming soon”
+- “more later”
+- empty placeholder labels
+- weak empty states
+
+Paid users should never feel like they reached an unfinished area.
+
+--------------------------------------------------
+18. VERIFY PROVIDER CONFIGURATION
+--------------------------------------------------
+
+Confirm:
+- Twilio webhook URLs correct
+- Resend inbound route correct
+- reply-to behavior correct for email
+- Stripe webhook endpoint correct
+- all required env vars set in production
+
+==================================================
+FINAL TOP 5 TO DO FIRST
+==================================================
+
+If you only do 5 things, do these:
+
+1. Add webhook idempotency
+2. Centralize state mapping in one file
+3. Fix notifications so they always reflect real events
+4. Add scheduling date capture
+5. Run full TS / Prisma / build clean pass
+
+==================================================
+FINAL VERIFICATION CHECKLIST
+==================================================
+
+[ ] no duplicate webhook processing
+[ ] no duplicate jobs
+[ ] no invalid status transitions
+[ ] issue and job state do not drift
+[ ] dashboard counts match real state
+[ ] notifications always reflect replies/selection/completion
+[ ] scheduling stores a real date
+[ ] quote cards show all meaningful parsed info
+[ ] typecheck passes
+[ ] build passes
+[ ] provider config correct
+[ ] domain/env values consistent
+
+==================================================
+FINAL TRUTH
+==================================================
+
+Your product is already:
+- real
+- coherent
+- valuable
+
+What remains is:
+- hardening
+- consistency
+- confidence
+
+That is exactly the right stage for a serious V1.
+
+END OF DOCUMENT

@@ -11,9 +11,10 @@ const REPLY_TOKEN_PATTERN = /MNT-[A-Z0-9]{6}/;
 function validateResendWebhook(rawBody: string, signature: string): boolean {
   const secret = process.env.RESEND_WEBHOOK_SECRET;
   if (!secret || secret === 'REPLACE_ME') {
-    console.warn('RESEND_WEBHOOK_SECRET not set — skipping signature validation');
-    return true; // Allow through if secret not configured yet
+    console.warn('RESEND_WEBHOOK_SECRET not set — rejecting webhook (configure secret in env)');
+    return false;
   }
+  if (!signature) return false;
   const expectedSignature = createHmac('sha256', secret)
     .update(rawBody)
     .digest('base64');
@@ -32,9 +33,9 @@ export async function POST(request: NextRequest) {
     // Read raw body for signature validation, then parse
     const rawBody = await request.text();
 
-    // Validate Resend webhook signature
+    // Validate Resend webhook signature — always required
     const signature = request.headers.get('resend-signature') || '';
-    if (signature && !validateResendWebhook(rawBody, signature)) {
+    if (!validateResendWebhook(rawBody, signature)) {
       console.error('Invalid Resend webhook signature — rejecting');
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }

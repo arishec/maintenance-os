@@ -206,6 +206,10 @@ model Issue {
   timelineEvents     TimelineEvent[]
   notifications      Notification[]
   usageMetrics       UsageMetricsIssueCost?
+
+  @@index([propertyId, status])
+  @@index([status])
+  @@index([reportedByUserId])
 }
 
 model IssuePhoto {
@@ -216,6 +220,8 @@ model IssuePhoto {
   sortOrder  Int      @default(0)
   createdAt  DateTime @default(now())
   issue      Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([issueId])
 }
 
 model Dispatch {
@@ -236,6 +242,10 @@ model Dispatch {
   issue             Issue               @relation(fields: [issueId], references: [id], onDelete: Cascade)
   contractor        Contractor          @relation(fields: [contractorId], references: [id], onDelete: Cascade)
   responses         ContractorResponse[]
+
+  @@index([issueId])
+  @@index([contractorId])
+  @@index([status, createdAt])
 }
 
 model ContractorResponse {
@@ -257,6 +267,8 @@ model ContractorResponse {
   dispatch             Dispatch             @relation(fields: [dispatchId], references: [id], onDelete: Cascade)
   jobs                 Job[]
   outboundMessages     ContractorMessage[]
+
+  @@index([dispatchId])
 }
 
 model ContractorMessage {
@@ -301,6 +313,9 @@ model Job {
   contractor         Contractor          @relation(fields: [contractorId], references: [id], onDelete: Cascade)
   selectedResponse   ContractorResponse? @relation(fields: [selectedResponseId], references: [id], onDelete: SetNull)
   timelineEvents     TimelineEvent[]
+
+  @@index([issueId])
+  @@index([status])
 }
 
 model TimelineEvent {
@@ -316,6 +331,10 @@ model TimelineEvent {
   property         Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   issue            Issue?    @relation(fields: [issueId], references: [id], onDelete: Cascade)
   job              Job?      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId, createdAt])
+  @@index([issueId])
+  @@index([eventType])
 }
 
 model PropertyIntakeLink {
@@ -339,6 +358,9 @@ model Notification {
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   issue     Issue?   @relation(fields: [issueId], references: [id], onDelete: SetNull)
+
+  @@index([userId, readAt])
+  @@index([issueId])
 }
 
 model UsageMetricsIssueCost {

@@ -1,0 +1,621 @@
+MAINTENANCE OS V1
+DETAILED FIX INSTRUCTIONS — CURRENT STATE REVIEW
+
+==================================================
+SUMMARY
+==================================================
+
+The codebase is materially improved and several important issues are now fixed.
+
+Confirmed improved / fixed:
+- Twilio webhook signature validation added
+- Resend webhook signature validation added
+- issue status now only moves to awaiting_quotes when at least one dispatch succeeds
+- multiple jobs per issue is now guarded
+- job status syncs back to issue status
+- urgency enum now consistently uses "emergency" in the UI
+
+That is meaningful progress.
+
+However, there are still a few important correctness issues to address before calling this production-safe.
+
+The remaining work is mostly concentrated in:
+1. reply correlation
+2. webhook metrics robustness
+3. tenant intake response handling
+4. packaging hygiene for distributed code
+
+This document explains exactly what to change and why.
+
+==================================================
+PRIORITY ORDER
+==================================================
+
+Fix in this order:
+
+1. Deterministic reply correlation in inbound webhooks
+2. Defensive usage metrics writes in webhook flows
+3. Tenant intake classification failure handling
+4. Remove .env from distributable archive and confirm packaging rules
+
+Do these before lower-priority polish.
+
+==================================================
+1. REPLY CORRELATION — HIGHEST PRIORITY
+==================================================
+
+CURRENT PROBLEM
+
+The inbound Twilio and email webhook flows still identify the target dispatch by:
+- matching contractor phone or email
+- restricting to dispatches with sent or delivered status
+- ordering newest first
+- taking the first match
+
+This is better than a naive lookup, but it is still ambiguous.
+
+WHY THIS IS STILL DANGEROUS
+
+This breaks when the same contractor has multiple active requests at the same time.
+
+Example:
+- same contractor receives issue A on Monday
+- same contractor receives issue B on Tuesday
+- contractor replies to Monday’s message later on Tuesday
+- current code can still attach the reply to issue B if B is the newest valid dispatch
+
+That creates the worst kind of product bug:
+- wrong issue updated
+- wrong quote attached
+- wrong contractor selection context
+- user trust damage
+
+THIS MUST BE FIXED BEFORE REAL USAGE
+
+RECOMMENDED V1 SOLUTION
+
+Implement deterministic correlation by putting a unique dispatch token into the outbound communication and matching replies against that token.
+
+Best practical V1 design:
+- every dispatch record gets a short public reply token
+- token is included in SMS text and email metadata/addressing
+- inbound webhook first attempts token match
+- fallback to phone/email matching only if exactly one active candidate exists
+- if multiple candidates exist and no token is present, mark reply as unresolved instead of guessing
+
+DATABASE CHANGE
+
+Add a public reply token field to dispatches.
+
+Recommended field:
+- replyToken String? @unique
+
+Example Prisma model addition:
+
+model Dispatch {
+  id                String   @id @default(cuid())
+  issueId            String
+  contractorId       String
+  channel            String
+  outboundMessage    String
+  status             String
+  providerMessageId  String?
+  replyToken         String?  @unique
+  sentAt             DateTime?
+  deliveredAt        DateTime?
+  failedAt           DateTime?
+  replyReceivedAt    DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  issue             Issue      @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  contractor        Contractor @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  responses         ContractorResponse[]
+}
+
+TOKEN GENERATION
+
+When creating a dispatch:
+- generate a short unique token
+- store it on the dispatch row before sending outbound communication
+
+Good options:
+- nanoid
+- short UUID-derived token
+- base32/base36 compact token
+
+Example format:
+- MNT-7F4K2Q
+- D-9X3P1A
+
+Keep it short enough for SMS.
+
+OUTBOUND SMS CHANGE
+
+Include the token in the SMS body.
+
+Current style:
+“New repair request for [property]. Issue: [summary]. Please reply with availability and estimate.”
+
+Change to something like:
+“New repair request [Ref: MNT-7F4K2Q] for [property]. Issue: [summary]. Please reply with availability and estimate.”
+
+Why:
+- gives the contractor a visible reference
+- lets the system parse the reply reliably if they quote/reply with context
+- gives support/debugging a reference if needed
+
+OUTBOUND EMAIL CHANGE
+
+Use more than one correlation layer:
+1. include token in subject line
+2. include token in body
+3. ideally use tokenized reply-to or provider metadata where possible
+
+Recommended subject:
+Repair request [Ref: MNT-7F4K2Q] — Kitchen leak
+
+Recommended body:
+Reference: MNT-7F4K2Q
+
+If Resend supports metadata or routing patterns in your chosen setup, attach the token that way too.
+
+INBOUND WEBHOOK MATCHING RULES
+
+Twilio inbound route:
+1. parse message body
+2. look for token pattern such as /MNT-[A-Z0-9]+/
+3. if token found:
+   - match dispatch by replyToken
+   - if found, use it immediately
+4. if no token found:
+   - find active candidate dispatches by contractor phone and sent/delivered status
+   - if zero candidates: mark unresolved
+   - if one candidate: use it
+   - if more than one candidate: mark unresolved and do NOT guess
+
+Email inbound route:
+1. try replyToken from subject/body or reply metadata
+2. if found, use direct dispatch match
+3. if not found:
+   - candidate search by sender email + active dispatches
+   - accept only if exactly one candidate exists
+   - otherwise mark unresolved
+
+DO NOT GUESS WHEN MULTIPLE CANDIDATES EXIST
+
+That is the key rule.
+
+If ambiguous:
+- store the raw inbound message
+- mark it unresolved
+- optionally notify the user/admin later
+- but do not attach it to the wrong issue
+
+RECOMMENDED NEW TABLE FOR UNRESOLVED INBOUND MESSAGES
+
+Add a small table for anything that cannot be confidently matched.
+
+Example:
+
+model UnresolvedInboundMessage {
+  id              String   @id @default(cuid())
+  provider        String
+  sender          String?
+  subject         String?
+  rawBody         String
+  matchedToken    String?
+  receivedAt      DateTime @default(now())
+  resolvedAt      DateTime?
+  resolutionNotes String?
+}
+
+This is optional for immediate V1, but strongly recommended.
+
+MINIMUM ACCEPTABLE V1 IMPLEMENTATION
+
+At minimum:
+- add replyToken to dispatch
+- include it in SMS/email
+- match inbound by token first
+- if fallback produces more than one candidate, reject automatic attachment
+
+That is the single highest-value fix remaining.
+
+==================================================
+2. WEBHOOK USAGE METRICS — MAKE WRITES FULLY DEFENSIVE
+==================================================
+
+CURRENT PROBLEM
+
+Webhook flows still contain direct update assumptions for usage metrics in at least some paths.
+
+That means:
+- if the metrics row is missing
+- webhook processing can fail for a non-core reason
+- reply ingestion becomes less reliable than it should be
+
+THE RULE
+
+Usage metrics should never be able to break the main reply ingestion path.
+
+The core action is:
+- receive reply
+- store reply
+- parse reply
+- link reply to issue/dispatch
+
+Metrics should be secondary and defensive.
+
+RECOMMENDED CHANGE
+
+Wherever webhook processing writes to usageMetricsIssueCost:
+- replace direct update calls
+- use upsert instead
+
+Recommended pattern:
+
+await prisma.usageMetricsIssueCost.upsert({
+  where: { issueId: issue.id },
+  create: {
+    issueId: issue.id,
+    inboundSmsCount: 1,
+    aiRequestCount: 1,
+  },
+  update: {
+    inboundSmsCount: { increment: 1 },
+    aiRequestCount: { increment: 1 },
+  },
+});
+
+For email route:
+await prisma.usageMetricsIssueCost.upsert({
+  where: { issueId: issue.id },
+  create: {
+    issueId: issue.id,
+    outboundEmailCount: 0,
+    aiRequestCount: 1,
+  },
+  update: {
+    aiRequestCount: { increment: 1 },
+  },
+});
+
+If your schema tracks inbound email count separately, increment that field too.
+
+IMPLEMENTATION RULE
+
+Metrics update should happen after the core reply record is stored.
+
+If metrics update fails anyway:
+- log the error
+- do not fail the webhook response if the core reply work succeeded
+
+This can be done with:
+- nested try/catch
+- non-blocking metrics write
+- or a background queue later
+
+MINIMUM V1 RULE
+
+Never let a missing metrics row cause reply processing failure.
+
+==================================================
+3. TENANT INTAKE FLOW — FIX USER-FACING RESPONSE BEHAVIOR
+==================================================
+
+CURRENT STATE
+
+The issue is created first, which is good.
+That means data is not lost if classification fails.
+
+However, if classification fails and the route returns 400 or a visible failure state to the submitter, that creates an inconsistent user experience:
+- issue exists
+- user thinks submission failed
+- user may resubmit
+- duplicates become more likely
+
+THIS SHOULD BE CHANGED
+
+DESIRED BEHAVIOR
+
+Tenant issue submission should succeed if:
+- token is valid
+- issue record is created successfully
+
+Classification should be treated as secondary enrichment.
+
+RECOMMENDED FLOW
+
+Step 1:
+Validate property intake token
+
+Step 2:
+Create issue row immediately with:
+- status = new
+- source_type = tenant_link
+- raw description saved
+- photos saved if provided
+
+Step 3:
+Attempt classification in try/catch
+
+If classification succeeds:
+- update category/urgency/etc.
+- move status to classified or awaiting_dispatch depending on your model
+
+If classification fails:
+- leave issue as new
+- log classification failure
+- optionally set category = unknown
+- still return success to the submitter
+
+RESPONSE TO TENANT SHOULD BE SUCCESS
+
+Recommended response:
+- success: true
+- issueId
+- message: “Your issue has been submitted.”
+
+Optionally:
+- include a softer message such as “The property owner has been notified.”
+
+DO NOT RETURN 400 FOR POST-CREATION CLASSIFICATION FAILURE
+
+Only return failure if:
+- token invalid
+- required data missing
+- issue row could not be created
+- photo upload failed in a way that blocks the record if you require all-or-nothing behavior
+
+WHY THIS MATTERS
+
+This prevents:
+- duplicate submissions
+- user confusion
+- support confusion
+- inconsistent state between UI and database
+
+OPTIONAL IMPROVEMENT
+
+You may want a field on issues like:
+- classificationStatus = pending | succeeded | failed
+
+That can help the owner dashboard show whether enrichment is complete.
+
+==================================================
+4. REMOVE .ENV FROM DISTRIBUTABLE ARCHIVE
+==================================================
+
+CURRENT ISSUE
+
+Even if .env is gitignored and not committed, it should not be included in any zip or code package you hand around.
+
+Why:
+- it creates confusion
+- it trains bad packaging habits
+- it risks accidental secret exposure if a real environment file is ever present
+
+CORRECT RULE
+
+Distributed package should include:
+- .env.example
+- never .env
+
+WHAT TO DO
+
+Before generating the next archive:
+- remove .env from the packaged project directory
+- confirm zip excludes all local environment files
+- keep only .env.example with placeholders
+
+CHECKLIST
+
+- confirm .gitignore contains .env
+- confirm build/export script excludes .env
+- confirm zip creation command does not bundle ignored files by accident
+- confirm .env.local, .env.production, .env.development are also excluded if used
+
+RECOMMENDED PACKAGING RULE
+
+If you produce zip deliverables repeatedly, create a packaging script such as:
+- copy repo to temp dir
+- delete .env*
+- restore only .env.example
+- zip temp dir
+
+That prevents future mistakes.
+
+==================================================
+5. OPTIONAL BUT STRONGLY RECOMMENDED HARDENING
+==================================================
+
+These are not the highest priority remaining issues, but they are very worthwhile.
+
+--------------------------------------------------
+5.1 Add timeline events everywhere important
+--------------------------------------------------
+
+You already have the structure for timeline/history thinking.
+Make sure the app consistently logs:
+
+- issue created
+- issue classified
+- dispatch created
+- dispatch sent
+- dispatch failed
+- contractor replied
+- contractor selected
+- job scheduled
+- job in progress
+- job completed
+- tenant issue submitted
+
+Why:
+- improves debugging
+- supports history page
+- helps explain state changes to users
+
+--------------------------------------------------
+5.2 Add idempotency protection for webhooks
+--------------------------------------------------
+
+Webhook providers can retry.
+You want to avoid duplicate contractor responses.
+
+Recommended methods:
+- store provider inbound message ID when available
+- add uniqueness checks before creating duplicate reply rows
+- if same provider message ID already processed, return success early
+
+Why:
+- prevents double replies
+- prevents inflated metrics
+- avoids duplicate timeline events
+
+--------------------------------------------------
+5.3 Add unresolved inbound handling
+--------------------------------------------------
+
+As noted above:
+if a reply cannot be safely matched, do not discard it and do not guess.
+
+Store it in a review bucket.
+
+This is very valuable operationally.
+
+--------------------------------------------------
+5.4 Add active-job uniqueness at DB level if product rules allow it
+--------------------------------------------------
+
+If your product truly allows only one chosen contractor/job per issue, enforce that more strongly.
+
+Options:
+- application-level check only
+- or add DB uniqueness pattern if model guarantees one job per issue
+
+Even if you keep application-level checks only, ensure race-condition safety where possible.
+
+==================================================
+6. RECOMMENDED IMPLEMENTATION ORDER
+==================================================
+
+DAY 1
+- add replyToken to dispatch model
+- create migration
+- generate token on dispatch creation
+- include token in outbound SMS/email templates
+
+DAY 2
+- update Twilio inbound webhook:
+  - token parse first
+  - fallback only if exactly one active candidate
+  - otherwise unresolved
+- update email inbound webhook with same logic
+
+DAY 3
+- add unresolved inbound storage or at minimum unresolved logging path
+- add defensive usage metrics upserts in all webhook handlers
+
+DAY 4
+- update tenant intake route so classification failure does not return request failure after issue creation
+- confirm client receives success when issue row is created
+
+DAY 5
+- fix packaging script / zip generation so .env is never included
+- re-run full test pass for:
+  - owner issue flow
+  - tenant intake flow
+  - dispatch send
+  - inbound SMS reply
+  - inbound email reply
+  - ambiguous reply case
+
+==================================================
+7. TEST CASES YOU SHOULD RUN AFTER FIXES
+==================================================
+
+TEST 1 — SINGLE SMS REPLY
+- create issue
+- send to one contractor
+- reply with estimate and timing
+- confirm dispatch matched correctly
+- confirm parsed reply stored
+- confirm metrics updated
+- confirm issue state unchanged except response availability
+
+TEST 2 — SAME CONTRACTOR, TWO ACTIVE ISSUES
+- create issue A
+- dispatch to same contractor
+- create issue B
+- dispatch to same contractor
+- reply referencing token for issue A
+- confirm issue A gets the response
+- confirm issue B does not
+
+TEST 3 — AMBIGUOUS REPLY WITHOUT TOKEN
+- create two active dispatches to same contractor
+- send generic reply with no token
+- confirm system does not guess
+- confirm unresolved path is used
+
+TEST 4 — TENANT INTAKE WITH CLASSIFICATION FAILURE
+- simulate Claude failure
+- submit tenant issue
+- confirm issue is created
+- confirm response to submitter is still success
+- confirm issue remains visible to owner for manual handling
+
+TEST 5 — WEBHOOK METRICS ROW MISSING
+- delete or bypass metrics row
+- process inbound reply
+- confirm reply still succeeds
+- confirm metrics row is created or safely skipped without failing webhook
+
+TEST 6 — DISTRIBUTION PACKAGE CHECK
+- generate zip
+- inspect archive
+- confirm .env absent
+- confirm .env.example present
+
+==================================================
+8. FINAL HONEST STATUS
+==================================================
+
+The app is in much better shape now.
+
+The remaining issues are not broad architectural failures.
+They are mostly concentrated in:
+- communication correctness
+- ingestion robustness
+- packaging hygiene
+
+That is good news because it means the product foundation is solid.
+
+However, the reply-correlation issue is still important enough that it should be treated as the next major blocker.
+
+If you fix:
+1. token-based reply correlation
+2. defensive webhook metrics writes
+3. tenant intake success behavior after post-create classification failure
+4. archive packaging hygiene
+
+then the codebase will be meaningfully closer to a trustworthy V1.
+
+==================================================
+9. SHORT VERSION FOR THE DEVELOPER
+==================================================
+
+Do these next:
+
+1. Add a unique replyToken to each dispatch
+2. Include the token in outbound SMS and email
+3. Match inbound replies by token first
+4. Never guess if multiple dispatch candidates exist
+5. Use upsert for webhook metrics writes
+6. Make tenant issue submission succeed once the issue is created, even if classification later fails
+7. Exclude .env from all distributed zip packages
+
+Those are the highest-value remaining fixes.
+
+END OF DOCUMENT

@@ -1,0 +1,834 @@
+MAINTENANCE OS
+PRICING / STRIPE / BUILD INTEGRITY REVIEW
+EXACT FILE-BY-FILE FIXES
+
+==================================================
+OVERVIEW
+==================================================
+
+This review is focused on the latest pricing / paywall / Stripe changes.
+
+High-level truth:
+
+- Product logic is good
+- Pricing model direction is good
+- Paywall placement is good
+- Stripe architecture is directionally good
+
+But the codebase is not fully in sync yet.
+
+Main problems:
+1. Prisma client is stale relative to schema
+2. dependencies are not fully installed / synced
+3. Stripe package is not available in the checked install state
+4. webhook user resolution should be more defensive
+5. checkout route should guard against already-Pro users
+6. you should confirm whether “3 issues total” truly means lifetime
+
+This document tells you exactly what to fix.
+
+==================================================
+1. GLOBAL FIXES TO RUN FIRST
+==================================================
+
+Before touching code, do these in your project root:
+
+```bash
+npm install
+npx prisma generate
+npx prisma migrate dev --name add_pricing_fields
+npx tsc --noEmit
+```
+
+Why:
+- `package.json` and installed deps are out of sync
+- Prisma schema and generated client are out of sync
+- TypeScript is still seeing old User fields
+
+If `migrate dev` is not appropriate in your environment, run the equivalent migration flow you use in that environment, but the schema and client must be regenerated.
+
+==================================================
+2. PRISMA SCHEMA / GENERATED CLIENT MISMATCH
+==================================================
+
+PROBLEM
+
+Your schema includes pricing fields such as:
+- plan
+- issueCount
+- stripeCustomerId
+- stripeSubscriptionId
+
+But TypeScript still reports they do not exist on `user`.
+
+That means the generated Prisma client the app is using is stale.
+
+--------------------------------------------------
+FILES AFFECTED
+--------------------------------------------------
+
+- prisma/schema.prisma
+- all files reading `user.plan`, `user.issueCount`, `user.stripeCustomerId`, `user.stripeSubscriptionId`
+
+--------------------------------------------------
+FIX
+--------------------------------------------------
+
+A. Confirm schema fields exist in `prisma/schema.prisma`
+
+Your `User` model should include something like:
+
+```prisma
+model User {
+  id                   String   @id @default(cuid())
+  clerkUserId          String   @unique
+  email                String   @unique
+  fullName             String?
+  userTypeHint         String?
+  plan                 String   @default("free")
+  issueCount           Int      @default(0)
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  properties           Property[]
+  contractors          Contractor[]
+  notifications        Notification[]
+}
+```
+
+B. Regenerate Prisma client
+
+```bash
+npx prisma generate
+```
+
+C. Run migration if needed
+
+```bash
+npx prisma migrate dev --name add_pricing_fields
+```
+
+D. Re-run TS check
+
+```bash
+npx tsc --noEmit
+```
+
+--------------------------------------------------
+IMPORTANT
+--------------------------------------------------
+
+Do not continue debugging TS field errors until Prisma client regeneration is complete.
+Otherwise you are debugging generated-type drift, not your code.
+
+==================================================
+3. STRIPE PACKAGE / DEPENDENCY SYNC
+==================================================
+
+PROBLEM
+
+Your code imports:
+
+```ts
+import Stripe from 'stripe';
+```
+
+But the checked install state did not have Stripe available.
+
+That means:
+- dependency is declared or partially declared
+- but actual install/lockfile is not in sync
+
+--------------------------------------------------
+FILES AFFECTED
+--------------------------------------------------
+
+- package.json
+- package-lock.json
+- any route under Stripe integration
+
+--------------------------------------------------
+FIX
+--------------------------------------------------
+
+A. Confirm `package.json` includes Stripe
+
+```json
+"dependencies": {
+  "stripe": "^<your-version>"
+}
+```
+
+B. Run:
+
+```bash
+npm install
+```
+
+C. Verify:
+
+```bash
+npm ls stripe
+```
+
+D. Commit the updated lockfile if appropriate.
+
+--------------------------------------------------
+WHY THIS MATTERS
+--------------------------------------------------
+
+Even if the logic is correct, the project cannot build cleanly if Stripe is not actually installed.
+
+==================================================
+4. app/api/issues/route.ts
+==================================================
+
+CURRENT LOGIC
+
+The free plan gate appears to do this:
+
+- if user.plan === 'free' and user.issueCount >= 3
+  -> block issue creation
+- after issue creation
+  -> increment issueCount
+
+This matches:
+“3 issues total, ever”
+
+--------------------------------------------------
+WHAT IS GOOD
+--------------------------------------------------
+
+- simple
+- easy to reason about
+- aligned with the current pricing decision
+
+--------------------------------------------------
+WHAT TO VERIFY
+--------------------------------------------------
+
+A. Make sure the gate happens BEFORE issue creation.
+
+Pseudo-pattern:
+
+```ts
+if (user.plan === 'free' && user.issueCount >= 3) {
+  return NextResponse.json(
+    { error: 'PAYWALL_REQUIRED', message: 'Upgrade to Pro to create more issues.' },
+    { status: 403 }
+  );
+}
+```
+
+B. Make sure `issueCount` increments only after successful creation.
+
+Example:
+
+```ts
+await prisma.user.update({
+  where: { id: user.id },
+  data: {
+    issueCount: { increment: 1 },
+  },
+});
+```
+
+--------------------------------------------------
+ONE PRODUCT DECISION YOU MUST CONFIRM
+--------------------------------------------------
+
+Do you mean:
+
+OPTION 1:
+3 issues total, ever
+
+OR
+
+OPTION 2:
+up to 3 issues on free at a time
+
+Right now your code matches OPTION 1.
+
+That is fine if intentional.
+Do not accidentally tell users one thing and code another.
+
+--------------------------------------------------
+RECOMMENDATION
+--------------------------------------------------
+
+Keep the current code if you truly want:
+“3 issues total, ever”
+
+That is the plan you most recently locked in.
+
+==================================================
+5. app/api/issues/[id]/dispatch/route.ts
+==================================================
+
+CURRENT LOGIC
+
+Free users are blocked from dispatching.
+
+This is correct.
+
+--------------------------------------------------
+WHAT TO KEEP
+--------------------------------------------------
+
+A guard like this is good:
+
+```ts
+if (user.plan === 'free') {
+  return NextResponse.json(
+    {
+      error: 'PAYWALL_REQUIRED',
+      message: 'Upgrade to Pro to send issues to contractors.',
+    },
+    { status: 403 }
+  );
+}
+```
+
+--------------------------------------------------
+WHAT TO VERIFY
+--------------------------------------------------
+
+A. The frontend handles `PAYWALL_REQUIRED` gracefully.
+It should:
+- open paywall modal
+- not crash
+- not show ugly raw API error
+
+B. If a Pro user dispatches, the existing workflow still works unchanged.
+
+--------------------------------------------------
+NO CHANGE NEEDED HERE
+--------------------------------------------------
+
+This route is aligned with your pricing logic.
+
+==================================================
+6. app/api/stripe/checkout/route.ts
+==================================================
+
+CURRENT STATUS
+
+This route is directionally correct:
+- create/reuse Stripe customer
+- create checkout session
+- attach metadata
+- return checkout URL
+
+--------------------------------------------------
+REAL FIX #1 — GUARD AGAINST ALREADY-PRO USERS
+--------------------------------------------------
+
+PROBLEM
+
+If the user is already Pro, the route may still create a new checkout session.
+
+That is sloppy and could cause duplicate billing flows.
+
+--------------------------------------------------
+FIX
+--------------------------------------------------
+
+Before creating checkout session, add:
+
+```ts
+if (user.plan === 'pro') {
+  return NextResponse.json(
+    { error: 'ALREADY_PRO', message: 'You already have an active Pro plan.' },
+    { status: 400 }
+  );
+}
+```
+
+If you later add a billing portal, this would instead redirect them there.
+
+--------------------------------------------------
+REAL FIX #2 — KEEP URL ENV CLEAN
+--------------------------------------------------
+
+If you currently use something like:
+
+```ts
+success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?upgraded=true`,
+cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
+```
+
+That is acceptable only if the env is guaranteed correct.
+
+--------------------------------------------------
+RECOMMENDED IMPROVEMENT
+--------------------------------------------------
+
+Use one consistent environment variable across the whole app, for example:
+
+```env
+NEXT_PUBLIC_SITE_URL=https://yourdomain.com
+```
+
+Then in code:
+
+```ts
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!;
+```
+
+and:
+
+```ts
+success_url: `${siteUrl}/dashboard?upgraded=true`,
+cancel_url: `${siteUrl}/pricing`,
+```
+
+This avoids domain drift between:
+- SEO
+- checkout
+- webhooks
+- metadata
+
+--------------------------------------------------
+REAL FIX #3 — STORE CUSTOMER ID DEFENSIVELY
+--------------------------------------------------
+
+If customer is created/reused, ensure it is written back to the user:
+
+```ts
+await prisma.user.update({
+  where: { id: user.id },
+  data: {
+    stripeCustomerId: customer.id,
+  },
+});
+```
+
+Only do this if missing or changed.
+
+--------------------------------------------------
+RECOMMENDED SHAPE
+--------------------------------------------------
+
+Pseudo-structure:
+
+```ts
+const user = await requireDbUser();
+
+if (user.plan === 'pro') {
+  return NextResponse.json(
+    { error: 'ALREADY_PRO', message: 'You already have an active Pro plan.' },
+    { status: 400 }
+  );
+}
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!;
+const priceId = process.env.STRIPE_PRO_PRICE_ID!;
+const stripe = getStripe();
+
+let customerId = user.stripeCustomerId;
+
+if (!customerId) {
+  const customer = await stripe.customers.create({
+    email: user.email,
+    metadata: { userId: user.id },
+  });
+
+  customerId = customer.id;
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { stripeCustomerId: customerId },
+  });
+}
+
+const session = await stripe.checkout.sessions.create({
+  mode: 'subscription',
+  customer: customerId,
+  line_items: [{ price: priceId, quantity: 1 }],
+  success_url: `${siteUrl}/dashboard?upgraded=true`,
+  cancel_url: `${siteUrl}/pricing`,
+  metadata: {
+    userId: user.id,
+  },
+  subscription_data: {
+    metadata: {
+      userId: user.id,
+    },
+  },
+});
+
+return NextResponse.json({ url: session.url });
+```
+
+--------------------------------------------------
+IMPORTANT
+--------------------------------------------------
+
+Putting `userId` in BOTH:
+- checkout session metadata
+- subscription metadata
+
+is safer than only one layer.
+
+==================================================
+7. app/api/stripe/webhook/route.ts
+==================================================
+
+CURRENT STATUS
+
+This is generally good:
+- signature verification exists
+- it handles subscription lifecycle events
+
+But it is still too dependent on subscription metadata.
+
+--------------------------------------------------
+PROBLEM
+--------------------------------------------------
+
+If you only do:
+
+```ts
+const userId = subscription.metadata?.userId;
+```
+
+then a malformed or missing metadata case can break plan syncing.
+
+--------------------------------------------------
+FIX
+--------------------------------------------------
+
+Use a fallback resolution strategy.
+
+ORDER OF RESOLUTION:
+1. Try `subscription.metadata.userId`
+2. If missing, find user by `stripeSubscriptionId`
+3. If still missing, find user by `stripeCustomerId`
+
+--------------------------------------------------
+RECOMMENDED HELPER
+--------------------------------------------------
+
+Add a helper function in the webhook file or shared billing helper:
+
+```ts
+async function resolveUserForSubscription(subscription: Stripe.Subscription) {
+  const metadataUserId = subscription.metadata?.userId;
+
+  if (metadataUserId) {
+    const user = await prisma.user.findUnique({
+      where: { id: metadataUserId },
+    });
+    if (user) return user;
+  }
+
+  const bySubscription = await prisma.user.findFirst({
+    where: { stripeSubscriptionId: subscription.id },
+  });
+  if (bySubscription) return bySubscription;
+
+  const customerId =
+    typeof subscription.customer === 'string'
+      ? subscription.customer
+      : subscription.customer?.id;
+
+  if (customerId) {
+    const byCustomer = await prisma.user.findFirst({
+      where: { stripeCustomerId: customerId },
+    });
+    if (byCustomer) return byCustomer;
+  }
+
+  return null;
+}
+```
+
+--------------------------------------------------
+THEN USE IT IN EACH EVENT
+--------------------------------------------------
+
+For `checkout.session.completed`:
+- extract subscription ID if present
+- store `stripeSubscriptionId`
+- set `plan = 'pro'`
+
+For `customer.subscription.updated`:
+- resolve user using helper
+- if active/trialing/etc. set plan = 'pro'
+- if canceled/unpaid/incomplete_expired etc. decide downgrade behavior
+
+For `customer.subscription.deleted`:
+- resolve user using helper
+- set:
+  - `plan = 'free'`
+  - `stripeSubscriptionId = null`
+
+--------------------------------------------------
+RECOMMENDED STATUS MAPPING
+--------------------------------------------------
+
+Treat these as active paid access:
+- active
+- trialing
+
+Treat these as not paid:
+- canceled
+- unpaid
+- incomplete_expired
+
+Be careful with:
+- past_due
+- incomplete
+
+You need to decide whether those should keep access briefly or not.
+
+For a simple V1:
+- active / trialing => pro
+- everything else => free
+
+==================================================
+8. lib/stripe.ts (or equivalent Stripe client file)
+==================================================
+
+RECOMMENDED SHARED CLIENT
+==================================================
+
+Create a single Stripe client helper if you do not already have one.
+
+File:
+`lib/stripe.ts`
+
+```ts
+import Stripe from 'stripe';
+
+let _stripe: Stripe | null = null;
+
+export function getStripe() {
+  if (!_stripe) {
+    const apiKey = process.env.STRIPE_SECRET_KEY;
+    if (!apiKey) {
+      throw new Error('Missing STRIPE_SECRET_KEY');
+    }
+
+    _stripe = new Stripe(apiKey, {
+      apiVersion: '2024-06-20',
+    });
+  }
+
+  return _stripe;
+}
+```
+
+Use this everywhere instead of creating new Stripe instances ad hoc.
+
+WHY:
+- cleaner typing
+- shared config
+- easier maintenance
+
+==================================================
+9. FRONTEND PAYWALL HANDLING
+==================================================
+
+Even if backend is correct, frontend must respond correctly.
+
+--------------------------------------------------
+WHAT TO VERIFY
+--------------------------------------------------
+
+When backend returns:
+
+```json
+{ "error": "PAYWALL_REQUIRED" }
+```
+
+frontend should:
+- open paywall modal
+- show upgrade benefits
+- not navigate to a broken state
+- preserve user context
+
+--------------------------------------------------
+RECOMMENDED UX
+--------------------------------------------------
+
+For 4th issue create attempt:
+- show paywall modal
+- message:
+  “You’ve used your 3 free issues. Upgrade to keep managing repairs.”
+
+For dispatch attempt:
+- show paywall modal
+- title:
+  “Send this issue to contractors”
+- copy:
+  “Compare real responses instead of chasing texts and calls.”
+
+This part is product-good already. Just verify the implementation is smooth.
+
+==================================================
+10. PRICING PAGE COPY
+==================================================
+
+CURRENT STATUS
+
+The pricing structure is good.
+One thing to tighten is any use of “unlimited SMS/email dispatches” unless you really mean unlimited without any abuse guard.
+
+--------------------------------------------------
+RECOMMENDED COPY
+--------------------------------------------------
+
+Use:
+
+FREE
+- 3 issues total
+- 1 property
+- AI issue classification
+- full history
+- manual tracking
+
+PRO
+- unlimited issues
+- multiple properties
+- SMS & email contractor dispatch
+- quote comparison
+- full history
+- notifications
+
+Avoid saying:
+- “unlimited SMS”
+unless you are willing to accept abuse risk
+
+==================================================
+11. package.json / package-lock.json
+==================================================
+
+WHAT TO VERIFY
+==================================================
+
+A. `stripe` exists in dependencies
+B. lockfile is updated
+C. no stale install state remains
+
+Run:
+
+```bash
+npm install
+npm ls stripe
+npm ls @prisma/client
+```
+
+If there are issues, delete install artifacts and reinstall cleanly:
+
+```bash
+rm -rf node_modules package-lock.json
+npm install
+npx prisma generate
+```
+
+Only do that if your install state is truly corrupted or mismatched.
+
+==================================================
+12. FINAL TEST CHECKLIST
+==================================================
+
+After fixes, run these tests exactly:
+
+--------------------------------------------------
+TEST 1 — Free user issue creation
+--------------------------------------------------
+- user on free plan
+- issueCount = 0
+- create issue 1
+- create issue 2
+- create issue 3
+- all should succeed
+- issueCount increments correctly
+
+--------------------------------------------------
+TEST 2 — Free user blocked on issue 4
+--------------------------------------------------
+- free user with issueCount = 3
+- attempt create
+- API returns PAYWALL_REQUIRED
+- frontend opens paywall modal
+
+--------------------------------------------------
+TEST 3 — Free user blocked on dispatch
+--------------------------------------------------
+- free user with existing issue
+- click “send to contractors”
+- API returns PAYWALL_REQUIRED
+- frontend opens paywall modal
+
+--------------------------------------------------
+TEST 4 — Checkout flow
+--------------------------------------------------
+- free user clicks upgrade
+- checkout session is created
+- correct redirect URLs used
+- customer ID stored if needed
+
+--------------------------------------------------
+TEST 5 — Successful subscription webhook
+--------------------------------------------------
+- Stripe sends checkout.session.completed or subscription active event
+- user plan changes to pro
+- stripeCustomerId stored
+- stripeSubscriptionId stored
+
+--------------------------------------------------
+TEST 6 — Subscription cancellation
+--------------------------------------------------
+- subscription.deleted arrives
+- user plan changes back to free
+- subscription ID cleared if that is your chosen cleanup behavior
+
+--------------------------------------------------
+TEST 7 — Already-pro guard
+--------------------------------------------------
+- pro user hits checkout endpoint
+- does not create new checkout session
+- receives ALREADY_PRO
+
+==================================================
+13. CLEAN FINAL PRIORITY ORDER
+==================================================
+
+DO THESE IN ORDER:
+
+1. `npm install`
+2. `npx prisma generate`
+3. `npx prisma migrate dev --name add_pricing_fields`
+4. `npx tsc --noEmit`
+5. add already-pro guard in checkout route
+6. harden webhook user resolution fallback
+7. verify frontend paywall handling
+8. tighten pricing copy
+9. run the full test checklist
+
+==================================================
+14. FINAL HONEST VERDICT
+==================================================
+
+Right now:
+- product logic is good
+- pricing logic is good
+- paywall placement is good
+
+But:
+- build integrity is not fully synced
+- Stripe sync logic should be hardened
+
+This is no longer a product-design problem.
+It is now a:
+- dependency sync
+- generated-client sync
+- billing hardening problem
+
+That is actually good news because it means the major product decisions are already in the right place.
+
+END OF DOCUMENT

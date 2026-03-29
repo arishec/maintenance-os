@@ -49,6 +49,18 @@ Signals: ${(input.signals ?? []).join(', ') || 'none provided'}`;
   // Strip markdown code fences if present
   text = text.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
 
-  const parsed = issueClassificationSchema.parse(JSON.parse(text));
-  return parsed;
+  let json: unknown;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    console.error('[classifyIssue] AI returned non-JSON:', text.substring(0, 200));
+    throw new Error('AI classification returned invalid JSON');
+  }
+
+  const parsed = issueClassificationSchema.safeParse(json);
+  if (!parsed.success) {
+    console.error('[classifyIssue] AI response failed schema validation:', parsed.error.issues);
+    throw new Error(`AI classification failed schema validation: ${parsed.error.issues[0]?.message}`);
+  }
+  return parsed.data;
 }

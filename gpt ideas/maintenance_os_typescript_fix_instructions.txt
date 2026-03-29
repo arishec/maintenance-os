@@ -1,0 +1,657 @@
+MAINTENANCE OS
+TYPESCRIPT FIXES — FILE BY FILE
+
+This document is focused only on the TypeScript / build-stability cleanup pass.
+
+Goal:
+Get the codebase to type-check cleanly and remove the remaining weak typing patterns.
+
+==================================================
+1. app/dashboard/page.tsx
+==================================================
+
+LIKELY ISSUE
+
+The current pattern is:
+
+  let user;
+  try {
+    user = await requireDbUser();
+  } catch {
+    redirect('/sign-in');
+  }
+
+This often leaves TypeScript with a possibly-undefined `user`, even though `redirect()` never returns.
+There is also unnecessary `as never` casting on Link hrefs.
+
+WHAT TO CHANGE
+
+A. Replace the try/catch with a helper pattern that returns a concrete user type.
+
+Recommended:
+
+```ts
+import { redirect } from 'next/navigation';
+import type { DbUser } from '@/lib/auth'; // only if you export a type; otherwise omit
+
+async function getUserOrRedirect() {
+  try {
+    return await requireDbUser();
+  } catch {
+    redirect('/sign-in');
+  }
+}
+
+export default async function DashboardPage() {
+  const user = await getUserOrRedirect();
+
+  // ...rest unchanged
+}
+```
+
+If you do not want a helper:
+
+```ts
+const user = await requireDbUser().catch(() => redirect('/sign-in'));
+```
+
+That usually narrows correctly because redirect() is `never`.
+
+B. Remove `as never` from dashboard stat links.
+
+Current:
+```ts
+<Link key={stat.label} href={stat.href as never}>
+```
+
+Change to:
+```ts
+<Link key={stat.label} href={stat.href}>
+```
+
+C. Strongly type the stats array if needed.
+
+```ts
+const stats: Array<{ label: string; value: number; href: string }> = [
+  { label: 'Open issues', value: openIssues, href: '/issues?view=open' },
+  { label: 'Awaiting quotes', value: awaitingQuotes, href: '/issues?view=awaiting_quotes' },
+  { label: 'Active jobs', value: activeJobs, href: '/issues?view=active_jobs' },
+  { label: 'Properties', value: properties.length, href: '/properties' },
+];
+```
+
+WHY
+
+- removes possible undefined user state
+- removes unnecessary route casting
+- makes the file easier for TS to reason about
+
+==================================================
+2. app/issues/page.tsx
+==================================================
+
+THIS FILE IS THE MOST LIKELY TO BE CAUSING REAL TS ERRORS
+
+There are three likely problems:
+1. `user` can be seen as possibly undefined
+2. `where` is typed as `Record<string, unknown>` instead of Prisma's issue filter type
+3. URL builder returns `as never`, which is unnecessary
+
+--------------------------------------------------
+2A. FIX THE USER LOAD
+--------------------------------------------------
+
+Replace:
+
+```ts
+let user;
+try {
+  user = await requireDbUser();
+} catch {
+  redirect('/sign-in');
+}
+```
+
+With:
+
+```ts
+async function getUserOrRedirect() {
+  try {
+    return await requireDbUser();
+  } catch {
+    redirect('/sign-in');
+  }
+}
+
+const user = await getUserOrRedirect();
+```
+
+--------------------------------------------------
+2B. TYPE THE VIEW MAP MORE CLEANLY
+--------------------------------------------------
+
+Current:
+```ts
+const VIEW_STATUS_MAP: Record<string, string[] | undefined> = { ... }
+```
+
+This works, but gives away useful typing.
+
+Use:
+
+```ts
+const VIEW_STATUS_MAP = {
+  all: undefined,
+  open: [
+    'new',
+    'classified',
+    'awaiting_dispatch',
+    'awaiting_quotes',
+    'quotes_received',
+    'contractor_selected',
+    'scheduled',
+    'in_progress',
+  ],
+  awaiting_quotes: ['awaiting_quotes'],
+  active_jobs: ['contractor_selected', 'scheduled', 'in_progress'],
+  completed: ['completed'],
+  canceled: ['canceled'],
+  archived: ['archived'],
+} as const;
+
+type IssueView = keyof typeof VIEW_STATUS_MAP;
+```
+
+Then compute the view more safely:
+
+```ts
+const rawView = params.view;
+const currentView: IssueView =
+  rawView && rawView in VIEW_STATUS_MAP ? (rawView as IssueView) : 'all';
+```
+
+--------------------------------------------------
+2C. TYPE THE PRISMA `where` CLAUSE PROPERLY
+--------------------------------------------------
+
+This is the biggest TypeScript improvement in the file.
+
+Current:
+```ts
+const where: Record<string, unknown> = { ... }
+```
+
+That is too loose and usually causes trouble once you add `OR`, nested property filters, and relation filters.
+
+Change the import:
+
+```ts
+import { Prisma } from '@prisma/client';
+```
+
+Then change the where object to:
+
+```ts
+const where: Prisma.IssueWhereInput = {
+  propertyId: propertyFilter ? propertyFilter : { in: propertyIds },
+  ...(statuses ? { status: { in: [...statuses] } } : {}),
+  ...(urgencyFilter ? { urgency: urgencyFilter } : {}),
+  ...(categoryFilter ? { category: categoryFilter } : {}),
+};
+```
+
+Then the search block becomes valid:
+
+```ts
+if (searchFilter) {
+  where.OR = [
+    { title: { contains: searchFilter, mode: 'insensitive' } },
+    { description: { contains: searchFilter, mode: 'insensitive' } },
+    { property: { nickname: { contains: searchFilter, mode: 'insensitive' } } },
+    { property: { addressLine1: { contains: searchFilter, mode: 'insensitive' } } },
+  ];
+}
+```
+
+NOTE:
+If Prisma complains about one of the relation filters on `property`, rewrite them as:
+
+```ts
+if (searchFilter) {
+  where.OR = [
+    { title: { contains: searchFilter, mode: 'insensitive' } },
+    { description: { contains: searchFilter, mode: 'insensitive' } },
+    {
+      property: {
+        is: {
+          nickname: { contains: searchFilter, mode: 'insensitive' },
+        },
+      },
+    },
+    {
+      property: {
+        is: {
+          addressLine1: { contains: searchFilter, mode: 'insensitive' },
+        },
+      },
+    },
+  ];
+}
+```
+
+Use whichever shape your generated Prisma client accepts.
+
+--------------------------------------------------
+2D. FIX THE URL BUILDER TYPE
+--------------------------------------------------
+
+Current:
+```ts
+return `/issues${qs ? `?${qs}` : ''}` as never;
+```
+
+Change to:
+```ts
+return `/issues${qs ? `?${qs}` : ''}`;
+```
+
+And type the function as:
+
+```ts
+function buildFilterUrl(
+  base: Record<string, string | undefined>,
+  overrides: Record<string, string | undefined>,
+): string {
+  const merged = { ...base, ...overrides };
+  const params = new URLSearchParams();
+  for (const [k, v] of Object.entries(merged)) {
+    if (v) params.set(k, v);
+  }
+  const qs = params.toString();
+  return `/issues${qs ? `?${qs}` : ''}`;
+}
+```
+
+--------------------------------------------------
+2E. REMOVE `as never` FROM LINKS
+--------------------------------------------------
+
+Anywhere in this file that does:
+
+```ts
+href={buildFilterUrl(...) as never}
+```
+
+Change to:
+```ts
+href={buildFilterUrl(...)}
+```
+
+WHY
+
+- Prisma filters become type-safe
+- relation search becomes much easier to validate
+- TS no longer treats the where clause as a loose object bag
+- route strings stop being force-cast
+
+==================================================
+3. components/layout-shell.tsx
+==================================================
+
+LIKELY ISSUES
+
+This file is mostly fine, but TypeScript can complain about:
+- route href inference
+- React.ReactNode usage without imported type in strict setups
+- `as never` casts on Link href
+- nav typing being too loose
+
+WHAT TO CHANGE
+
+A. Import `type ReactNode`
+
+Change:
+```ts
+import { useState } from 'react';
+```
+
+To:
+```ts
+import { useState, type ReactNode } from 'react';
+```
+
+Then change:
+```ts
+export function LayoutShell({ children }: { children: React.ReactNode }) {
+```
+
+To:
+```ts
+export function LayoutShell({ children }: { children: ReactNode }) {
+```
+
+B. Type the nav array cleanly.
+
+Recommended:
+```ts
+const nav: Array<{
+  href: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+}> = [
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/properties', label: 'Properties', icon: House },
+  { href: '/issues', label: 'Issues', icon: ClipboardList },
+  { href: '/contractors', label: 'Contractors', icon: HardHat },
+  { href: '/history', label: 'History', icon: Clock },
+  { href: '/settings', label: 'Settings', icon: Settings },
+];
+```
+
+If you want stricter literal typing, this is also fine:
+
+```ts
+const nav = [
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/properties', label: 'Properties', icon: House },
+  { href: '/issues', label: 'Issues', icon: ClipboardList },
+  { href: '/contractors', label: 'Contractors', icon: HardHat },
+  { href: '/history', label: 'History', icon: Clock },
+  { href: '/settings', label: 'Settings', icon: Settings },
+] as const;
+```
+
+C. Remove all `as never` from Link hrefs.
+
+Current:
+```ts
+href={item.href as never}
+```
+
+Change to:
+```ts
+href={item.href}
+```
+
+WHY
+
+- removes unnecessary route coercion
+- makes Link typing predictable
+- keeps the component strict without hacks
+
+==================================================
+4. components/ui/alert-dialog.tsx
+==================================================
+
+CURRENT STATE
+
+This file is very close to correct.
+
+The only thing that typically breaks here is if `Button` does not support refs.
+Your current `Button` now uses `forwardRef`, so that part is good.
+
+WHAT TO CHECK
+
+A. Confirm `Button` really exports a ref-forwarding component.
+
+Your current button file already does this:
+
+```ts
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(...)
+```
+
+That is correct.
+
+B. If this file still errors, the problem is usually prop compatibility on `AlertDialogAction` / `AlertDialogCancel`.
+
+Safer version:
+
+```ts
+const AlertDialogAction = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentPropsWithoutRef<typeof Button>
+>(({ className, ...props }, ref) => (
+  <Button ref={ref} className={cn(className)} {...props} />
+));
+AlertDialogAction.displayName = 'AlertDialogAction';
+
+const AlertDialogCancel = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentPropsWithoutRef<typeof Button>
+>(({ className, ...props }, ref) => (
+  <Button ref={ref} variant="outline" className={cn(className)} {...props} />
+));
+AlertDialogCancel.displayName = 'AlertDialogCancel';
+```
+
+WHY
+
+Using `React.ComponentPropsWithoutRef<typeof Button>` is safer than re-declaring raw button HTML props if your Button component has variants and custom props.
+
+==================================================
+5. lib/ai/client.ts
+==================================================
+
+CURRENT PROBLEM
+
+The proxy export is convenient, but it is the weakest typed part of the AI client.
+
+Current:
+```ts
+export const anthropic = new Proxy({} as Anthropic, {
+  get(_, prop) {
+    return (getAnthropicClient() as unknown as Record<string, unknown>)[prop as string];
+  },
+});
+```
+
+This can still confuse TS and gives poor autocomplete.
+
+BEST FIX
+
+Stop exporting the proxy.
+Export only `getAnthropicClient()` and call it directly where needed.
+
+STEP 1 — change lib/ai/client.ts to:
+
+```ts
+import Anthropic from '@anthropic-ai/sdk';
+
+let _anthropic: Anthropic | null = null;
+
+export function getAnthropicClient(): Anthropic {
+  if (!_anthropic) {
+    const key = process.env.ANTHROPIC_API_KEY;
+    if (!key || key === 'REPLACE_ME' || key === 'sk-ant-REPLACE_ME') {
+      throw new Error('Anthropic API key not configured. Set ANTHROPIC_API_KEY in .env');
+    }
+    _anthropic = new Anthropic({ apiKey: key });
+  }
+  return _anthropic;
+}
+```
+
+STEP 2 — update classify-issue.ts
+
+Change:
+```ts
+import { anthropic } from '@/lib/ai/client';
+```
+
+To:
+```ts
+import { getAnthropicClient } from '@/lib/ai/client';
+```
+
+Then before the API call:
+```ts
+const anthropic = getAnthropicClient();
+```
+
+STEP 3 — update parse-contractor-reply.ts the same way.
+
+WHY
+
+- removes the proxy hack entirely
+- improves autocomplete and inference
+- avoids cast-heavy code
+- easier to debug
+
+If you want to keep the proxy for backward compatibility, you can, but the direct getter approach is the clean fix.
+
+==================================================
+6. lib/timeline.ts
+==================================================
+
+LIKELY ISSUE
+
+The payload type is too loose:
+
+```ts
+payload?: Record<string, unknown>;
+```
+
+Then you serialize it into JSON for Prisma:
+
+```ts
+eventPayloadJson: input.payload ? JSON.parse(JSON.stringify(input.payload)) : undefined
+```
+
+This works at runtime, but Prisma usually wants a JSON input type rather than a generic record.
+
+FIX
+
+Import Prisma:
+
+```ts
+import { prisma } from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
+```
+
+Then change the interface to:
+
+```ts
+type ActorType = 'user' | 'tenant' | 'system' | 'contractor';
+
+interface LogTimelineEventInput {
+  propertyId: string;
+  issueId?: string;
+  jobId?: string;
+  actorType: ActorType;
+  actorLabel?: string;
+  eventType: string;
+  payload?: Prisma.InputJsonValue;
+}
+```
+
+Then simplify the create call:
+
+```ts
+export async function logTimelineEvent(input: LogTimelineEventInput) {
+  return prisma.timelineEvent.create({
+    data: {
+      propertyId: input.propertyId,
+      issueId: input.issueId,
+      jobId: input.jobId,
+      actorType: input.actorType,
+      actorLabel: input.actorLabel,
+      eventType: input.eventType,
+      eventPayloadJson: input.payload,
+    },
+  });
+}
+```
+
+WHY
+
+- Prisma gets the JSON type it expects
+- no stringify/parse hack needed
+- cleaner and safer
+
+==================================================
+7. OPTIONAL CLEANUP THAT WILL HELP TYPECHECKING
+==================================================
+
+A. Centralize the redirect helper
+
+Create a small helper such as:
+
+```ts
+import { redirect } from 'next/navigation';
+import { requireDbUser } from '@/lib/auth';
+
+export async function requireDbUserOrRedirect() {
+  try {
+    return await requireDbUser();
+  } catch {
+    redirect('/sign-in');
+  }
+}
+```
+
+Then use it in server pages.
+That removes repeated `let user; try/catch` patterns everywhere.
+
+B. Remove all `as never`
+Wherever you are using `as never` for route strings, remove it unless you have a very specific typed-routes reason.
+In this codebase, it reads like workaround code, not required code.
+
+C. Replace `Record<string, unknown>` in Prisma query builders
+Whenever a query object is intended for Prisma, prefer:
+- `Prisma.IssueWhereInput`
+- `Prisma.JobUpdateInput`
+- `Prisma.PropertyWhereInput`
+etc.
+
+That one change removes a lot of downstream type friction.
+
+==================================================
+8. RECOMMENDED FIX ORDER
+==================================================
+
+Fix these in order:
+
+1. lib/ai/client.ts
+2. lib/timeline.ts
+3. app/issues/page.tsx
+4. app/dashboard/page.tsx
+5. components/layout-shell.tsx
+6. components/ui/alert-dialog.tsx (only if still needed after Button typing is confirmed)
+
+==================================================
+9. AFTER YOU APPLY THESE FIXES
+==================================================
+
+Run:
+
+```bash
+npm run typecheck
+```
+
+or if the project uses build-only type validation:
+
+```bash
+npm run build
+```
+
+Then verify:
+- zero TypeScript errors
+- no `as never` hacks left in these files
+- no Prisma query objects typed as generic records
+
+==================================================
+10. FINAL GOAL
+==================================================
+
+After this pass, the codebase should have:
+
+- stable server-page typing
+- safe Prisma query typing
+- no proxy typing hack in AI client
+- correct JSON typing for timeline payloads
+- fewer forced casts
+- much cleaner build stability
+
+That is the right final cleanup pass before calling the V1 codebase locked.
+
+END OF DOCUMENT

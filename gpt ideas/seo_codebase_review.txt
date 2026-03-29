@@ -1,0 +1,359 @@
+MAINTENANCE OS
+SEO CODEBASE REVIEW (LINE-BY-LINE) + EXACT NEXT STEPS
+
+==================================================
+SUMMARY
+==================================================
+
+Current state:
+- Product app is strong and functional
+- SEO implementation is NOT in place
+
+This is not partially done.
+This is essentially NOT implemented yet.
+
+What exists:
+- basic homepage
+- minimal metadata
+
+What does NOT exist:
+- robots.txt
+- sitemap.xml
+- page-level metadata
+- canonical tags
+- Open Graph + Twitter metadata
+- JSON-LD structured data
+- noindex on private pages
+- marketing page structure
+- feature pages
+- guide pages
+- internal linking strategy
+
+==================================================
+OVERALL VERDICT
+==================================================
+
+Product:
+READY
+
+SEO:
+NOT IMPLEMENTED
+
+==================================================
+FILE-BY-FILE REVIEW
+==================================================
+
+1. app/layout.tsx
+
+Current:
+
+export const metadata = {
+  title: 'Maintenance OS',
+  description: 'Maintenance coordination for homeowners and landlords.'
+}
+
+Problems:
+- title too weak
+- description too generic
+- missing metadataBase
+- missing canonical
+- missing Open Graph
+- missing Twitter
+- missing keywords
+- missing robots defaults
+
+This file needs full replacement with a complete metadata object.
+
+--------------------------------------------------
+
+2. app/page.tsx (Homepage)
+
+Good:
+- has H1
+- product idea is visible
+
+Problems:
+- still reads like a starter page
+- includes "Responsive web app starter" (should NOT be public)
+- too thin (not enough content depth)
+- no problem section
+- no homeowner section
+- no landlord section
+- no internal links
+- no SEO metadata
+- CTA goes to /dashboard and /issues (wrong)
+
+Homepage must be rewritten as a real SEO landing page.
+
+--------------------------------------------------
+
+3. app/(marketing)
+
+Exists but empty.
+
+This means:
+- SEO site layer is not implemented
+
+You should be using this for:
+- /features
+- /how-it-works
+- /pricing
+- /for-homeowners
+- /for-landlords
+
+--------------------------------------------------
+
+4. app/dashboard/page.tsx
+
+Good:
+- product logic is strong
+
+SEO Problem:
+- no noindex metadata
+
+Fix:
+Add:
+
+export const metadata = {
+  robots: { index: false, follow: false }
+}
+
+--------------------------------------------------
+
+5. app/issues/page.tsx
+
+Same issue:
+- no noindex
+
+Must be added.
+
+--------------------------------------------------
+
+6. app/properties, contractors, settings, history
+
+All missing:
+- noindex metadata
+
+These pages must NEVER be indexed.
+
+--------------------------------------------------
+
+7. auth pages (sign-in / sign-up)
+
+Missing:
+- noindex metadata
+
+These should also be noindex.
+
+--------------------------------------------------
+
+8. app/robots.ts
+
+Missing completely.
+
+This means:
+- no crawl instructions
+- no sitemap reference
+
+Must be created.
+
+--------------------------------------------------
+
+9. app/sitemap.ts
+
+Missing completely.
+
+This means:
+- no sitemap
+- no Search Console submission target
+
+Must be created.
+
+--------------------------------------------------
+
+10. components/seo/software-jsonld.tsx
+
+Missing.
+
+This means:
+- no SoftwareApplication schema
+
+--------------------------------------------------
+
+11. components/seo/article-jsonld.tsx
+
+Missing.
+
+This means:
+- no article schema for future guides
+
+--------------------------------------------------
+
+12. Public marketing pages
+
+Missing entirely:
+
+- /features
+- /how-it-works
+- /pricing
+- /for-homeowners
+- /for-landlords
+- /contact
+- /privacy
+- /terms
+
+Feature pages missing:
+- contractor dispatch
+- quote comparison
+- repair history
+- tenant intake
+- maintenance tracking
+
+Guide pages missing:
+- all of them
+
+This is the biggest SEO gap.
+
+--------------------------------------------------
+
+13. public/og-image.png
+
+Missing.
+
+This means:
+- no social preview image
+- Open Graph incomplete even if added later
+
+--------------------------------------------------
+
+14. next.config.ts
+
+Current:
+- ignoreBuildErrors = true
+- ignoreDuringBuilds = true
+
+Problem:
+- allows broken builds
+- can hide SEO issues
+
+Recommendation:
+Remove these once stable.
+
+==================================================
+SEO SCORE
+==================================================
+
+Technical SEO: 2/10
+Content SEO: 1/10
+Index control: 1/10
+Search readiness: 1/10
+Messaging: 6/10
+
+==================================================
+WHAT IS ACTUALLY WIRED
+==================================================
+
+Only:
+- root page
+- basic metadata
+- basic H1
+
+==================================================
+WHAT MUST BE BUILT (IN ORDER)
+==================================================
+
+PHASE 1 — TECHNICAL SEO
+
+1. Update app/layout.tsx
+   - add full metadata object
+   - add Open Graph
+   - add Twitter
+   - add canonical
+
+2. Create app/robots.ts
+
+3. Create app/sitemap.ts
+
+4. Add public/og-image.png
+
+5. Add noindex to all app pages
+
+6. (Optional but best)
+   Create app/(app)/layout.tsx with noindex
+
+--------------------------------------------------
+
+PHASE 2 — MARKETING PAGES
+
+Create:
+- /features
+- /how-it-works
+- /pricing
+- /for-homeowners
+- /for-landlords
+
+--------------------------------------------------
+
+PHASE 3 — FEATURE PAGES
+
+Create:
+- property maintenance tracking
+- contractor dispatch
+- quote comparison
+- repair history
+- tenant intake
+
+--------------------------------------------------
+
+PHASE 4 — GUIDE PAGES
+
+Create:
+- how to track home repairs
+- how to manage rental maintenance
+- how to compare contractor quotes
+
+--------------------------------------------------
+
+PHASE 5 — STRUCTURED DATA
+
+Add:
+- SoftwareJsonLd
+- ArticleJsonLd
+
+--------------------------------------------------
+
+PHASE 6 — INTERNAL LINKING
+
+Homepage must link to:
+- homeowners page
+- landlords page
+- features
+- how-it-works
+- pricing
+- guide pages
+
+==================================================
+FINAL TRUTH
+==================================================
+
+Your app is:
+- product-complete
+- architecture-complete
+
+But your SEO layer is:
+- not started
+
+==================================================
+FINAL ANSWER
+==================================================
+
+You do NOT have SEO implemented yet.
+
+You have:
+- a working product
+
+You do NOT yet have:
+- a search-ready site
+
+==================================================
+END OF DOCUMENT

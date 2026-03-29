@@ -1,0 +1,284 @@
+MAINTENANCE OS
+ISSUES PAGE FILTERING + STATUS MAPPING SPEC
+
+==================================================
+OVERVIEW
+==================================================
+
+This document defines:
+- how the /issues page filtering should work
+- how dashboard cards map to filtered views
+- how UI views map to database statuses
+
+Goal:
+Simple UX for users, flexible logic in backend.
+
+==================================================
+URL STRUCTURE
+==================================================
+
+Use clean query params based on "view":
+
+/issues?view=open
+/issues?view=awaiting_quotes
+/issues?view=active_jobs
+/issues?view=completed
+/issues?view=canceled
+/issues?view=archived
+
+Optional filters:
+/issues?view=open&property=<propertyId>
+/issues?view=open&urgency=emergency
+/issues?view=open&category=plumbing
+
+==================================================
+DASHBOARD CARD MAPPING
+==================================================
+
+Open Issues Card:
+→ /issues?view=open
+
+Awaiting Quotes Card:
+→ /issues?view=awaiting_quotes
+
+Active Jobs Card:
+→ /issues?view=active_jobs
+
+Properties Card:
+→ /properties
+
+==================================================
+UI VIEW → DATABASE STATUS MAPPING
+==================================================
+
+VIEW: all
+Statuses:
+- all statuses
+
+--------------------------------------------------
+
+VIEW: open
+Statuses:
+- new
+- classified
+- awaiting_dispatch
+- awaiting_quotes
+- quotes_received
+- contractor_selected
+- scheduled
+- in_progress
+
+Meaning:
+All issues that are still active and not finished.
+
+--------------------------------------------------
+
+VIEW: awaiting_quotes
+Statuses:
+- awaiting_quotes
+
+Meaning:
+Requests sent, waiting for contractor responses.
+
+--------------------------------------------------
+
+VIEW: active_jobs
+Statuses:
+- contractor_selected
+- scheduled
+- in_progress
+
+Meaning:
+Contractor chosen and work is underway or scheduled.
+
+--------------------------------------------------
+
+VIEW: completed
+Statuses:
+- completed
+
+--------------------------------------------------
+
+VIEW: canceled
+Statuses:
+- canceled
+
+--------------------------------------------------
+
+VIEW: archived
+Statuses:
+- archived
+
+==================================================
+SPECIAL NOTES
+==================================================
+
+quotes_received:
+- included in OPEN view
+- not a separate top-level view (for V1)
+
+classified + awaiting_dispatch:
+- included in OPEN
+- not exposed as separate filters
+
+==================================================
+ISSUES PAGE FILTERS
+==================================================
+
+Top-level filters:
+- View (mapped above)
+- Property
+- Urgency
+- Category
+- Search
+
+--------------------------------------------------
+
+Urgency:
+- emergency
+- high
+- medium
+- low
+
+--------------------------------------------------
+
+Category:
+- plumbing
+- electrical
+- HVAC
+- roofing
+- appliance
+- etc.
+
+--------------------------------------------------
+
+Search:
+- issue title
+- description
+- property name/address
+
+==================================================
+ISSUES TABLE COLUMNS
+==================================================
+
+- Issue
+- Property
+- Category
+- Urgency
+- Status
+- Updated / Reported
+- Contractor (if selected)
+- Actions
+
+==================================================
+DISPLAY LABELS (UI FRIENDLY)
+==================================================
+
+new → New
+classified → Ready to send
+awaiting_dispatch → Ready to send
+awaiting_quotes → Awaiting quotes
+quotes_received → Quotes received
+contractor_selected → Contractor selected
+scheduled → Scheduled
+in_progress → In progress
+completed → Completed
+canceled → Canceled
+archived → Archived
+
+==================================================
+BACKEND IMPLEMENTATION EXAMPLE
+==================================================
+
+const statusMap = {
+  all: undefined,
+  open: [
+    'new',
+    'classified',
+    'awaiting_dispatch',
+    'awaiting_quotes',
+    'quotes_received',
+    'contractor_selected',
+    'scheduled',
+    'in_progress',
+  ],
+  awaiting_quotes: ['awaiting_quotes'],
+  active_jobs: ['contractor_selected', 'scheduled', 'in_progress'],
+  completed: ['completed'],
+  canceled: ['canceled'],
+  archived: ['archived'],
+};
+
+--------------------------------------------------
+
+const statuses = statusMap[view];
+
+const where = {
+  ...(statuses ? { status: { in: statuses } } : {}),
+  ...(propertyId ? { propertyId } : {}),
+  ...(urgency ? { urgency } : {}),
+  ...(category ? { category } : {}),
+};
+
+==================================================
+DASHBOARD COUNT LOGIC
+==================================================
+
+Open Issues Count:
+- new
+- classified
+- awaiting_dispatch
+- awaiting_quotes
+- quotes_received
+- contractor_selected
+- scheduled
+- in_progress
+
+--------------------------------------------------
+
+Awaiting Quotes Count:
+- awaiting_quotes
+
+--------------------------------------------------
+
+Active Jobs Count:
+- contractor_selected
+- scheduled
+- in_progress
+
+--------------------------------------------------
+
+Properties Count:
+- total properties
+
+==================================================
+IMPORTANT UX RULES
+==================================================
+
+1. Cards must be clickable
+2. Cards link to filtered views
+3. Sidebar remains for navigation
+4. Do not expose raw DB statuses directly
+5. Group statuses into meaningful user views
+
+==================================================
+FINAL MODEL
+==================================================
+
+User sees:
+
+- Open
+- Awaiting quotes
+- Active jobs
+- Completed
+- Canceled
+- Archived
+
+System handles:
+
+- detailed internal statuses
+- grouping logic
+- filtering behavior
+
+==================================================
+END OF DOCUMENT

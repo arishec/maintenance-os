@@ -1,0 +1,371 @@
+MAINTENANCE OS — MASTER BUILD BLUEPRINT (FINAL)
+
+==================================================
+1. PRODUCT DEFINITION
+==================================================
+
+Maintenance OS is a workflow system for handling property maintenance:
+
+Issue → Classify → Contact contractors → Collect replies → Compare → Select → Track → Store history
+
+NOT a marketplace.
+NOT a contractor directory.
+
+Primary value:
+- remove coordination friction
+- centralize communication
+- preserve repair history
+
+==================================================
+2. LOCKED TECH STACK
+==================================================
+
+Frontend:
+- Next.js
+- TypeScript
+- Tailwind
+- shadcn/ui
+
+Backend:
+- Next.js API routes
+
+Auth:
+- Clerk
+
+Database:
+- Supabase Postgres (via Prisma)
+
+Storage:
+- Supabase Storage
+
+Messaging:
+- Twilio (SMS)
+- Resend (email)
+
+AI:
+- Claude (Anthropic)
+
+Hosting:
+- Vercel
+
+==================================================
+3. CORE DATA MODEL
+==================================================
+
+Core entities:
+- User
+- Property
+- Contractor
+- Issue
+- Dispatch
+- ContractorResponse
+- Job
+- TimelineEvent
+- UsageMetrics
+
+Relationship:
+Property → Issues → Dispatches → Responses → Job
+
+==================================================
+4. ISSUE STATUS MODEL
+==================================================
+
+Internal statuses:
+
+- new
+- classified
+- awaiting_dispatch
+- awaiting_quotes
+- quotes_received
+- contractor_selected
+- scheduled
+- in_progress
+- completed
+- canceled
+- archived
+
+==================================================
+5. UI VIEW MODEL (IMPORTANT)
+==================================================
+
+User-facing views:
+
+open:
+- new
+- classified
+- awaiting_dispatch
+- awaiting_quotes
+- quotes_received
+- contractor_selected
+- scheduled
+- in_progress
+
+awaiting_quotes:
+- awaiting_quotes
+
+active_jobs:
+- contractor_selected
+- scheduled
+- in_progress
+
+completed:
+- completed
+
+canceled:
+- canceled
+
+archived:
+- archived
+
+==================================================
+6. DASHBOARD BEHAVIOR
+==================================================
+
+Cards (clickable):
+
+Open Issues → /issues?view=open
+Awaiting Quotes → /issues?view=awaiting_quotes
+Active Jobs → /issues?view=active_jobs
+Properties → /properties
+
+Rules:
+- card counts must match filtered results exactly
+- cards act as navigation shortcuts
+
+==================================================
+7. /ISSUES PAGE
+==================================================
+
+Query params:
+- view
+- propertyId
+- urgency
+- category
+
+Filters:
+- View tabs
+- Property
+- Urgency
+- Category
+- Search
+
+Columns:
+- Issue
+- Property
+- Category
+- Urgency
+- Status
+- Updated
+- Contractor
+
+==================================================
+8. ISSUE DETAIL PAGE (CORE WORKFLOW)
+==================================================
+
+Actions:
+
+- classify issue (AI)
+- select contractors
+- send dispatch
+- receive replies
+- compare quotes
+- select contractor
+- create job
+- track job
+- mark complete
+- cancel
+- archive
+
+==================================================
+9. DISPATCH FLOW
+==================================================
+
+When user sends request:
+
+1. create dispatch records
+2. generate replyToken
+3. include token in SMS/email
+4. send via Twilio/Resend
+5. update dispatch status
+
+==================================================
+10. REPLY CORRELATION (CRITICAL)
+==================================================
+
+Each dispatch has:
+- replyToken
+
+Inbound logic:
+
+1. parse token from message
+2. match dispatch by token
+3. if no token:
+   - find matching contractor + active dispatches
+   - if ONE match → accept
+   - if MULTIPLE → do NOT guess
+
+Never match purely by "most recent".
+
+==================================================
+11. WEBHOOKS
+==================================================
+
+Twilio:
+- inbound SMS
+- status updates
+
+Resend:
+- inbound email
+
+Rules:
+- validate signatures
+- handle retries safely
+- ensure idempotency (no duplicate processing)
+
+==================================================
+12. AI USAGE
+==================================================
+
+Claude used for:
+
+- issue classification
+- urgency detection
+- reply parsing
+
+Rules:
+- structured output only
+- never guess missing data
+- mark low confidence
+
+==================================================
+13. JOB SYSTEM
+==================================================
+
+One job per issue.
+
+Job statuses:
+- contractor_selected
+- scheduled
+- in_progress
+- completed
+- canceled
+
+Rule:
+Job status MUST sync to issue status.
+
+==================================================
+14. TENANT INTAKE
+==================================================
+
+Flow:
+
+1. tenant submits issue via link
+2. issue created immediately
+3. classification attempted
+4. failure does NOT block submission
+
+Always return success if issue is created.
+
+==================================================
+15. CANCEL / ARCHIVE / DELETE
+==================================================
+
+Cancel:
+- stops workflow
+- remains in history
+
+Archive:
+- hides from active UI
+
+Delete:
+- NOT user-facing
+- admin only (optional)
+
+==================================================
+16. COST TRACKING
+==================================================
+
+Track per issue:
+- outbound SMS count
+- inbound SMS count
+- email count
+- AI calls
+
+Use upsert (never assume row exists).
+
+==================================================
+17. TESTING CHECKLIST
+==================================================
+
+- create issue
+- classify
+- send to 2 contractors
+- receive replies
+- parse replies
+- match correct issue
+- select contractor
+- create job
+- complete job
+- verify history
+
+Edge cases:
+- duplicate replies
+- multiple active issues same contractor
+- missing token reply
+- webhook retry
+
+==================================================
+18. BUILD ORDER
+==================================================
+
+Phase 1:
+- auth
+- properties
+- issues
+- classification
+
+Phase 2:
+- contractors
+- dispatch
+- Twilio send
+
+Phase 3:
+- inbound webhooks
+- reply parsing
+- comparison UI
+
+Phase 4:
+- job system
+- status sync
+- history
+
+Phase 5:
+- tenant intake
+- cost tracking
+- hardening
+
+==================================================
+19. PRODUCTION HARDENING
+==================================================
+
+Must have:
+
+- webhook signature validation
+- reply token correlation
+- idempotency handling
+- no .env in builds
+- error logging
+- retry-safe logic
+
+==================================================
+20. FINAL PRINCIPLES
+==================================================
+
+- Do not build a marketplace
+- Do not require contractor accounts
+- Always store raw data
+- Never guess on ambiguous data
+- Keep UI simple, logic strong
+
+==================================================
+END OF MASTER BLUEPRINT

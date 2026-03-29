@@ -1,0 +1,367 @@
+MAINTENANCE OS
+FULL UI CLARITY + UX IMPROVEMENT SPEC (PAID USER EXPERIENCE)
+
+==================================================
+PURPOSE
+==================================================
+
+This document upgrades your CURRENT UI into a clear, decision-driven product.
+
+The system is already working.
+This focuses on:
+- clarity
+- momentum
+- decision-making
+- reducing confusion
+
+==================================================
+GLOBAL RULE (APPLIES EVERYWHERE)
+==================================================
+
+Every screen must answer instantly:
+
+1. What is happening?
+2. What changed?
+3. What should I do next?
+
+If a screen does not answer these, it feels “flat”.
+
+==================================================
+1. DASHBOARD (MAIN SCREEN)
+==================================================
+
+CURRENT:
+Good layout, but passive.
+
+--------------------------------------------------
+FIXES
+--------------------------------------------------
+
+A. ADD ACTION-ORIENTED SUBTEXT
+
+Open issues → "Issues that need attention"
+Awaiting quotes → "Waiting on contractor responses"
+Quotes received → "Ready for you to review"
+Active jobs → "Work currently in progress"
+
+--------------------------------------------------
+
+B. MAKE "QUOTES RECEIVED" POP HARDER
+
+Current is good (green), but enhance:
+
+Add:
+"1 new response"
+
+FINAL:
+
+Quotes received
+1
+1 new response
+
+--------------------------------------------------
+
+C. ISSUE CARDS — ADD NEXT ACTION
+
+Current:
+Just shows state
+
+FIX:
+
+Awaiting quotes:
+"Waiting for contractor responses"
+
+Quotes received:
+"Review quotes and select a contractor"
+
+--------------------------------------------------
+
+D. MAKE CARDS CLICKABLE
+
+Click → opens issue detail
+
+==================================================
+2. ISSUES TABLE
+==================================================
+
+CURRENT:
+Very strong already
+
+--------------------------------------------------
+FIXES
+--------------------------------------------------
+
+A. STATUS COLUMN IMPROVEMENT
+
+Add subtext:
+
+Quotes received
+→ "1 response"
+
+Awaiting quotes
+→ "Waiting on replies"
+
+--------------------------------------------------
+
+B. CONTRACTOR COLUMN (GOOD — KEEP)
+
+"1 replied / 3 contacted" ✅
+
+Add hover tooltip:
+"3 contractors contacted, 1 responded"
+
+--------------------------------------------------
+
+C. ROW CLICK
+
+Entire row clickable → goes to issue page
+
+==================================================
+3. ISSUE DETAIL PAGE (MOST IMPORTANT SCREEN)
+==================================================
+
+CURRENT:
+Missing decision support
+
+--------------------------------------------------
+FIXES
+--------------------------------------------------
+
+A. QUOTE CARDS — EXPAND
+
+CURRENT:
+Name + price only
+
+REQUIRED:
+
+Test Plumber
+$450
+Available: Tomorrow
+Message:
+"What is the address and can I park there?"
+
+[Select Contractor]   [Reply]
+
+--------------------------------------------------
+
+B. ADD PRIMARY ACTION
+
+When quotes exist:
+
+TOP BANNER:
+
+"You have 1 contractor response — choose who to hire"
+
+--------------------------------------------------
+
+C. SORT QUOTES
+
+Default:
+Lowest price first
+
+Optional toggle:
+- Lowest price
+- Soonest availability
+
+==================================================
+4. CONTRACTORS PAGE
+==================================================
+
+CURRENT:
+Too static
+
+--------------------------------------------------
+FIXES
+--------------------------------------------------
+
+A. ADD CONTEXT
+
+Each contractor card should show:
+
+- jobs completed
+- response rate
+- last used
+
+Example:
+
+Test Plumber
+Ari's Plumbing
+Plumbing
+
+Used 2 times
+Responds quickly
+
+--------------------------------------------------
+
+B. ADD ACTIONS
+
+[Edit]
+[Remove]
+[Set as preferred]
+
+==================================================
+5. PROPERTIES PAGE
+==================================================
+
+CURRENT:
+Too empty
+
+--------------------------------------------------
+FIXES
+--------------------------------------------------
+
+A. MAKE CARD CLICKABLE
+
+Click → shows property detail (future)
+
+--------------------------------------------------
+
+B. ADD QUICK SUMMARY
+
+Instead of:
+"3 open issues"
+
+Show:
+
+3 open issues
+1 awaiting quotes
+1 ready to review
+
+==================================================
+6. HISTORY PAGE
+==================================================
+
+CURRENT:
+Empty state only
+
+--------------------------------------------------
+FIXES
+--------------------------------------------------
+
+A. IMPROVE EMPTY STATE
+
+Replace:
+
+"No completed issues yet."
+
+WITH:
+
+"No completed jobs yet.
+
+Once you finish a repair, it will appear here with full history."
+
+--------------------------------------------------
+
+B. FUTURE STATE (IMPORTANT)
+
+History items should show:
+
+- issue
+- contractor
+- price paid
+- date
+
+==================================================
+7. SETTINGS PAGE
+==================================================
+
+CURRENT:
+Placeholder
+
+--------------------------------------------------
+FIXES
+--------------------------------------------------
+
+Replace:
+
+"More settings coming soon"
+
+WITH:
+
+"This is where you’ll manage notifications, contractors, and integrations."
+
+Feels intentional instead of incomplete.
+
+==================================================
+8. NAVIGATION IMPROVEMENTS
+==================================================
+
+ADD:
+
+Top right dropdown:
+
+- Home
+- Dashboard
+- Settings
+- Logout
+
+--------------------------------------------------
+
+ADD:
+
+Logo click → goes to homepage
+
+==================================================
+9. NOTIFICATIONS (CRITICAL ADD)
+==================================================
+
+Add real events:
+
+- New contractor reply
+- Job started
+- Job completed
+
+--------------------------------------------------
+
+EXAMPLE:
+
+New reply received
+Test Plumber sent a $450 quote
+
+Click → opens issue
+
+==================================================
+10. MICROCOPY (IMPORTANT)
+==================================================
+
+Replace generic text with helpful text:
+
+BAD:
+"No new notifications"
+
+GOOD:
+"No new activity yet"
+
+--------------------------------------------------
+
+BAD:
+"Awaiting quotes"
+
+BETTER:
+"Waiting for contractor responses"
+
+==================================================
+FINAL TRUTH
+==================================================
+
+Your product is already:
+
+- clean
+- functional
+- structured correctly
+
+What it needs now:
+
+- clearer communication
+- stronger "what do I do next"
+- more visible progress
+
+Once these are applied:
+The app will feel:
+
+→ alive
+→ helpful
+→ decision-focused
+
+==================================================
+END

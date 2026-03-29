@@ -1,0 +1,187 @@
+CODE REVIEW — MAINTENANCE OS V1
+
+OVERALL ASSESSMENT
+
+This is a real application foundation with strong architectural direction:
+- Prisma schema is well-designed and production-capable
+- AI layer (Claude + structured parsing) is correctly implemented
+- Auth pattern using Clerk + local user mapping is solid
+- Core product workflow (issue → dispatch → response → selection → job) is correct
+
+However:
+- The codebase is NOT production-stable yet
+- There are compile errors, state consistency issues, and webhook flaws
+- Some logic is unsafe under real-world conditions
+
+Estimated completeness: ~60–70% of a functional V1 backend, ~30–40% of a complete product
+
+--------------------------------------------------
+CRITICAL ISSUES
+--------------------------------------------------
+
+1. TYPESCRIPT DOES NOT PASS
+
+Files with issues:
+- components/layout-shell.tsx
+- components/ui/alert-dialog.tsx
+- lib/ai/client.ts
+- lib/timeline.ts
+
+Fixes:
+
+A. Button component must use forwardRef
+
+B. layout-shell.tsx nav must use:
+const nav = [...] as const;
+
+C. lib/ai/client.ts unsafe cast:
+use:
+(getAnthropicClient() as unknown as Record<string, unknown>)[prop]
+
+D. lib/timeline.ts:
+Replace Record<string, unknown> with Prisma.InputJsonValue
+
+--------------------------------------------------
+
+2. CONTRACTOR REPLY MATCHING IS UNSAFE
+
+Current behavior:
+- matches replies by contractor phone/email
+- uses most recent dispatch
+
+Problem:
+- multiple open jobs → replies attach to wrong issue
+
+Fix:
+- introduce deterministic correlation:
+  - dispatch token
+  - message ID tracking
+  - reply-to identifiers
+- never rely on “most recent dispatch”
+
+--------------------------------------------------
+
+3. JOB STATUS DOES NOT SYNC WITH ISSUE
+
+Problem:
+- updating job status does not update issue status
+
+Fix:
+- map job status → issue status
+- update both in same flow
+
+--------------------------------------------------
+
+4. MULTIPLE JOBS CAN BE CREATED PER ISSUE
+
+Problem:
+- select-contractor creates unlimited jobs per issue
+
+Fix:
+- enforce one job per issue (logic or DB constraint)
+
+--------------------------------------------------
+
+5. USAGE METRICS CAN FAIL
+
+Problem:
+- using update() assumes row exists
+
+Fix:
+- replace with upsert()
+
+--------------------------------------------------
+
+6. DISPATCH STATE INCORRECT ON FAILURE
+
+Problem:
+- issue always moves to awaiting_quotes even if all dispatches fail
+
+Fix:
+- only move to awaiting_quotes if at least one dispatch succeeded
+
+--------------------------------------------------
+
+7. TENANT INTAKE FLOW IS NOT RESILIENT
+
+Problem:
+- classification failure can break issue creation
+
+Fix:
+- always create issue first
+- classification should be non-blocking
+
+--------------------------------------------------
+
+8. URGENCY ENUM BUG
+
+Problem:
+- UI checks for “critical”
+- schema uses “emergency”
+
+Fix:
+- replace “critical” with “emergency” everywhere
+
+--------------------------------------------------
+
+9. WEBHOOK SECURITY MISSING
+
+Problem:
+- no signature verification
+
+Fix:
+- validate Twilio signatures
+- validate email provider webhooks
+
+--------------------------------------------------
+
+10. .ENV FILE INCLUDED
+
+Problem:
+- security risk
+
+Fix:
+- remove .env from repo
+- use only .env.example
+
+--------------------------------------------------
+
+WHAT IS SOLID
+
+- Prisma schema (strongest part)
+- Property-centric data model
+- Claude AI integration with structured outputs
+- Clerk auth integration
+- Core workflow design
+
+--------------------------------------------------
+
+FINAL VERDICT
+
+This is a strong foundation, but not production-ready.
+
+Strength:
+- architecture and product direction
+
+Weakness:
+- runtime safety
+- edge case handling
+- webhook reliability
+
+--------------------------------------------------
+
+PRIORITY FIX ORDER
+
+1. Fix TypeScript errors
+2. Fix webhook reply matching
+3. Sync job + issue status
+4. Prevent duplicate jobs
+5. Fix usage metrics (upsert)
+6. Fix dispatch failure handling
+7. Fix tenant intake flow
+8. Add webhook signature validation
+9. Remove .env from codebase
+
+--------------------------------------------------
+
+END OF REVIEW

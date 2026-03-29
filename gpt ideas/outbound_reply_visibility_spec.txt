@@ -1,0 +1,557 @@
+MAINTENANCE OS
+OUTBOUND REPLY VISIBILITY SPEC
+(HOW TO SHOW THAT THE USER REPLIED TO A CONTRACTOR, AND WHAT THEY SAID)
+
+==================================================
+PURPOSE
+==================================================
+
+This document defines exactly how to fix the current product gap:
+
+Current problem:
+- contractor asks a follow-up question
+- user replies from inside the app
+- message is sent
+- BUT the issue page does not clearly show:
+  - that the reply was sent
+  - what the reply said
+  - when it was sent
+  - which channel was used
+
+This creates a trust problem.
+
+The app must become the system of record for the repair conversation.
+
+==================================================
+GOAL
+==================================================
+
+After a user replies to a contractor from inside the app, the issue detail page
+must clearly show:
+
+1. the contractor’s question
+2. the user’s reply
+3. the channel used (email or SMS)
+4. when the reply was sent
+5. whether sending succeeded or failed
+
+This should be implemented cleanly, without building a full chat system yet.
+
+==================================================
+PRODUCT DECISION
+==================================================
+
+For V1:
+DO NOT build a full threaded messaging system.
+
+Instead:
+- store outbound messages
+- show them directly under the relevant contractor response card
+
+This is simpler, cleaner, and enough for the product right now.
+
+==================================================
+1. WHAT THE USER SHOULD SEE
+==================================================
+
+On the issue detail page, inside the contractor quote card, after the contractor
+question block, show:
+
+--------------------------------------------------
+Contractor question:
+What is the address and where do I park?
+
+Your reply:
+Park in the street.
+
+Sent via Email · Mar 29, 7:21 AM
+--------------------------------------------------
+
+If multiple outbound replies exist later, show the most recent one for V1.
+Optionally add:
+"View all messages" later.
+
+==================================================
+2. DATABASE / DATA MODEL
+==================================================
+
+You need to store outbound replies as first-class records.
+
+--------------------------------------------------
+OPTION A (RECOMMENDED)
+--------------------------------------------------
+
+Create a new model:
+
+ContractorMessage
+
+Fields:
+- id
+- issueId
+- contractorId
+- contractorResponseId (nullable)
+- direction ("inbound" | "outbound")
+- channel ("sms" | "email")
+- messageBody
+- providerMessageId (nullable)
+- sendStatus ("sent" | "failed")
+- createdAt
+- updatedAt
+
+--------------------------------------------------
+RECOMMENDED PRISMA MODEL
+--------------------------------------------------
+
+```prisma
+model ContractorMessage {
+  id                   String   @id @default(cuid())
+  issueId              String
+  contractorId         String
+  contractorResponseId String?
+  direction            String
+  channel              String
+  messageBody          String
+  providerMessageId    String?
+  sendStatus           String   @default("sent")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  issue                Issue               @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  contractor           Contractor          @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  contractorResponse   ContractorResponse? @relation(fields: [contractorResponseId], references: [id], onDelete: SetNull)
+
+  @@index([issueId, contractorId, createdAt])
+  @@index([contractorResponseId])
+}
+```
+
+--------------------------------------------------
+WHY THIS MODEL IS BEST
+--------------------------------------------------
+
+It gives you:
+- a durable history of what was sent
+- link back to the issue
+- link to contractor
+- optional link to the specific ContractorResponse that triggered the reply
+- ability to support multi-message threading later without rework
+
+==================================================
+3. RELATIONSHIP TO EXISTING SYSTEM
+==================================================
+
+This should plug into what you already built.
+
+You already have:
+- Issue
+- Contractor
+- Dispatch
+- ContractorResponse
+- Twilio + Resend send helpers
+- reply-to-contractor route
+- issue detail page with response cards
+
+ContractorMessage sits alongside ContractorResponse:
+
+- ContractorResponse = inbound contractor message / quote / question
+- ContractorMessage = outbound owner reply
+
+This is clean and matches your system design.
+
+==================================================
+4. WHEN TO CREATE ContractorMessage
+==================================================
+
+Whenever the user replies from the app.
+
+That means:
+
+File likely involved:
+app/api/issues/[id]/reply-to-contractor/route.ts
+
+Current behavior probably:
+- validate
+- send via Twilio/Resend
+- timeline log
+- return success
+
+NEW REQUIRED BEHAVIOR:
+After successful send:
+- create ContractorMessage row
+
+If send fails:
+- optionally create ContractorMessage row with sendStatus="failed"
+- OR do not create row and just return error
+
+RECOMMENDATION:
+Only create row if send succeeds for V1.
+This keeps UI cleaner.
+
+==================================================
+5. EXACT API BEHAVIOR
+==================================================
+
+--------------------------------------------------
+Route
+--------------------------------------------------
+
+POST /api/issues/[id]/reply-to-contractor
+
+Body should include:
+- contractorId
+- contractorResponseId (optional but strongly recommended)
+- channel
+- message
+
+Example:
+```json
+{
+  "contractorId": "abc123",
+  "contractorResponseId": "resp_123",
+  "channel": "email",
+  "message": "Park in the street."
+}
+```
+
+--------------------------------------------------
+Validation
+--------------------------------------------------
+
+Validate:
+1. issue exists and belongs to logged-in user
+2. contractor exists
+3. contractor is associated with this issue through dispatch/response
+4. message length is valid
+5. channel is allowed and contractor has necessary contact info
+
+--------------------------------------------------
+Send logic
+--------------------------------------------------
+
+If channel === "email":
+- send via existing Resend helper
+
+If channel === "sms":
+- send via existing Twilio helper
+
+Capture provider message ID if returned.
+
+--------------------------------------------------
+After send succeeds
+--------------------------------------------------
+
+Create ContractorMessage:
+
+```ts
+await prisma.contractorMessage.create({
+  data: {
+    issueId,
+    contractorId,
+    contractorResponseId: contractorResponseId ?? null,
+    direction: "outbound",
+    channel,
+    messageBody: message,
+    providerMessageId: providerMessageId ?? null,
+    sendStatus: "sent",
+  },
+});
+```
+
+--------------------------------------------------
+Also log timeline
+--------------------------------------------------
+
+Keep your existing timeline log, but improve it.
+
+Example:
+eventType = "owner_reply_sent"
+
+payload:
+- contractorName
+- channel
+- messagePreview
+- contractorResponseId
+
+==================================================
+6. ISSUE DETAIL PAGE CHANGES
+==================================================
+
+This is the most important UI part.
+
+File likely involved:
+app/(app)/issues/[id]/page.tsx
+
+You already render quote cards / response cards.
+
+Each contractor response card should now also fetch and display the most relevant
+outbound reply.
+
+--------------------------------------------------
+DISPLAY RULE
+--------------------------------------------------
+
+If this contractor response has an outbound ContractorMessage linked to it:
+show a "Your reply" block under the contractor question.
+
+--------------------------------------------------
+EXAMPLE CARD STRUCTURE
+--------------------------------------------------
+
+Mike Rodriguez
+Miami Plumbing Pros
+
+Quote: $365
+Available: Monday
+
+Contractor question:
+what’s the address where do i park
+
+Your reply:
+Park in the street.
+
+Sent via Email · Mar 29, 7:21 AM
+
+[Selected]   [Reply]
+
+--------------------------------------------------
+VISUAL DESIGN
+--------------------------------------------------
+
+Contractor question block:
+- amber background / amber border
+- label: "Contractor question"
+
+Your reply block:
+- blue-tinted or neutral card
+- label: "Your reply"
+
+This creates clear conversation direction.
+
+==================================================
+7. QUERY CHANGES
+==================================================
+
+When loading issue detail page, you must include outbound messages.
+
+--------------------------------------------------
+If using contractorResponseId link
+--------------------------------------------------
+
+For each ContractorResponse, include related ContractorMessage rows.
+
+Example Prisma include idea:
+
+```ts
+responses: {
+  include: {
+    contractor: true,
+    dispatch: true,
+    messages: {
+      where: { direction: "outbound" },
+      orderBy: { createdAt: "desc" },
+      take: 1,
+    },
+  },
+}
+```
+
+Note:
+If you do not define relation from ContractorResponse -> ContractorMessage directly,
+you can query by:
+- issueId
+- contractorId
+- contractorResponseId
+
+--------------------------------------------------
+If simpler for V1
+--------------------------------------------------
+
+You can query:
+- latest outbound ContractorMessage for same issue + contractor
+
+That is acceptable for V1, especially if you only expect one immediate reply.
+
+==================================================
+8. UI COMPONENT SPEC
+==================================================
+
+Create a small component if needed, e.g.:
+
+components/issues/outbound-reply-preview.tsx
+
+Props:
+- messageBody
+- channel
+- createdAt
+- sendStatus
+
+--------------------------------------------------
+Display
+--------------------------------------------------
+
+If sendStatus === "sent":
+
+Your reply:
+Park in the street.
+
+Sent via Email · Mar 29, 7:21 AM
+
+If sendStatus === "failed":
+
+Your reply:
+Park in the street.
+
+Failed to send
+
+For V1, you can hide failed if not storing failed rows.
+
+==================================================
+9. REPLY MODAL CHANGES
+==================================================
+
+You already have a reply modal.
+Keep it.
+
+But after successful send:
+
+--------------------------------------------------
+DO THIS
+--------------------------------------------------
+
+1. close modal
+2. show success toast:
+   "Reply sent to Mike Rodriguez"
+3. refresh issue detail page data
+4. render "Your reply" block immediately
+
+This is critical.
+
+Without refresh + visible reply, the user feels:
+"Did that do anything?"
+
+==================================================
+10. TIMELINE / HISTORY
+==================================================
+
+Also store this event in timeline/history.
+
+Example timeline entry:
+
+Owner replied to Mike Rodriguez by Email:
+"Park in the street."
+
+This gives you:
+- audit trail
+- future threaded communication support
+- trust
+
+==================================================
+11. NOTIFICATIONS (OPTIONAL FOR THIS FLOW)
+==================================================
+
+You do NOT need a new notification for "you replied" because the user performed the action.
+
+BUT if contractor replies again after that:
+- that must create a new contractor reply notification
+
+So:
+- outbound reply → visible in card + timeline
+- inbound reply after that → notification + card update
+
+==================================================
+12. V1 SIMPLIFICATION RULES
+==================================================
+
+To avoid overbuilding:
+
+For V1:
+- store outbound reply
+- show latest outbound reply only
+- do not build full thread view yet
+- do not build read receipts
+- do not build delivery receipts in UI yet
+- do not build message editing
+
+That is enough.
+
+==================================================
+13. EXACT IMPLEMENTATION ORDER
+==================================================
+
+Do this in order:
+
+1. Add ContractorMessage Prisma model
+2. Run prisma generate / migrate
+3. Update reply-to-contractor route to create ContractorMessage after successful send
+4. Update issue detail page query to include latest outbound reply per response
+5. Add "Your reply" UI block under contractor question
+6. After reply send, refresh page data and show success toast
+7. Add timeline event logging if not already complete
+
+==================================================
+14. TEST CHECKLIST
+==================================================
+
+TEST 1 — EMAIL REPLY
+- contractor asks question by email
+- owner replies in app via Email
+- email sends successfully
+- ContractorMessage row created
+- issue card shows:
+  - Your reply
+  - Sent via Email
+  - timestamp
+
+TEST 2 — SMS REPLY
+- contractor asks by SMS
+- owner replies in app via SMS
+- message sends successfully
+- ContractorMessage row created
+- issue card shows:
+  - Your reply
+  - Sent via SMS
+  - timestamp
+
+TEST 3 — PAGE REFRESH
+- refresh issue page
+- outbound reply still visible
+
+TEST 4 — MULTIPLE QUOTES
+- only correct contractor card shows the reply
+- not all cards
+
+TEST 5 — TIMELINE
+- timeline includes owner reply sent event
+
+==================================================
+15. FUTURE EXPANSION (NOT NOW)
+==================================================
+
+This design supports later upgrades:
+
+- full conversation thread
+- read/delivery status
+- contractor acknowledgments
+- all-message timeline
+- per-channel thread history
+
+Because ContractorMessage is already the right data model.
+
+==================================================
+FINAL TRUTH
+==================================================
+
+If the user replies from inside the app, the app must show:
+- that the reply was sent
+- what the reply said
+- when it was sent
+- by which channel
+
+Without that, the app feels unreliable.
+
+With this implemented, the app becomes:
+- trustworthy
+- complete
+- the source of truth for repair communication
+
+END OF DOCUMENT

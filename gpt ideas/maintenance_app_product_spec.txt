@@ -1,0 +1,140 @@
+PRODUCT SPEC – MAINTENANCE TRIAGE & QUOTE COORDINATION
+
+Version: MVP v1.0
+Purpose: Developer handoff document
+
+==================================================
+1. OVERVIEW
+==================================================
+This product enables property managers to efficiently handle maintenance issues by:
+1. Collecting tenant issues (text + photo)
+2. Using AI to classify category and urgency
+3. Sending structured requests to contractors
+4. Aggregating contractor quotes
+5. Recommending a vendor
+6. Allowing one-click approval
+
+Primary goal:
+Reduce time from issue submission → vendor selection.
+
+Platform:
+Responsive web application (NOT native mobile app)
+
+==================================================
+2. USERS
+==================================================
+1. Property Manager (primary user)
+2. Tenant (issue submission only)
+3. Contractor (quote response only)
+
+==================================================
+3. CORE WORKFLOWS
+==================================================
+
+A. Tenant Submission
+- Submit issue via web form
+- Upload image
+- Provide description + contact info
+- System stores issue
+- AI classifies issue
+
+B. Contractor Outreach
+- Manager reviews issue
+- Selects contractors
+- System sends request (SMS/email)
+- Contractors respond via link
+
+C. Vendor Approval
+- Manager compares quotes
+- System shows recommendation
+- Manager approves vendor
+- Notifications sent
+
+==================================================
+4. PLATFORM ARCHITECTURE
+==================================================
+Frontend:
+- Next.js (App Router)
+- TypeScript
+- Tailwind CSS
+
+Backend:
+- Next.js API routes / server actions
+- Supabase (Postgres + Storage)
+
+Messaging:
+- Twilio (SMS)
+- Resend/Postmark (email)
+
+AI:
+- OpenAI (structured JSON outputs)
+
+Hosting:
+- Vercel
+
+==================================================
+5. PAGE STRUCTURE
+==================================================
+/login
+/dashboard
+/issues
+/issues/[id]
+/properties
+/contractors
+/settings
+/submit-request/[token]
+/contractor/respond/[token]
+
+==================================================
+6. KEY FEATURES
+==================================================
+- Tenant issue intake
+- AI classification
+- Contractor dispatch
+- Quote aggregation
+- Recommendation engine
+- One-click approval
+
+==================================================
+7. DATABASE (SIMPLIFIED)
+==================================================
+users
+properties
+units
+contractors
+maintenance_issues
+contractor_requests
+contractor_quotes
+
+==================================================
+8. AI ROLE
+==================================================
+- Classify issue
+- Assist urgency
+- Generate summaries
+- Explain recommendation
+
+==================================================
+9. SCORING LOGIC
+==================================================
+price 35%
+availability 35%
+vendor priority 20%
+response quality 10%
+
+==================================================
+10. BUILD ORDER
+==================================================
+1. Auth
+2. Properties
+3. Contractors
+4. Issue intake
+5. AI classification
+6. Dashboard
+7. Dispatch system
+8. Contractor response
+9. Recommendation
+10. Approval flow
+
+==================================================
+END

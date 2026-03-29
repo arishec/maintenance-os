@@ -1,0 +1,337 @@
+MAINTENANCE OS
+ADMIN LOOKUP ENDPOINT REVIEW + HARDENING SPEC
+
+==================================================
+PURPOSE
+==================================================
+
+This document reviews and improves the internal admin lookup endpoint.
+
+Goal:
+- Keep it lightweight (no UI)
+- Make it safe for production
+- Make it extremely useful for debugging
+- Prevent future mistakes or exposure
+
+==================================================
+CURRENT APPROACH (WHAT YOU BUILT)
+==================================================
+
+Endpoint:
+https://ifbids.com/api/admin/lookup?ref=...
+
+Behavior:
+- ISS-XXXXXX → returns full issue chain
+- MNT-XXXXXX → returns dispatch via reply token
+
+Access:
+- restricted to a specific logged-in user
+
+Response:
+- raw JSON
+
+--------------------------------------------------
+
+This is fundamentally correct and aligns with how early-stage
+production systems are built.
+
+==================================================
+WHAT IS WORKING WELL
+==================================================
+
+1. API-only approach
+- No UI needed
+- No product surface added
+- Fast to build and maintain
+
+2. Reference-based lookup
+- Clean mapping to system design
+- Works for both issues and dispatches
+
+3. Full-chain retrieval
+- issue
+- dispatches
+- responses
+- job
+- timeline
+
+This is critical for debugging.
+
+4. Raw JSON response
+- No formatting needed
+- Truth-first approach
+
+==================================================
+REQUIRED FIXES (IMPORTANT)
+==================================================
+
+--------------------------------------------------
+1. DO NOT LEAVE THIS EXPOSED WITHOUT HARD GUARDS
+--------------------------------------------------
+
+Current risk:
+Endpoint is publicly accessible path on production domain.
+
+Even with auth, this is not enough.
+
+--------------------------------------------------
+
+Required fix:
+
+Add strict server-side check:
+
+```ts
+if (!user || !ADMIN_EMAILS.includes(user.email)) {
+  return new Response("Forbidden", { status: 403 })
+}
+```
+
+--------------------------------------------------
+
+Add SECOND layer (strongly recommended):
+
+```ts
+if (req.headers.get("x-admin-secret") !== process.env.ADMIN_SECRET) {
+  return new Response("Forbidden", { status: 403 })
+}
+```
+
+--------------------------------------------------
+
+Result:
+- protects against auth bugs
+- protects against accidental exposure
+- protects against future dev mistakes
+
+==================================================
+2. RENAME THE ROUTE (REDUCE SURFACE AREA)
+==================================================
+
+Current:
+`/api/admin/lookup`
+
+Problem:
+- obvious
+- guessable
+- easily discoverable
+
+--------------------------------------------------
+
+Recommended:
+
+`/api/internal/lookup`
+
+OR
+
+`/api/dev/lookup`
+
+--------------------------------------------------
+
+This is NOT security through obscurity.
+
+It simply reduces unnecessary attention.
+
+==================================================
+3. STANDARDIZE REFERENCE TYPES
+==================================================
+
+Current:
+- ISS- for issue
+- MNT- for dispatch
+
+--------------------------------------------------
+
+Required rule:
+
+```ts
+if (ref.startsWith("ISS-")) {
+  // issue lookup
+} else if (ref.startsWith("MNT-")) {
+  // dispatch lookup
+} else {
+  return error
+}
+```
+
+--------------------------------------------------
+
+Reason:
+- avoids ambiguity
+- prevents future confusion
+- keeps logic deterministic
+
+==================================================
+4. ADD CLEAR NOT FOUND RESPONSE
+==================================================
+
+Current risk:
+- unclear empty or silent failures
+
+--------------------------------------------------
+
+Required response:
+
+```json
+{
+  "error": "NOT_FOUND",
+  "message": "No issue or dispatch found for reference MNT-QYTQ7P"
+}
+```
+
+--------------------------------------------------
+
+Reason:
+- faster debugging
+- eliminates guesswork
+
+==================================================
+5. ADD LOGGING (VERY IMPORTANT)
+==================================================
+
+Every lookup should log:
+
+```ts
+console.log("ADMIN_LOOKUP", {
+  ref,
+  user: user.email,
+  timestamp: new Date()
+})
+```
+
+--------------------------------------------------
+
+Why:
+- trace usage
+- debug issues faster
+- audit access
+
+==================================================
+6. ADD SUMMARY BLOCK TO RESPONSE
+==================================================
+
+Current:
+Full JSON only
+
+--------------------------------------------------
+
+Improve:
+
+Return structured response:
+
+```json
+{
+  "type": "issue",
+  "reference": "ISS-XXXXXX",
+  "summary": {
+    "status": "quotes_received",
+    "contractorsContacted": 3,
+    "responses": 1,
+    "selectedContractor": null
+  },
+  "data": { ...full object }
+}
+```
+
+--------------------------------------------------
+
+Why:
+- faster scanning
+- reduces time digging through JSON
+- improves debugging speed significantly
+
+==================================================
+OPTIONAL IMPROVEMENTS (HIGH VALUE)
+==================================================
+
+--------------------------------------------------
+7. ADD MODE PARAM
+--------------------------------------------------
+
+Allow:
+
+`/api/internal/lookup?ref=ISS-XXXXXX&mode=summary`
+
+--------------------------------------------------
+
+Behavior:
+- summary → lightweight
+- default → full data
+
+--------------------------------------------------
+
+Reason:
+- faster calls
+- cleaner output when debugging quickly
+
+==================================================
+CLEAN DOCUMENTATION VERSION
+==================================================
+
+Admin lookup (internal use only)
+
+Endpoint:
+
+/api/internal/lookup?ref=ISS-XXXXXX
+/api/internal/lookup?ref=MNT-XXXXXX
+
+--------------------------------------------------
+
+Reference types:
+
+ISS- → issue lookup (full chain)
+MNT- → dispatch lookup via reply token
+
+--------------------------------------------------
+
+Access:
+
+- must be logged in as admin
+- must include x-admin-secret header
+
+--------------------------------------------------
+
+Response:
+
+- raw JSON
+- includes summary + full data
+
+--------------------------------------------------
+
+Where to find references:
+
+- Issue reference → shown on issue detail page
+- Dispatch reference → shown in contractor emails ("Ref: MNT-XXXXXX")
+
+==================================================
+FINAL VERDICT
+==================================================
+
+Your approach is correct and well thought out.
+
+You have built:
+- a lightweight internal debugging tool
+- a reference-based tracing system
+- a full-chain inspection endpoint
+
+This is exactly what you need at this stage.
+
+--------------------------------------------------
+
+With the fixes above:
+- it becomes safe for production
+- easier to use
+- more powerful for debugging
+
+==================================================
+FINAL TRUTH
+==================================================
+
+This endpoint is not a feature.
+
+It is:
+→ your debugging superpower
+
+Once real users are live, this will save you
+hours of debugging time every week.
+
+END OF DOCUMENT

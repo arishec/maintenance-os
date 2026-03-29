@@ -61,7 +61,20 @@ ${cleanedReply}`;
   // Strip markdown code fences if present
   text = text.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
 
-  const parsed = contractorReplySchema.parse(JSON.parse(text));
+  let json: unknown;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    console.error('[parseContractorReply] AI returned non-JSON:', text.substring(0, 200));
+    throw new Error('AI reply parsing returned invalid JSON');
+  }
+
+  const result = contractorReplySchema.safeParse(json);
+  if (!result.success) {
+    console.error('[parseContractorReply] Schema validation failed:', result.error.issues);
+    throw new Error(`AI reply parsing failed validation: ${result.error.issues[0]?.message}`);
+  }
+  const parsed = result.data;
 
   // Post-process: enforce confidence and requiresReview based on extraction results
   const hasPrice = parsed.estimateLow != null || parsed.estimateHigh != null || parsed.flatEstimate != null;

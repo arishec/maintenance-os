@@ -1,0 +1,1044 @@
+MAINTENANCE OS
+SEO MASTER IMPLEMENTATION PACK
+EXACT STRATEGY, PAGE PLAN, NEXT.JS CODE, CONTENT STRUCTURE, INDEXING RULES, AND LAUNCH CHECKLIST
+
+==================================================
+1. WHAT YOU ARE ACTUALLY DOING
+==================================================
+
+You are NOT trying to rank your logged-in app.
+
+Do NOT focus SEO on:
+- /dashboard
+- /issues
+- /properties
+- /contractors
+- /settings
+- /api/*
+- auth pages
+
+You ARE trying to rank your public marketing site and guide pages.
+
+Your SEO goal is:
+
+1. create public pages that match real search intent
+2. add correct metadata and technical SEO in Next.js
+3. keep the private app out of search
+4. publish pages around real homeowner / landlord problems
+5. submit the site to Google Search Console
+
+==================================================
+2. THE EXACT SEO STRATEGY
+==================================================
+
+Your SEO should target problem-based searches.
+
+Homeowner searches:
+- track home repairs
+- home repair tracker
+- home maintenance organizer
+- how to keep track of home repairs
+- compare contractor quotes
+- home repair history
+
+Landlord searches:
+- property maintenance software for landlords
+- rental property maintenance tracking
+- landlord maintenance tracker
+- how to manage rental maintenance requests
+- property repair tracking software
+
+Comparison / workflow searches:
+- contractor quote comparison
+- home repair tracker vs spreadsheet
+- how to organize repair history
+- best way to track contractor estimates
+
+Your site should have 3 SEO layers:
+
+LAYER 1 — core conversion pages
+- /
+- /features
+- /how-it-works
+- /pricing
+- /for-homeowners
+- /for-landlords
+
+LAYER 2 — feature pages
+- /features/property-maintenance-tracking
+- /features/contractor-dispatch
+- /features/quote-comparison
+- /features/repair-history
+- /features/tenant-intake
+
+LAYER 3 — guide pages
+- /guides/how-to-track-home-repairs
+- /guides/how-to-manage-rental-property-maintenance
+- /guides/how-to-compare-contractor-quotes
+- /guides/property-maintenance-software-for-landlords
+- /guides/home-maintenance-tracker-vs-spreadsheet
+- /guides/how-to-organize-repair-history-for-a-home
+- /guides/how-to-track-contractor-estimates
+- /guides/best-way-to-handle-rental-maintenance-requests
+
+==================================================
+3. EXACT SITE STRUCTURE TO BUILD
+==================================================
+
+Public routes:
+
+/
+ /features
+ /how-it-works
+ /pricing
+ /for-homeowners
+ /for-landlords
+ /contact
+ /privacy
+ /terms
+
+ /features/property-maintenance-tracking
+ /features/contractor-dispatch
+ /features/quote-comparison
+ /features/repair-history
+ /features/tenant-intake
+
+ /guides/how-to-track-home-repairs
+ /guides/how-to-manage-rental-property-maintenance
+ /guides/how-to-compare-contractor-quotes
+ /guides/property-maintenance-software-for-landlords
+ /guides/home-maintenance-tracker-vs-spreadsheet
+ /guides/how-to-organize-repair-history-for-a-home
+ /guides/how-to-track-contractor-estimates
+ /guides/best-way-to-handle-rental-maintenance-requests
+
+Private app routes should be noindex:
+- /dashboard
+- /issues
+- /properties
+- /contractors
+- /settings
+
+==================================================
+4. EXACT NEXT.JS FILES TO CREATE OR EDIT
+==================================================
+
+Create or edit these files:
+
+app/layout.tsx
+app/robots.ts
+app/sitemap.ts
+
+app/page.tsx
+app/features/page.tsx
+app/how-it-works/page.tsx
+app/pricing/page.tsx
+app/for-homeowners/page.tsx
+app/for-landlords/page.tsx
+app/contact/page.tsx
+app/privacy/page.tsx
+app/terms/page.tsx
+
+app/features/property-maintenance-tracking/page.tsx
+app/features/contractor-dispatch/page.tsx
+app/features/quote-comparison/page.tsx
+app/features/repair-history/page.tsx
+app/features/tenant-intake/page.tsx
+
+app/guides/how-to-track-home-repairs/page.tsx
+app/guides/how-to-manage-rental-property-maintenance/page.tsx
+app/guides/how-to-compare-contractor-quotes/page.tsx
+app/guides/property-maintenance-software-for-landlords/page.tsx
+app/guides/home-maintenance-tracker-vs-spreadsheet/page.tsx
+app/guides/how-to-organize-repair-history-for-a-home/page.tsx
+app/guides/how-to-track-contractor-estimates/page.tsx
+app/guides/best-way-to-handle-rental-maintenance-requests/page.tsx
+
+components/seo/software-jsonld.tsx
+components/seo/article-jsonld.tsx
+
+Optional but recommended:
+app/(app)/layout.tsx
+This is the protected app layout with robots noindex.
+
+==================================================
+5. GLOBAL METADATA — EXACT CODE
+==================================================
+
+File:
+app/layout.tsx
+
+Use this exact pattern:
+
+```ts
+import type { Metadata } from 'next';
+import './globals.css';
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.maintenanceos.com';
+
+export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: 'Maintenance OS — Track Property Repairs, Contractors, and Quotes',
+    template: '%s | Maintenance OS',
+  },
+  description:
+    'Maintenance OS helps homeowners and landlords track property repairs, contact contractors, compare quotes, and keep repair history organized in one place.',
+  keywords: [
+    'property maintenance software',
+    'home repair tracker',
+    'landlord maintenance software',
+    'contractor quote comparison',
+    'repair history software',
+    'rental property maintenance tracking',
+  ],
+  applicationName: 'Maintenance OS',
+  authors: [{ name: 'Maintenance OS' }],
+  creator: 'Maintenance OS',
+  publisher: 'Maintenance OS',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    url: siteUrl,
+    title: 'Maintenance OS — Track Property Repairs, Contractors, and Quotes',
+    description:
+      'Manage property maintenance, send contractor requests, compare replies, and keep repair history organized.',
+    siteName: 'Maintenance OS',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Maintenance OS dashboard preview',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Maintenance OS — Track Property Repairs, Contractors, and Quotes',
+    description:
+      'Manage property maintenance, send contractor requests, compare replies, and keep repair history organized.',
+    images: ['/og-image.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+==================================================
+6. NOINDEX PRIVATE APP PAGES — EXACT CODE
+==================================================
+
+Best approach:
+put all authenticated app pages inside route group:
+app/(app)/...
+
+Then create:
+app/(app)/layout.tsx
+
+```ts
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
+export default function AppLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return children;
+}
+```
+
+Move these under app/(app)/:
+- dashboard
+- issues
+- properties
+- contractors
+- settings
+
+If you do not want a route group, then add page-level noindex metadata to each private page:
+
+```ts
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+```
+
+==================================================
+7. ROBOTS.TXT — EXACT CODE
+==================================================
+
+File:
+app/robots.ts
+
+```ts
+import type { MetadataRoute } from 'next';
+
+export default function robots(): MetadataRoute.Robots {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.maintenanceos.com';
+
+  return {
+    rules: [
+      {
+        userAgent: '*',
+        allow: [
+          '/',
+          '/features',
+          '/how-it-works',
+          '/pricing',
+          '/for-homeowners',
+          '/for-landlords',
+          '/guides/',
+        ],
+        disallow: [
+          '/dashboard',
+          '/issues',
+          '/properties',
+          '/contractors',
+          '/settings',
+          '/api/',
+          '/sign-in',
+          '/sign-up',
+        ],
+      },
+    ],
+    sitemap: `${siteUrl}/sitemap.xml`,
+  };
+}
+```
+
+==================================================
+8. SITEMAP.XML — EXACT CODE
+==================================================
+
+File:
+app/sitemap.ts
+
+```ts
+import type { MetadataRoute } from 'next';
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.maintenanceos.com';
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  const staticPages = [
+    '',
+    '/features',
+    '/how-it-works',
+    '/pricing',
+    '/for-homeowners',
+    '/for-landlords',
+    '/contact',
+    '/privacy',
+    '/terms',
+    '/features/property-maintenance-tracking',
+    '/features/contractor-dispatch',
+    '/features/quote-comparison',
+    '/features/repair-history',
+    '/features/tenant-intake',
+    '/guides/how-to-track-home-repairs',
+    '/guides/how-to-manage-rental-property-maintenance',
+    '/guides/how-to-compare-contractor-quotes',
+    '/guides/property-maintenance-software-for-landlords',
+    '/guides/home-maintenance-tracker-vs-spreadsheet',
+    '/guides/how-to-organize-repair-history-for-a-home',
+    '/guides/how-to-track-contractor-estimates',
+    '/guides/best-way-to-handle-rental-maintenance-requests',
+  ];
+
+  const now = new Date();
+
+  return staticPages.map((path) => ({
+    url: `${siteUrl}${path}`,
+    lastModified: now,
+    changeFrequency: path === '' ? 'weekly' : 'monthly',
+    priority: path === '' ? 1 : 0.7,
+  }));
+}
+```
+
+Do not include:
+- app pages
+- dashboard pages
+- parameterized private URLs
+- anything thin or unfinished
+
+==================================================
+9. JSON-LD — EXACT CODE
+==================================================
+
+File:
+components/seo/software-jsonld.tsx
+
+```tsx
+export function SoftwareJsonLd() {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'Maintenance OS',
+    applicationCategory: 'BusinessApplication',
+    operatingSystem: 'Web',
+    description:
+      'Maintenance OS helps homeowners and landlords track property repairs, contact contractors, compare quotes, and keep repair history organized in one place.',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
+  );
+}
+```
+
+File:
+components/seo/article-jsonld.tsx
+
+```tsx
+type ArticleJsonLdProps = {
+  headline: string;
+  description: string;
+  url: string;
+  datePublished: string;
+  dateModified: string;
+};
+
+export function ArticleJsonLd({
+  headline,
+  description,
+  url,
+  datePublished,
+  dateModified,
+}: ArticleJsonLdProps) {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline,
+    description,
+    url,
+    datePublished,
+    dateModified,
+    author: {
+      '@type': 'Organization',
+      name: 'Maintenance OS',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Maintenance OS',
+    },
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
+  );
+}
+```
+
+==================================================
+10. EXACT HOMEPAGE IMPLEMENTATION
+==================================================
+
+File:
+app/page.tsx
+
+```tsx
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { SoftwareJsonLd } from '@/components/seo/software-jsonld';
+
+export const metadata: Metadata = {
+  title: 'Maintenance OS — Track Property Repairs, Contractors, and Quotes',
+  description:
+    'Maintenance OS helps homeowners and landlords track repairs, contact contractors, compare quotes, and keep maintenance history organized.',
+  alternates: {
+    canonical: '/',
+  },
+};
+
+export default function HomePage() {
+  return (
+    <>
+      <SoftwareJsonLd />
+      <main className="mx-auto max-w-6xl px-6 py-16">
+        <section className="grid gap-10 md:grid-cols-2 md:items-center">
+          <div>
+            <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
+              Track property repairs, contractor quotes, and maintenance history in one place
+            </h1>
+            <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
+              Maintenance OS helps homeowners and landlords report issues, contact contractors,
+              compare replies, and keep repair records organized.
+            </p>
+            <div className="mt-8 flex gap-3">
+              <Link
+                href="/pricing"
+                className="inline-flex rounded-xl bg-black px-5 py-3 text-sm font-medium text-white"
+              >
+                View pricing
+              </Link>
+              <Link
+                href="/how-it-works"
+                className="inline-flex rounded-xl border px-5 py-3 text-sm font-medium"
+              >
+                How it works
+              </Link>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border bg-muted/30 p-6">
+            <div className="aspect-[16/10] rounded-xl border bg-white p-4">
+              <div className="text-sm font-medium">Product screenshot goes here</div>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-24">
+          <h2 className="text-2xl font-semibold">Stop chasing contractors and losing track of repairs</h2>
+          <p className="mt-4 max-w-3xl text-base text-muted-foreground">
+            Most property maintenance gets scattered across texts, emails, notes, and memory.
+            Maintenance OS keeps every issue, contractor reply, quote, and repair history in one place.
+          </p>
+        </section>
+
+        <section className="mt-24">
+          <h2 className="text-2xl font-semibold">How it works</h2>
+          <div className="mt-8 grid gap-6 md:grid-cols-5">
+            <div><h3 className="font-medium">Report the issue</h3></div>
+            <div><h3 className="font-medium">Contact contractors</h3></div>
+            <div><h3 className="font-medium">Compare replies</h3></div>
+            <div><h3 className="font-medium">Track the job</h3></div>
+            <div><h3 className="font-medium">Keep the history</h3></div>
+          </div>
+        </section>
+
+        <section className="mt-24 grid gap-8 md:grid-cols-2">
+          <div className="rounded-2xl border p-6">
+            <h2 className="text-xl font-semibold">For homeowners</h2>
+            <p className="mt-3 text-muted-foreground">
+              Keep track of home repairs, compare contractor quotes, and organize repair history.
+            </p>
+            <Link href="/for-homeowners" className="mt-4 inline-block text-sm font-medium underline">
+              Learn more
+            </Link>
+          </div>
+
+          <div className="rounded-2xl border p-6">
+            <h2 className="text-xl font-semibold">For landlords</h2>
+            <p className="mt-3 text-muted-foreground">
+              Manage repair issues, contractor communication, and maintenance history across properties.
+            </p>
+            <Link href="/for-landlords" className="mt-4 inline-block text-sm font-medium underline">
+              Learn more
+            </Link>
+          </div>
+        </section>
+
+        <section className="mt-24">
+          <h2 className="text-2xl font-semibold">Core features</h2>
+          <div className="mt-8 grid gap-6 md:grid-cols-3">
+            <Link href="/features/contractor-dispatch" className="rounded-2xl border p-6">
+              Contractor dispatch
+            </Link>
+            <Link href="/features/quote-comparison" className="rounded-2xl border p-6">
+              Quote comparison
+            </Link>
+            <Link href="/features/repair-history" className="rounded-2xl border p-6">
+              Repair history
+            </Link>
+          </div>
+        </section>
+      </main>
+    </>
+  );
+}
+```
+
+==================================================
+11. EXACT “FOR LANDLORDS” PAGE
+==================================================
+
+File:
+app/for-landlords/page.tsx
+
+```tsx
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Property Maintenance Software for Landlords',
+  description:
+    'Track rental property repairs, contact contractors, compare quotes, and manage maintenance across your properties.',
+  alternates: {
+    canonical: '/for-landlords',
+  },
+};
+
+export default function ForLandlordsPage() {
+  return (
+    <main className="mx-auto max-w-5xl px-6 py-16">
+      <section className="mb-16">
+        <h1 className="text-4xl font-semibold tracking-tight">
+          Property maintenance software for landlords
+        </h1>
+        <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
+          Maintenance OS helps landlords track repair issues, contact contractors,
+          compare replies, and keep maintenance history organized across properties.
+        </p>
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold">Track every maintenance issue in one place</h2>
+        <p className="mt-3 text-base text-muted-foreground">
+          Instead of juggling texts, emails, and scattered notes, landlords can keep
+          every issue, contractor response, and repair record organized in one workflow.
+        </p>
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold">Contact contractors without the back-and-forth</h2>
+        <p className="mt-3 text-base text-muted-foreground">
+          Send repair requests to contractors, compare responses, and choose the right
+          option without losing track of pricing or timing.
+        </p>
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold">Keep maintenance history by property</h2>
+        <p className="mt-3 text-base text-muted-foreground">
+          Store completed repairs, contractor selections, and maintenance history so
+          you always know what happened, when it happened, and who handled it.
+        </p>
+      </section>
+    </main>
+  );
+}
+```
+
+==================================================
+12. EXACT “FOR HOMEOWNERS” PAGE
+==================================================
+
+File:
+app/for-homeowners/page.tsx
+
+```tsx
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Home Repair Tracker for Homeowners',
+  description:
+    'Keep track of home repairs, compare contractor quotes, and organize your repair history in one place.',
+  alternates: {
+    canonical: '/for-homeowners',
+  },
+};
+
+export default function ForHomeownersPage() {
+  return (
+    <main className="mx-auto max-w-5xl px-6 py-16">
+      <section className="mb-16">
+        <h1 className="text-4xl font-semibold tracking-tight">
+          Home repair tracker for homeowners
+        </h1>
+        <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
+          Maintenance OS helps homeowners track repairs, compare contractor responses,
+          and keep repair records organized in one place.
+        </p>
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold">Keep every repair organized</h2>
+        <p className="mt-3 text-base text-muted-foreground">
+          Store issue details, contractor replies, estimates, and completed repair history
+          instead of losing everything across texts and memory.
+        </p>
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold">Compare contractor quotes clearly</h2>
+        <p className="mt-3 text-base text-muted-foreground">
+          See responses in one place so you can compare timing, price, and follow-up questions
+          without confusion.
+        </p>
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold">Know what was fixed and when</h2>
+        <p className="mt-3 text-base text-muted-foreground">
+          Keep a clear repair history for your home so you can look back at past work,
+          past contractors, and past costs whenever needed.
+        </p>
+      </section>
+    </main>
+  );
+}
+```
+
+==================================================
+13. EXACT GUIDE PAGE TEMPLATE
+==================================================
+
+File:
+app/guides/how-to-track-home-repairs/page.tsx
+
+```tsx
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { ArticleJsonLd } from '@/components/seo/article-jsonld';
+
+export const metadata: Metadata = {
+  title: 'How to Track Home Repairs',
+  description:
+    'Learn how to track home repairs, compare contractor quotes, and keep repair history organized so nothing gets lost.',
+  alternates: {
+    canonical: '/guides/how-to-track-home-repairs',
+  },
+};
+
+export default function GuidePage() {
+  return (
+    <>
+      <ArticleJsonLd
+        headline="How to Track Home Repairs"
+        description="Learn how to track home repairs, compare contractor quotes, and keep repair history organized so nothing gets lost."
+        url="https://www.maintenanceos.com/guides/how-to-track-home-repairs"
+        datePublished="2026-03-27"
+        dateModified="2026-03-27"
+      />
+      <main className="mx-auto max-w-3xl px-6 py-16">
+        <article className="prose prose-neutral max-w-none">
+          <h1>How to track home repairs</h1>
+
+          <p>
+            Home repairs get hard to manage when the details are scattered across texts,
+            emails, estimates, and memory. The best way to track home repairs is to keep
+            each issue, quote, contractor reply, and final outcome in one place.
+          </p>
+
+          <h2>Why homeowners lose track of repairs</h2>
+          <p>
+            Most homeowners do not have a clean system for organizing contractor quotes,
+            repair timelines, and completed work history. That creates confusion when a
+            problem returns or when multiple contractors respond differently.
+          </p>
+
+          <h2>What to record for every repair</h2>
+          <ul>
+            <li>Issue description</li>
+            <li>Date reported</li>
+            <li>Photos</li>
+            <li>Contractors contacted</li>
+            <li>Quotes received</li>
+            <li>Contractor selected</li>
+            <li>Completion date</li>
+          </ul>
+
+          <h2>How Maintenance OS helps</h2>
+          <p>
+            Maintenance OS helps homeowners track repair issues, compare contractor replies,
+            and keep the repair history organized in one place.
+          </p>
+
+          <p>
+            <Link href="/for-homeowners">See how Maintenance OS helps homeowners</Link>.
+          </p>
+        </article>
+      </main>
+    </>
+  );
+}
+```
+
+Use this same template for every guide page.
+Change:
+- title
+- description
+- H1
+- body
+- URL
+- published dates
+
+==================================================
+14. EXACT PAGE-BY-PAGE TARGETING
+==================================================
+
+Homepage
+URL: /
+Title: Maintenance OS — Track Property Repairs, Contractors, and Quotes
+Target intent:
+- property maintenance software
+- home repair tracker
+- landlord maintenance software
+
+For homeowners
+URL: /for-homeowners
+Title: Home Repair Tracker for Homeowners
+Target intent:
+- track home repairs
+- home repair tracker
+- home maintenance organizer
+
+For landlords
+URL: /for-landlords
+Title: Property Maintenance Software for Landlords
+Target intent:
+- property maintenance software for landlords
+- rental property maintenance tracking
+
+How it works
+URL: /how-it-works
+Title: How Maintenance OS Works
+Target intent:
+- how to manage property maintenance
+- how to track repair requests
+
+Pricing
+URL: /pricing
+Title: Maintenance OS Pricing
+Target intent:
+- property maintenance software pricing
+
+Feature pages
+/ features/property-maintenance-tracking
+Target: property maintenance tracking
+
+/ features/contractor-dispatch
+Target: contractor dispatch software
+
+/ features/quote-comparison
+Target: compare contractor quotes
+
+/ features/repair-history
+Target: repair history software
+
+/ features/tenant-intake
+Target: tenant maintenance request tracking
+
+Guide pages
+/how-to-track-home-repairs
+/how-to-manage-rental-property-maintenance
+/how-to-compare-contractor-quotes
+/property-maintenance-software-for-landlords
+/home-maintenance-tracker-vs-spreadsheet
+/how-to-organize-repair-history-for-a-home
+/how-to-track-contractor-estimates
+/best-way-to-handle-rental-maintenance-requests
+
+==================================================
+15. INTERNAL LINKING RULES
+==================================================
+
+Homepage should link to:
+- /features
+- /how-it-works
+- /for-homeowners
+- /for-landlords
+- /pricing
+- 2 to 4 guide pages
+
+For-homeowners page should link to:
+- /features/quote-comparison
+- /features/repair-history
+- /guides/how-to-track-home-repairs
+
+For-landlords page should link to:
+- /features/tenant-intake
+- /features/contractor-dispatch
+- /guides/how-to-manage-rental-property-maintenance
+
+Guide pages should link to:
+- 1 or 2 feature pages
+- /pricing
+- /for-homeowners or /for-landlords
+- homepage when appropriate
+
+Do not let guide pages be isolated.
+
+==================================================
+16. CONTENT RULES
+==================================================
+
+Every public SEO page should have:
+- one clear H1
+- 2 to 5 real H2s
+- natural language
+- one real topic
+- CTA near the end
+- internal links
+
+Guide page length:
+- 800 to 1500 words
+
+Feature page length:
+- 500 to 900 words
+
+Do NOT:
+- keyword stuff
+- duplicate pages
+- create thin AI fluff
+- make city pages unless you have real local strategy
+- try to rank app dashboard pages
+
+==================================================
+17. OG IMAGE
+==================================================
+
+Create:
+public/og-image.png
+
+Size:
+1200 x 630
+
+Include:
+- Maintenance OS
+- one line tagline
+- screenshot or clean mockup
+
+Suggested tagline:
+Track property repairs, contractor quotes, and maintenance history in one place
+
+==================================================
+18. GOOGLE SEARCH CONSOLE — EXACT STEPS
+==================================================
+
+After deploying the public pages:
+
+1. go to Google Search Console
+2. add your domain
+3. verify ownership
+4. submit sitemap:
+   https://www.maintenanceos.com/sitemap.xml
+5. inspect homepage URL
+6. inspect /for-homeowners
+7. inspect /for-landlords
+8. inspect first 3 guide pages
+9. request indexing
+
+Then monitor:
+- page indexing
+- sitemap status
+- coverage
+- any warnings
+
+==================================================
+19. EXACT BUILD ORDER
+==================================================
+
+Do this in this order:
+
+1. update app/layout.tsx metadata
+2. add app/(app)/layout.tsx noindex for private app pages
+3. add app/robots.ts
+4. add app/sitemap.ts
+5. add components/seo/software-jsonld.tsx
+6. add components/seo/article-jsonld.tsx
+7. build homepage
+8. build /features
+9. build /how-it-works
+10. build /pricing
+11. build /for-homeowners
+12. build /for-landlords
+13. build 5 feature pages
+14. build first 3 guide pages
+15. add header nav and footer links
+16. deploy
+17. verify Search Console
+18. submit sitemap
+19. request indexing
+20. build remaining guide pages
+
+==================================================
+20. EXACT CHECKLIST BEFORE YOU SAY SEO IS DONE
+==================================================
+
+Technical:
+- global metadata complete
+- page metadata complete
+- private app pages noindex
+- robots.txt working
+- sitemap.xml working
+- canonical tags present
+- JSON-LD present
+- OG image present
+
+Content:
+- homepage live
+- features page live
+- how-it-works live
+- pricing live
+- for-homeowners live
+- for-landlords live
+- at least 5 public SEO pages total
+- at least 3 guide pages total
+- internal links added
+- footer links added
+
+Search setup:
+- Search Console verified
+- sitemap submitted
+- homepage requested for indexing
+- top pages requested for indexing
+
+==================================================
+21. WHAT NOT TO DO
+==================================================
+
+Do not:
+- index dashboard/app pages
+- create lots of thin pages
+- duplicate titles
+- duplicate meta descriptions
+- keyword stuff
+- forget canonicals
+- forget internal linking
+- ship public pages with weak copy
+- focus SEO on authenticated app routes
+
+==================================================
+22. FINAL RECOMMENDATION
+==================================================
+
+The highest-value SEO move for this product is:
+
+1. build strong public pages around homeowner and landlord problems
+2. add the exact Next.js technical SEO pieces above
+3. create 5 to 8 real guide pages
+4. connect everything with internal links
+5. submit to Search Console
+
+That is how this product should grow organically.
+
+END OF DOCUMENT

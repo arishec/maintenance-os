@@ -1,0 +1,1593 @@
+
+MAINTENANCE OS
+Developer Handoff Specification
+Version 1.0
+Prepared for build planning
+
+========================================
+1. PRODUCT SUMMARY
+========================================
+
+Product name (working):
+Maintenance OS
+
+One-line description:
+A maintenance coordination platform for homeowners and landlords that turns a reported issue into a classified job, sends quote requests to contractors, aggregates responses, and helps the user choose and track the repair.
+
+Core product thesis:
+The product should NOT be a contractor marketplace. It should be a workflow engine that helps users coordinate repairs faster with less texting, calling, and follow-up.
+
+Primary value:
+- homeowner: “Help me get this fixed without the headache.”
+- landlord: “Help me coordinate maintenance across one or more properties without chasing contractors.”
+
+What the product is:
+- issue intake
+- issue classification
+- urgency detection
+- contractor dispatch
+- response aggregation
+- quote comparison
+- scheduling / job tracking
+- history by property
+
+What the product is not in V1:
+- full property management software
+- rent collection software
+- contractor marketplace
+- contractor bidding exchange
+- live AI voice calling
+- automatic negotiation
+- payments / escrow
+- insurance claims platform
+
+========================================
+2. TARGET USERS
+========================================
+
+2.1 Primary user types
+
+A. Homeowner
+- typically manages 1 property
+- reports issues themselves
+- may or may not already have contractors
+- needs quick help finding or contacting someone
+- wants minimal complexity
+
+B. Landlord / small property owner
+- manages multiple properties
+- may have tenants reporting issues
+- wants one place to see open issues across properties
+- may already have preferred contractors
+- needs fast coordination and status tracking
+
+2.2 Secondary users
+
+C. Tenant
+- can report an issue to the property owner through a shared intake link
+- does not need a full account in V1
+- may receive updates, but does not manage contractors
+
+D. Contractor
+- receives SMS/email job requests
+- can respond without logging in
+- does not need a full dashboard in V1
+
+========================================
+3. PRODUCT POSITIONING
+========================================
+
+Core positioning:
+“Stop texting five contractors. Send one request. Get all responses in one place.”
+
+For homeowners:
+- report issue
+- get help fast
+- compare options clearly
+- keep repair history organized
+
+For landlords:
+- manage maintenance across properties
+- centralize tenant requests
+- route jobs to preferred vendors
+- keep a documented record of repairs
+
+Critical positioning rule:
+Do not market V1 as “find the best plumber near you.”
+Do not market V1 as a marketplace.
+Contractors are part of the workflow, not the product itself.
+
+========================================
+4. V1 PRODUCT SCOPE
+========================================
+
+The MVP must support both homeowners and landlords using the same core backend.
+
+4.1 Supported workflows in V1
+- create account
+- add one or more properties
+- submit issue with text + optional photo(s)
+- AI classifies issue and urgency
+- user chooses contractors to contact
+- platform sends SMS/email requests
+- platform stores inbound replies
+- AI extracts quote / availability / notes from replies
+- platform shows comparison table
+- user marks contractor as selected
+- job moves through lifecycle
+- property maintains issue history
+
+4.2 Out of scope for V1
+- contractor app
+- contractor portal
+- auto scheduling on contractor calendars
+- payments
+- background checks / licensing verification
+- AI phone calls
+- recurring maintenance workflows
+- maintenance subscription plans
+- insurance carrier integrations
+- lease management
+- work order accounting integrations
+
+========================================
+5. KEY PRODUCT PRINCIPLES
+========================================
+
+1. Property-centric model
+Everything revolves around properties, not user type.
+A homeowner has one property.
+A landlord has multiple properties.
+Same backend.
+
+2. Same core engine, different surface area
+Homeowner view = simple and guided.
+Landlord view = multi-property dashboard and filters.
+
+3. AI should structure, not pretend
+AI classifies, extracts, summarizes, and recommends.
+AI should not impersonate human authority or negotiate automatically.
+
+4. Minimize contractor friction
+Contractors should not need accounts in V1.
+SMS/email first.
+
+5. Human decision remains explicit
+The user always approves:
+- which contractors to contact
+- which quote to accept
+- whether a job is completed
+
+========================================
+6. INFORMATION ARCHITECTURE
+========================================
+
+6.1 Main objects
+- User
+- Organization (optional for future expansion; keep single-owner model simple now but architect for later)
+- Property
+- Property member / access
+- Contractor
+- Issue
+- Issue photo
+- Dispatch request
+- Contractor response
+- Job
+- Timeline event
+- Notification
+- Saved contractor / property-contractor relationship
+
+6.2 Recommended top-level app sections
+Homeowner:
+- Dashboard
+- My Property
+- Issues
+- Contractors
+- History
+- Settings
+
+Landlord:
+- Dashboard
+- Properties
+- Issues
+- Contractors
+- Tenants / Intake Links
+- History
+- Settings
+
+========================================
+7. USER ROLES AND PERMISSIONS
+========================================
+
+7.1 Roles
+- owner
+- manager (future)
+- tenant reporter (limited)
+- contractor (no login required in V1)
+
+7.2 Permission rules for V1
+Owner:
+- full access to all properties they own
+- can create issues, dispatch, select contractors, close jobs
+
+Tenant reporter:
+- can submit issue via secure link
+- can add description and photos
+- can optionally see status of their own submitted issue if link-based tracking is implemented
+- cannot view other issues or contractor data broadly
+
+Contractor:
+- can receive and reply by SMS/email
+- no authenticated panel in V1
+
+========================================
+8. USER FLOWS
+========================================
+
+8.1 Homeowner main flow
+1. Sign up
+2. Add property
+3. Click “Report issue”
+4. Enter issue description and upload photo(s)
+5. AI classifies category + urgency
+6. User reviews classification
+7. User selects saved contractor(s) OR adds a contractor
+8. Platform sends quote request SMS/email
+9. Replies arrive and are parsed
+10. User sees comparison table
+11. User selects contractor
+12. Job status progresses:
+   new -> awaiting_quotes -> quotes_received -> contractor_selected -> scheduled -> in_progress -> completed
+13. Repair history stored
+
+8.2 Landlord main flow
+1. Sign up
+2. Add multiple properties
+3. Share tenant issue intake link per property
+4. Tenant submits issue
+5. AI classifies category + urgency
+6. Landlord reviews open issue queue
+7. Landlord dispatches to saved contractor(s)
+8. Replies are parsed and displayed
+9. Landlord selects contractor
+10. Job status tracked and updates visible in dashboard
+
+8.3 “Add contractor” flow
+V1:
+- manual entry:
+  - contractor name
+  - phone
+  - email
+  - trade
+  - notes
+
+V1.1 or V2:
+- search nearby businesses using Google Places / similar provider
+- user selects one and saves it
+Important:
+This is not phrased as “recommended by us.”
+This is phrased as “add a local business to contact.”
+
+========================================
+9. PAGE-BY-PAGE SPEC
+========================================
+
+----------------------------------------
+9.1 MARKETING LANDING PAGE
+----------------------------------------
+
+Goal:
+Explain value clearly for homeowners and landlords without making the product look like a complicated property management tool.
+
+Sections:
+1. Hero
+2. “How it works”
+3. Homeowner / Landlord dual use
+4. Key benefits
+5. Screenshots / product preview
+6. CTA
+
+Hero copy concept:
+“Report the problem. Contact contractors in one step. Compare replies in one place.”
+
+Primary CTA:
+Start free
+
+Secondary CTA:
+See how it works
+
+Hero layout:
+- left: headline, subhead, CTA buttons
+- right: product mockup showing issue comparison dashboard
+
+Below hero:
+3-step flow:
+- report issue
+- send request
+- compare replies
+
+Audience section:
+- for homeowners
+- for landlords
+
+----------------------------------------
+9.2 AUTH / SIGNUP PAGE
+----------------------------------------
+
+Fields:
+- email
+- password or magic link
+- optional name
+
+After signup:
+ask:
+- “What best describes you?”
+  - homeowner
+  - landlord
+This may be used only for onboarding personalization, not for core data model branching.
+
+----------------------------------------
+9.3 ONBOARDING FLOW
+----------------------------------------
+
+Step 1:
+User type
+- homeowner
+- landlord
+
+Step 2:
+Add first property
+Fields:
+- property nickname (optional; e.g. Home, Rental #1)
+- street address
+- city
+- state
+- zip
+- property type:
+  - single family
+  - condo
+  - apartment
+  - townhouse
+  - duplex
+  - other
+
+Step 3:
+Do you already have contractors you trust?
+Options:
+- yes, add now
+- skip for now
+
+Step 4:
+For landlords only:
+Generate optional tenant intake link for this property
+
+Step 5:
+Finish and go to dashboard
+
+----------------------------------------
+9.4 DASHBOARD PAGE
+----------------------------------------
+
+Homeowner dashboard layout:
+Top summary cards:
+- open issues
+- awaiting quotes
+- active job
+- completed in last 90 days
+
+Main left panel:
+- current / recent issues list
+
+Main right panel:
+- quick actions
+  - report issue
+  - add contractor
+  - view history
+
+Lower section:
+- saved contractors by trade
+- recent repair history
+
+Landlord dashboard layout:
+Top summary cards:
+- total properties
+- open issues
+- awaiting quotes
+- active jobs
+
+Main section:
+table of issues across all properties
+Columns:
+- property
+- issue
+- category
+- urgency
+- status
+- reported date
+- assigned contractor (if any)
+
+Right rail:
+- quick actions
+- recently active properties
+- high urgency issues
+
+Filters:
+- property
+- status
+- category
+- urgency
+
+----------------------------------------
+9.5 PROPERTY LIST PAGE
+----------------------------------------
+
+For landlords:
+Table or cards listing all properties.
+
+Fields shown:
+- property name / nickname
+- address
+- open issues count
+- active job count
+- last issue date
+
+Actions:
+- view
+- edit
+- share intake link
+- add issue
+
+For homeowner:
+This page may be hidden or simplified if only one property exists.
+
+----------------------------------------
+9.6 PROPERTY DETAIL PAGE
+----------------------------------------
+
+Purpose:
+Single place to view the repair history and current issues for a specific property.
+
+Sections:
+- property header
+- current open issues
+- active job(s)
+- repair history timeline
+- saved contractors for this property
+- tenant intake link (landlord only)
+
+Property header fields:
+- nickname
+- address
+- property type
+
+Open issues block:
+List of cards or table rows with:
+- title
+- category
+- urgency
+- status
+- reported date
+
+History block:
+Chronological timeline:
+- issue reported
+- contractor contacted
+- responses received
+- contractor selected
+- completed
+
+----------------------------------------
+9.7 REPORT ISSUE PAGE / MODAL
+----------------------------------------
+
+This is one of the most important product surfaces.
+
+Fields:
+- property (preselected if entered from property page)
+- issue title (auto-suggestable, editable)
+- issue description (required)
+- photo upload (optional, multiple)
+- where is the issue?
+  - kitchen
+  - bathroom
+  - basement
+  - exterior
+  - HVAC
+  - roof
+  - other
+- does this affect safety / water / heat / power?
+  - yes / no / not sure
+
+After submission:
+System runs AI classification and shows a review screen.
+
+AI classification review screen:
+- predicted category
+- predicted urgency
+- suggested action window
+- confidence note
+- editable by user before proceeding
+
+Example:
+Category: Plumbing
+Urgency: High
+Suggested action: Contact a plumber today
+Reasoning summary: “Water leak mentioned and photo appears to show active moisture.”
+
+User actions:
+- confirm
+- edit manually
+- save and continue
+
+----------------------------------------
+9.8 ISSUE DETAIL PAGE
+----------------------------------------
+
+Purpose:
+Single canonical record for an issue.
+
+Header:
+- issue title
+- property
+- status badge
+- urgency badge
+- category badge
+
+Tabs or sections:
+1. Overview
+2. Photos
+3. Contractors contacted
+4. Responses
+5. Timeline
+
+Overview fields:
+- description
+- location in property
+- reported by
+- created at
+- category
+- urgency
+- AI summary
+- manual override fields if classification changed
+
+Actions:
+- contact contractors
+- add contractor
+- mark scheduled
+- mark in progress
+- mark completed
+- cancel / archive
+
+----------------------------------------
+9.9 CONTRACTORS PAGE
+----------------------------------------
+
+Purpose:
+Manage saved contractors.
+
+Views:
+- all contractors
+- by trade
+- by property
+- favorites / preferred
+
+Fields:
+- name
+- trade
+- phone
+- email
+- notes
+- associated properties
+- average response time (once enough data exists)
+- total jobs contacted for
+- total jobs selected for
+
+Actions:
+- add contractor
+- edit
+- archive
+- assign to property
+- contact now
+
+Important:
+Do not overbuild ratings in V1.
+Internal performance metrics are more valuable than fake review-like UI.
+
+----------------------------------------
+9.10 ADD CONTRACTOR PAGE / MODAL
+----------------------------------------
+
+Fields:
+- contractor name
+- company name (optional)
+- trade
+  - plumbing
+  - electrical
+  - HVAC
+  - roofing
+  - appliance repair
+  - handyman
+  - pest
+  - landscaping
+  - cleaning
+  - restoration
+  - general contractor
+  - other
+- phone
+- email
+- notes
+- set as preferred? yes/no
+- assign to property? optional
+
+Validation:
+At least one contact method required:
+- phone or email
+
+----------------------------------------
+9.11 CONTRACTOR SELECTION / DISPATCH PAGE
+----------------------------------------
+
+Purpose:
+Select who to contact for a specific issue.
+
+Layout:
+Top:
+- issue summary card
+Middle:
+- list of saved contractors filtered by relevant trade
+Bottom:
+- selected recipients panel
+- “send request” CTA
+
+Suggested logic:
+If issue category = plumbing:
+- auto-filter contractor list to plumbing + handyman
+- allow user to override
+
+Actions:
+- select multiple contractors
+- add a new contractor
+- optionally include the issue photos
+- optionally customize message before sending
+
+Pre-filled message template:
+“New repair request:
+Property: [address or nickname]
+Issue: [issue title]
+Details: [description]
+Please reply with:
+1. availability
+2. estimated cost
+3. any questions
+Photos: [link if included]”
+
+Dispatch channels:
+- SMS first if phone exists
+- email if email exists
+- optionally both
+
+----------------------------------------
+9.12 RESPONSES / QUOTE COMPARISON PAGE
+----------------------------------------
+
+This is another critical page.
+
+Layout:
+Comparison table with one row per contractor contacted.
+
+Columns:
+- contractor
+- channel sent
+- contacted at
+- replied? yes/no
+- extracted availability
+- extracted estimate
+- extracted notes
+- raw response preview
+- select button
+
+Status chips:
+- waiting
+- replied
+- needs review
+- selected
+- declined
+
+Actions:
+- resend request
+- mark manually if response came offline
+- choose contractor
+- edit extracted fields manually
+
+This page should support messy replies.
+If AI extraction confidence is low, show:
+“Needs review”
+and let the user edit fields directly.
+
+----------------------------------------
+9.13 JOB DETAIL PAGE
+----------------------------------------
+
+Once a contractor is chosen, the issue becomes an active job.
+
+Header:
+- issue title
+- property
+- selected contractor
+- current status
+
+Fields:
+- contractor contact
+- estimate
+- scheduled date/time
+- notes
+- timeline
+
+Job statuses:
+- contractor_selected
+- scheduled
+- in_progress
+- completed
+- canceled
+
+Actions:
+- edit schedule
+- add note
+- mark in progress
+- mark complete
+- reopen issue
+
+----------------------------------------
+9.14 HISTORY PAGE
+----------------------------------------
+
+Purpose:
+Repair history and documentation archive.
+
+Filters:
+- property
+- category
+- date range
+- contractor
+- status
+
+Table columns:
+- date reported
+- property
+- issue
+- category
+- selected contractor
+- final estimate
+- completion date
+- status
+
+Use case:
+User can answer:
+- when was this fixed?
+- who fixed it last time?
+- how much did it cost?
+
+----------------------------------------
+9.15 SETTINGS PAGE
+----------------------------------------
+
+Sections:
+- profile
+- notification settings
+- properties
+- default dispatch preferences
+- intake links
+- account / billing
+- privacy
+
+Notification preferences:
+- SMS alerts
+- email alerts
+- quote response alerts
+- high urgency issue alerts
+
+========================================
+10. TENANT INTAKE LINK FLOW
+========================================
+
+Each property can have a secure issue submission link.
+
+Link behavior:
+- unique per property
+- tokenized and unguessable
+- can be regenerated / disabled
+
+Tenant intake form fields:
+- your name
+- your phone/email (optional but recommended)
+- issue description
+- photo(s)
+- urgency selector:
+  - emergency
+  - urgent
+  - normal
+  - not sure
+
+Important:
+This is user input only.
+System still runs AI classification independently.
+
+After submission:
+- create issue record
+- notify landlord/owner
+- landlord reviews and decides next step
+
+========================================
+11. STATUS MODEL
+========================================
+
+11.1 Issue statuses
+- new
+- classified
+- awaiting_dispatch
+- awaiting_quotes
+- quotes_received
+- contractor_selected
+- scheduled
+- in_progress
+- completed
+- canceled
+- archived
+
+11.2 Dispatch statuses
+- queued
+- sent
+- delivered
+- failed
+- replied
+- expired
+
+11.3 Job statuses
+- contractor_selected
+- scheduled
+- in_progress
+- completed
+- canceled
+
+========================================
+12. AI BEHAVIOR SPEC
+========================================
+
+12.1 AI use cases in V1
+- classify issue category
+- determine urgency
+- summarize issue
+- extract structured fields from contractor replies
+- optionally suggest best next step
+
+12.2 AI should not do in V1
+- directly negotiate price
+- autonomously select contractor
+- automatically schedule without user approval
+- call vendors
+- guarantee technical correctness of repair advice
+
+12.3 Classification output schema
+Input:
+- free text
+- optional photo(s)
+- location tag
+- safety/water/heat/power toggle
+
+Output fields:
+- title
+- category
+- subcategory (optional)
+- urgency
+- reasoning_summary
+- suggested_timeframe
+- confidence_score
+- recommended_trade
+
+Category enum examples:
+- plumbing
+- electrical
+- HVAC
+- roofing
+- appliance
+- structural
+- pest
+- cleaning
+- exterior
+- general_handyman
+- unknown
+
+Urgency enum:
+- emergency
+- high
+- medium
+- low
+
+Suggested timeframe examples:
+- immediately
+- today
+- within_24_hours
+- within_2_to_3_days
+- within_1_week
+
+12.4 Contractor reply extraction schema
+Input:
+- raw SMS or email response text
+Output:
+- availability_text
+- availability_date (nullable)
+- estimate_low (nullable)
+- estimate_high (nullable)
+- flat_estimate (nullable)
+- notes
+- follow_up_question (nullable)
+- confidence_score
+
+Important:
+Always store raw reply.
+AI extraction is an assistive layer, not source of truth.
+
+========================================
+13. NOTIFICATION / MESSAGING SYSTEM
+========================================
+
+13.1 Channels
+- SMS
+- email
+- in-app notifications
+
+13.2 Events that trigger notifications
+- issue submitted
+- issue classified
+- dispatch sent
+- contractor replied
+- quote comparison ready
+- contractor selected
+- job scheduled
+- job marked complete
+
+13.3 Contractor outbound message template
+SMS short version:
+“New repair request for [property/area]. Issue: [short description]. Please reply with availability and estimate. Reply STOP to opt out.”
+
+Email version:
+Subject: Repair request: [issue title]
+Body:
+- property
+- issue description
+- requested response fields
+- photo links if included
+
+Compliance note:
+SMS must include opt-out handling and comply with Twilio / carrier requirements.
+
+========================================
+14. DATABASE SCHEMA (RECOMMENDED)
+========================================
+
+Use PostgreSQL.
+
+14.1 users
+- id (uuid, pk)
+- email (unique)
+- full_name
+- user_type_hint (homeowner / landlord / null)
+- created_at
+- updated_at
+
+14.2 properties
+- id (uuid, pk)
+- owner_user_id (uuid, fk -> users.id)
+- nickname
+- address_line_1
+- address_line_2
+- city
+- state
+- postal_code
+- property_type
+- created_at
+- updated_at
+
+14.3 property_access
+(for future multi-user collaboration; can be minimal now)
+- id
+- property_id
+- user_id
+- role
+- created_at
+
+14.4 contractors
+- id (uuid, pk)
+- owner_user_id (uuid, fk -> users.id)
+- name
+- company_name
+- trade
+- phone
+- email
+- notes
+- is_preferred (boolean)
+- is_archived (boolean default false)
+- created_at
+- updated_at
+
+14.5 property_contractors
+(optional join if one contractor can be linked to specific properties)
+- id
+- property_id
+- contractor_id
+- created_at
+
+14.6 issues
+- id (uuid, pk)
+- property_id (uuid, fk)
+- reported_by_user_id (nullable fk)
+- reporter_name (nullable)
+- reporter_contact (nullable)
+- source_type (owner_app / tenant_link / manual)
+- title
+- description
+- location_in_property
+- category
+- subcategory
+- urgency
+- reasoning_summary
+- suggested_timeframe
+- recommended_trade
+- ai_confidence
+- status
+- created_at
+- updated_at
+- completed_at (nullable)
+
+14.7 issue_photos
+- id
+- issue_id
+- file_url
+- sort_order
+- created_at
+
+14.8 dispatches
+(one row per contractor contacted for an issue)
+- id
+- issue_id
+- contractor_id
+- channel (sms / email)
+- outbound_message
+- status
+- sent_at
+- delivered_at
+- failed_at
+- reply_received_at
+- created_at
+- updated_at
+
+14.9 contractor_responses
+- id
+- dispatch_id
+- raw_message
+- availability_text
+- availability_date
+- estimate_low
+- estimate_high
+- flat_estimate
+- notes
+- follow_up_question
+- extraction_confidence
+- requires_review (boolean)
+- received_at
+- created_at
+
+14.10 jobs
+(one selected contractor for one issue)
+- id
+- issue_id
+- contractor_id
+- selected_response_id (nullable)
+- selected_estimate
+- scheduled_for (nullable)
+- status
+- notes
+- started_at (nullable)
+- completed_at (nullable)
+- created_at
+- updated_at
+
+14.11 timeline_events
+- id
+- property_id
+- issue_id (nullable)
+- job_id (nullable)
+- actor_type (user / tenant / system / contractor)
+- actor_label
+- event_type
+- event_payload_json
+- created_at
+
+14.12 property_intake_links
+- id
+- property_id
+- token_hash
+- is_active
+- created_at
+- rotated_at
+
+14.13 notifications
+- id
+- user_id
+- type
+- title
+- body
+- read_at (nullable)
+- created_at
+
+========================================
+15. API SPEC (REST EXAMPLE)
+========================================
+
+15.1 Auth
+POST /api/auth/signup
+POST /api/auth/login
+POST /api/auth/logout
+GET /api/auth/me
+
+15.2 Properties
+GET /api/properties
+POST /api/properties
+GET /api/properties/:id
+PATCH /api/properties/:id
+DELETE /api/properties/:id
+
+15.3 Contractors
+GET /api/contractors
+POST /api/contractors
+GET /api/contractors/:id
+PATCH /api/contractors/:id
+DELETE /api/contractors/:id
+
+Optional:
+GET /api/properties/:id/contractors
+POST /api/properties/:id/contractors/:contractorId/link
+
+15.4 Issues
+GET /api/issues
+POST /api/issues
+GET /api/issues/:id
+PATCH /api/issues/:id
+POST /api/issues/:id/classify
+POST /api/issues/:id/dispatch
+POST /api/issues/:id/select-contractor
+POST /api/issues/:id/mark-scheduled
+POST /api/issues/:id/mark-in-progress
+POST /api/issues/:id/mark-completed
+
+15.5 Photos
+POST /api/issues/:id/photos
+DELETE /api/issues/:id/photos/:photoId
+
+15.6 Dispatch / Responses
+GET /api/issues/:id/dispatches
+POST /api/webhooks/twilio/sms
+POST /api/webhooks/email/inbound
+PATCH /api/responses/:id
+
+15.7 Jobs
+GET /api/jobs
+GET /api/jobs/:id
+PATCH /api/jobs/:id
+
+15.8 Tenant intake
+GET /i/:token
+POST /api/intake/:token/issues
+
+========================================
+16. BACKEND LOGIC REQUIREMENTS
+========================================
+
+16.1 Issue creation logic
+On issue creation:
+- validate property ownership / link validity
+- upload photos
+- create issue record with temporary status = new
+- queue AI classification job
+- update issue to classified + awaiting_dispatch after classification
+
+16.2 Classification logic
+- call LLM with strict structured output
+- if model confidence too low, set category = unknown and flag manual review
+- save reasoning summary
+- do not auto-dispatch
+
+16.3 Dispatch logic
+When user selects contractors:
+- create dispatch rows
+- build outbound messages
+- send through SMS and/or email provider
+- update dispatch status based on provider callbacks
+- append timeline event
+
+16.4 Inbound response logic
+On inbound SMS/email:
+- identify contractor + dispatch
+- create contractor_response with raw content
+- run extraction parser / LLM
+- update dispatch status = replied
+- notify user
+- append timeline event
+
+16.5 Contractor selection logic
+When user chooses one response:
+- create or update job
+- update issue status = contractor_selected
+- mark selected dispatch/response
+- append timeline event
+
+16.6 Completion logic
+When completed:
+- update job.status = completed
+- update issue.status = completed
+- set completed_at timestamps
+- append timeline event
+
+========================================
+17. AI PROMPTING REQUIREMENTS
+========================================
+
+17.1 General guidance
+Use deterministic structured prompts.
+Prefer JSON schema output.
+Never trust freeform LLM output without validation.
+
+17.2 Issue classification prompt requirements
+Input bundle:
+- issue description
+- location in property
+- safety/water/heat/power toggle
+- image summary if vision used
+- allowed categories enum
+- allowed urgency enum
+
+Must return:
+- title
+- category
+- urgency
+- reasoning summary
+- suggested timeframe
+- recommended trade
+- confidence
+
+17.3 Contractor response extraction prompt requirements
+Input:
+- raw message
+- known issue category
+- known contractor trade
+- current date/time
+
+Must return:
+- whether response contains estimate
+- estimate values
+- availability
+- notes
+- if human review is needed
+
+========================================
+18. UI / UX DESIGN DIRECTION
+========================================
+
+Design goals:
+- calm
+- operational
+- trustworthy
+- simple enough for homeowners
+- structured enough for landlords
+
+Style direction:
+- modern SaaS
+- clean spacing
+- neutral palette
+- strong status indicators
+- avoid clutter and marketplace noise
+
+Component guidance:
+- cards for summary + issue records
+- table for landlord issue queue and quote comparison
+- badges for urgency/status
+- timeline component for activity history
+- modal or side panel for “add contractor” and “report issue”
+
+Homeowner UX rule:
+Prefer guided screens and fewer choices.
+
+Landlord UX rule:
+Prefer dense tables and filters.
+
+========================================
+19. MOBILE VS WEB
+========================================
+
+Recommendation for V1:
+Build as a responsive web app, not a native mobile app.
+
+Reason:
+- faster to ship
+- easier for homeowner and landlord use
+- issue reporting and dashboard both work well in responsive web
+- contractor side does not need an app
+
+Mobile requirements:
+- issue reporting must be excellent on mobile
+- photo upload must be easy on mobile
+- dashboard must remain usable on tablet/phone
+
+Desktop requirements:
+- landlord table views should be optimized for desktop
+
+Future:
+A native mobile wrapper can be considered later if usage proves strong.
+
+========================================
+20. TECH STACK RECOMMENDATION
+========================================
+
+Frontend:
+- Next.js
+- TypeScript
+- Tailwind
+- component library as needed
+
+Backend:
+- Next.js API routes or dedicated backend
+- PostgreSQL
+- Prisma or Drizzle ORM
+
+Auth:
+- Clerk, Auth.js, or Supabase Auth
+
+Storage:
+- S3, Supabase Storage, or equivalent for issue photos
+
+Messaging:
+- Twilio for SMS
+- transactional email provider for outbound and inbound email parsing
+
+AI:
+- OpenAI or Anthropic
+- must support structured outputs reliably
+- vision support useful but not required for first cut
+
+Hosting:
+- Vercel or equivalent
+
+Observability:
+- structured logs
+- error tracking
+- message delivery tracking
+- webhook logs
+
+========================================
+21. ADMIN / INTERNAL TOOLING
+========================================
+
+Minimal admin needs:
+- inspect issues
+- inspect dispatch failures
+- inspect inbound webhook logs
+- inspect AI classification failures
+- manually re-run extraction
+- view message transcript
+
+Admin is not user-facing in V1 but should be considered in engineering design.
+
+========================================
+22. ANALYTICS / EVENTS TO TRACK
+========================================
+
+Track:
+- signup completed
+- property created
+- contractor added
+- issue created
+- issue classified
+- dispatch sent
+- contractor replied
+- contractor selected
+- job completed
+
+Product questions to answer:
+- do users have contractors already?
+- how many contractors are contacted per issue?
+- which trades are most common?
+- how long does it take from issue creation to contractor selection?
+- how many issues are completed?
+
+========================================
+23. NON-FUNCTIONAL REQUIREMENTS
+========================================
+
+Performance:
+- dashboard load under 2s for normal accounts
+- issue creation should feel instant; classification can be async with loading state
+
+Reliability:
+- message sending must be idempotent
+- webhook handlers must be retry-safe
+- raw inbound messages must always be stored
+
+Security:
+- secure auth
+- property ownership checks on all endpoints
+- tenant intake links must be tokenized and revocable
+- image uploads must be access-controlled
+- PII handled carefully
+
+Auditability:
+- timeline events should preserve who did what and when
+
+========================================
+24. EDGE CASES
+========================================
+
+Must handle:
+- contractor replies with only “yes”
+- contractor replies by phone instead of SMS/email
+- user receives quote offline and wants to enter it manually
+- AI misclassifies category
+- multiple contractors reply with vague estimates
+- duplicate dispatch sends
+- tenant submits duplicate issue
+- issue has no photo
+- issue is true emergency and system should suggest immediate action
+
+Emergency handling rule:
+If issue appears emergency-level (e.g. gas smell, electrical sparking, major flooding), UI should clearly tell user to take immediate safety action and not rely solely on quote collection.
+
+========================================
+25. EMERGENCY UX RULES
+========================================
+
+If urgency = emergency:
+- show red warning banner
+- show “Contact emergency services or your emergency vendor immediately if there is danger.”
+- allow dispatch, but do not make the user wait through a slow quote-comparison path
+- include a “call now” style action if saved emergency contractor exists
+
+========================================
+26. FUTURE PHASES (NOT V1, BUT ARCHITECT FOR THEM)
+========================================
+
+Phase 2:
+- contractor search integration (Google Places)
+- tenant status updates
+- better scheduling support
+- property-specific contractor suggestions
+- contractor performance metrics
+
+Phase 3:
+- benchmark pricing
+- recurring maintenance reminders
+- service plans
+- invoice / receipt uploads
+- vendor scorecards
+
+Phase 4:
+- homeowner concierge mode
+- premium lead routing to contractors
+- AI-generated maintenance summaries per property
+
+========================================
+27. MVP BUILD ORDER
+========================================
+
+Recommended build order:
+
+Phase A: Foundation
+1. auth
+2. properties
+3. contractors
+4. issue creation
+5. photo upload
+
+Phase B: AI + workflow core
+6. issue classification
+7. issue detail page
+8. dispatch selection UI
+9. Twilio/email sending
+10. inbound response webhook handling
+11. response extraction
+
+Phase C: decision + tracking
+12. quote comparison page
+13. contractor selection
+14. job status flow
+15. history page
+16. notifications
+
+Phase D: landlord expansion
+17. multi-property dashboard
+18. tenant intake links
+19. issue queue filters
+
+========================================
+28. WHAT “DONE” LOOKS LIKE FOR V1
+========================================
+
+A homeowner can:
+- create an account
+- add their home
+- report a leak with a photo
+- get classification
+- contact 2 contractors they added
+- receive replies
+- compare those replies
+- pick one
+- track the repair
+- later see the full history
+
+A landlord can:
+- create an account
+- add 3 rental properties
+- share a tenant intake link for one property
+- receive a tenant issue submission
+- dispatch that issue to saved contractors
+- compare responses
+- select one
+- track completion
+- see all open issues across properties
+
+If those two flows work smoothly, the MVP is successful.
+
+========================================
+29. CRITICAL PRODUCT DECISIONS TO PRESERVE
+========================================
+
+1. Do not turn V1 into a contractor marketplace.
+2. Do not require contractor signup.
+3. Build responsive web first, not native app first.
+4. Keep the data model property-centric.
+5. Keep AI assistive and reviewable.
+6. Always store raw contractor replies.
+7. Support both homeowners and landlords through the same core engine.
+
+========================================
+30. OPEN QUESTIONS FOR IMPLEMENTATION
+========================================
+
+These are implementation choices, not product blockers:
+
+1. Auth provider choice
+2. ORM choice
+3. SMS provider choice if not Twilio
+4. Inbound email parsing provider
+5. Whether vision classification is included in V1 or V1.1
+6. Whether homeowners can create more than one property in V1
+7. Whether tenant reporters get a status page in V1 or later
+
+Recommended answer for V1:
+- keep all of these simple
+- do not delay build over them
+
+========================================
+31. FINAL PRODUCT SUMMARY FOR THE DEVELOPER
+========================================
+
+Build a responsive web application called Maintenance OS.
+
+The app should support:
+- homeowners with one property
+- landlords with multiple properties
+
+The core workflow is:
+1. issue reported
+2. AI classifies issue
+3. user selects contractors
+4. platform sends requests by SMS/email
+5. replies are parsed and displayed
+6. user chooses contractor
+7. job is tracked to completion
+8. issue history is retained per property
+
+Do not build a marketplace.
+Do not require contractor accounts.
+Do not over-automate decisions.
+Optimize for fast issue coordination and clear operational visibility.
+
+End of specification.
