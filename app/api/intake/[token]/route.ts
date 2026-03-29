@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { classifyIssue } from '@/lib/ai/classify-issue';
 import { logTimelineEvent } from '@/lib/timeline';
 import { createNotification } from '@/lib/notifications';
+import { generateIssueReference } from '@/lib/tokens';
 
 function hashToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex');
@@ -80,6 +81,7 @@ export async function POST(
     // Create the issue
     const issue = await prisma.issue.create({
       data: {
+        reference: generateIssueReference(),
         propertyId: intakeLink.property.id,
         sourceType: 'tenant_link',
         reporterName: body.reporterName,
