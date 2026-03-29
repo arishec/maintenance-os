@@ -85,6 +85,11 @@ function urgencyColor(urgency: string | null): string {
 
 function categoryLabel(category: string | null): string {
   if (!category) return 'Unknown';
+  const special: Record<string, string> = {
+    hvac: 'HVAC',
+    general_handyman: 'General Handyman',
+  };
+  if (special[category.toLowerCase()]) return special[category.toLowerCase()];
   return category.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 

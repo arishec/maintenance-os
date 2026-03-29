@@ -14,6 +14,24 @@ import { JobLifecyclePanel } from './job-lifecycle-panel';
 import { RawMessageToggle } from './raw-message-toggle';
 import { ReplyToContractorButton } from './reply-to-contractor-button';
 
+/** Format internal snake_case values into readable labels */
+function formatLabel(value: string): string {
+  const special: Record<string, string> = {
+    hvac: 'HVAC',
+    within_24_hours: 'Within 24 hours',
+    within_48_hours: 'Within 48 hours',
+    within_1_week: 'Within 1 week',
+    within_2_weeks: 'Within 2 weeks',
+    within_1_month: 'Within 1 month',
+    not_urgent: 'Not urgent',
+    general_handyman: 'General Handyman',
+  };
+  if (special[value.toLowerCase()]) return special[value.toLowerCase()];
+  return value
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 function urgencyColor(urgency: string) {
   switch (urgency.toLowerCase()) {
     case 'emergency':
@@ -229,13 +247,13 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
                 {issue.category && (
                   <div>
                     <label className="text-xs font-medium text-muted-foreground">Category</label>
-                    <p className="mt-1 text-sm font-medium">{issue.category}</p>
+                    <p className="mt-1 text-sm font-medium">{formatLabel(issue.category)}</p>
                   </div>
                 )}
                 {issue.suggestedTimeframe && (
                   <div>
                     <label className="text-xs font-medium text-muted-foreground">Timeframe</label>
-                    <p className="mt-1 text-sm font-medium">{issue.suggestedTimeframe}</p>
+                    <p className="mt-1 text-sm font-medium">{formatLabel(issue.suggestedTimeframe)}</p>
                   </div>
                 )}
                 {issue.recommendedTrade && (
@@ -243,7 +261,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
                     <label className="text-xs font-medium text-muted-foreground">
                       Recommended Trade
                     </label>
-                    <p className="mt-1 text-sm font-medium">{issue.recommendedTrade}</p>
+                    <p className="mt-1 text-sm font-medium">{formatLabel(issue.recommendedTrade)}</p>
                   </div>
                 )}
               </div>
