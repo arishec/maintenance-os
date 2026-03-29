@@ -6,29 +6,11 @@ import { LayoutShell } from '@/components/layout-shell';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-function categoryLabel(category: string | null): string {
-  if (!category) return 'unknown';
-  return category.split('_').join(' ');
-}
-
-function statusColor(status: string): string {
-  const map: Record<string, string> = {
-    new: 'border-slate-200 bg-slate-50 text-slate-700',
-    classified: 'border-blue-200 bg-blue-50 text-blue-700',
-    awaiting_dispatch: 'border-blue-200 bg-blue-50 text-blue-700',
-    awaiting_quotes: 'border-yellow-200 bg-yellow-50 text-yellow-700',
-    quotes_received: 'border-purple-200 bg-purple-50 text-purple-700',
-    active_job: 'border-blue-200 bg-blue-50 text-blue-700',
-    completed: 'border-green-200 bg-green-50 text-green-700',
-    canceled: 'border-slate-200 bg-slate-50 text-slate-700',
-    archived: 'border-slate-200 bg-slate-50 text-slate-700',
-  };
-  return map[status] ?? 'border-slate-200 bg-slate-50 text-slate-700';
-}
-
-function statusLabel(status: string): string {
-  return status.split('_').join(' ');
-}
+import {
+  getCategoryLabel,
+  getIssueStatusColor,
+  getIssueStatusLabel,
+} from '@/lib/status';
 
 function formatCurrency(value: number | null | undefined): string {
   if (value === null || value === undefined) return '—';
@@ -102,7 +84,7 @@ export default async function HistoryPage() {
                         </Link>
                       </td>
                       <td className="p-4">
-                        <Badge className="border-slate-200 bg-slate-50 text-slate-700">{categoryLabel(issue.category)}</Badge>
+                        <Badge className="border-slate-200 bg-slate-50 text-slate-700">{getCategoryLabel(issue.category)}</Badge>
                       </td>
                       <td className="p-4 text-muted-foreground text-sm">
                         {issue.jobs.length > 0 ? (
@@ -127,7 +109,7 @@ export default async function HistoryPage() {
                         )}
                       </td>
                       <td className="p-4">
-                        <Badge className={statusColor(issue.status)}>{statusLabel(issue.status)}</Badge>
+                        <Badge className={getIssueStatusColor(issue.status)}>{getIssueStatusLabel(issue.status)}</Badge>
                       </td>
                     </tr>
                   ))}

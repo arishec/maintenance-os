@@ -5,6 +5,7 @@ import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { logTimelineEvent } from '@/lib/timeline';
 import { createNotification } from '@/lib/notifications';
+import { JOB_VALID_TRANSITIONS } from '@/lib/status';
 
 const updateJobSchema = z.object({
   scheduledFor: z.string().datetime().optional(),
@@ -70,14 +71,7 @@ export async function PATCH(
     }
     if (body.status !== undefined) {
       // Validate status transitions
-      const validTransitions: Record<string, string[]> = {
-        selected: ['scheduled', 'in_progress', 'canceled'],
-        scheduled: ['in_progress', 'canceled'],
-        in_progress: ['completed', 'canceled'],
-        completed: [],
-        canceled: [],
-      };
-      const allowed = validTransitions[job.status] || [];
+      const allowed = JOB_VALID_TRANSITIONS[job.status] || [];
       if (!allowed.includes(body.status)) {
         return NextResponse.json(
           { error: `Cannot transition from "${job.status}" to "${body.status}".` },

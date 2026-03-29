@@ -2403,3 +2403,67 @@ cd ~/maintenance-os-v1
 git add -A && git commit -m "Stripe hardening + cancel subscription + webhook idempotency"
 git push origin main
 npx prisma db push
+
+========================================
+SESSION 23 - ROBUSTNESS & POLISH PASS
+Date: March 28, 2026
+========================================
+
+WHAT WAS DONE:
+1. Created centralized lib/status.ts
+   - All issue status labels, colors, next-action microcopy
+   - All job status labels, colors, microcopy, progress steps, valid transitions
+   - All dispatch status labels and colors
+   - Urgency labels and colors
+   - Category labels
+   - formatLabel() helper for snake_case → readable text
+   - Helper functions: getIssueStatusLabel, getIssueStatusColor, getUrgencyColor, etc.
+   - VIEW_STATUS_MAP and VIEW_LABELS for issues list filtering
+   - ISSUE_STATUS_OPTIONS for edit form
+   - JOB_VALID_TRANSITIONS for server-side state guard
+
+2. Updated all consuming components to import from lib/status.ts:
+   - components/issue-summary-card.tsx (removed local STATUS_LABELS, NEXT_ACTION, CATEGORY_LABELS, URGENCY_LABELS, urgencyColor, statusColor)
+   - app/(app)/issues/page.tsx (removed local VIEW_STATUS_MAP, VIEW_LABELS, STATUS_DISPLAY, statusColor, urgencyColor, categoryLabel, urgencyLabel)
+   - app/(app)/issues/[id]/page.tsx (removed local formatLabel, urgencyColor, statusColor, STATUS_LABELS; now uses getDispatchStatusLabel/Color)
+   - app/(app)/issues/[id]/job-lifecycle-panel.tsx (removed local JOB_STATUS_LABELS, JOB_STATUS_COLORS, JOB_STATUS_MICROCOPY; uses JOB_PROGRESS_STEPS)
+   - app/(app)/issues/[id]/edit/page.tsx (removed local statusOptions, now imports ISSUE_STATUS_OPTIONS)
+   - app/(app)/history/page.tsx (removed local categoryLabel, statusColor, statusLabel)
+   - app/api/jobs/[id]/route.ts (removed local validTransitions, imports JOB_VALID_TRANSITIONS)
+
+3. Audited ENV consistency
+   - All files already use process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ifbids.com'
+   - Email reply-to @ifbids.com is correct (actual domain)
+   - No stale placeholder domains found
+
+4. TypeScript clean pass
+   - tsc --noEmit passes with ZERO errors
+   - Fixed one TS2345 type error in job-lifecycle-panel (readonly tuple indexOf)
+
+WHAT WAS VERIFIED ALREADY IN PLACE (from robustness spec):
+- Webhook idempotency (Twilio, Email, Stripe) — all done
+- Atomic contractor selection (prisma.$transaction) — done
+- Duplicate job prevention (409 conflict) — done
+- Paywall consistency (increment after create) — done
+- Issue + Job state guards — done
+- Stripe user resolution fallback chain — done
+- SMS/Email reply matching (token-first, unresolved fallback) — done
+- Scheduling date picker modal — already exists in job-lifecycle-panel
+- Quote card clarity with follow-up questions — done
+- Empty states with CTAs — done
+- Notifications on contractor reply/selection/completion — done
+
+FILES CHANGED:
+- lib/status.ts (NEW - centralized status mappings)
+- components/issue-summary-card.tsx
+- app/(app)/issues/page.tsx
+- app/(app)/issues/[id]/page.tsx
+- app/(app)/issues/[id]/job-lifecycle-panel.tsx
+- app/(app)/issues/[id]/edit/page.tsx
+- app/(app)/history/page.tsx
+- app/api/jobs/[id]/route.ts
+
+TO DEPLOY:
+cd ~/maintenance-os-v1
+git add -A && git commit -m "Centralize status mappings in lib/status.ts"
+git push origin main

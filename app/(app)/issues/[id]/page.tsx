@@ -14,71 +14,14 @@ import { JobLifecyclePanel } from './job-lifecycle-panel';
 import { RawMessageToggle } from './raw-message-toggle';
 import { ReplyToContractorButton } from './reply-to-contractor-button';
 
-/** Format internal snake_case values into readable labels */
-function formatLabel(value: string): string {
-  const special: Record<string, string> = {
-    hvac: 'HVAC',
-    within_24_hours: 'Within 24 hours',
-    within_48_hours: 'Within 48 hours',
-    within_1_week: 'Within 1 week',
-    within_2_weeks: 'Within 2 weeks',
-    within_1_month: 'Within 1 month',
-    not_urgent: 'Not urgent',
-    general_handyman: 'General Handyman',
-  };
-  if (special[value.toLowerCase()]) return special[value.toLowerCase()];
-  return value
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-function urgencyColor(urgency: string) {
-  switch (urgency.toLowerCase()) {
-    case 'emergency':
-      return 'bg-red-100 text-red-800';
-    case 'high':
-      return 'bg-orange-100 text-orange-800';
-    case 'medium':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'low':
-      return 'bg-green-100 text-green-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
-}
-
-function statusColor(status: string) {
-  switch (status.toLowerCase()) {
-    case 'quotes_received':
-      return 'bg-green-100 text-green-800';
-    case 'active_job':
-      return 'bg-blue-100 text-blue-800';
-    case 'completed':
-      return 'bg-green-100 text-green-800';
-    case 'awaiting_quotes':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'awaiting_dispatch':
-    case 'classified':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'canceled':
-    case 'archived':
-      return 'bg-gray-100 text-gray-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
-}
-
-const STATUS_LABELS: Record<string, string> = {
-  new: 'New',
-  classified: 'Classified',
-  awaiting_dispatch: 'Ready to Send',
-  awaiting_quotes: 'Awaiting Quotes',
-  quotes_received: 'Quotes Received',
-  active_job: 'Active Job',
-  completed: 'Completed',
-  canceled: 'Canceled',
-  archived: 'Archived',
-};
+import {
+  ISSUE_STATUS_LABELS,
+  getIssueStatusColor,
+  getUrgencyColor,
+  getDispatchStatusLabel,
+  getDispatchStatusColor,
+  formatLabel,
+} from '@/lib/status';
 
 const ACTIVE_JOB_STATUSES = ['active_job'];
 
@@ -124,7 +67,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
     })
   );
 
-  const displayStatus = STATUS_LABELS[issue.status] || issue.status;
+  const displayStatus = ISSUE_STATUS_LABELS[issue.status] || issue.status;
   const isActiveJob = ACTIVE_JOB_STATUSES.includes(issue.status);
   const activeJob = issue.jobs?.find((j) => j.status !== 'canceled');
   const hasResponses = issue.dispatches?.some((d) => d.responses?.length > 0);
@@ -152,8 +95,8 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
             </p>
           </div>
           <div className="flex gap-2 flex-shrink-0">
-            <Badge className={statusColor(issue.status)}>{displayStatus}</Badge>
-            {issue.urgency && <Badge className={urgencyColor(issue.urgency)}>{issue.urgency}</Badge>}
+            <Badge className={getIssueStatusColor(issue.status)}>{displayStatus}</Badge>
+            {issue.urgency && <Badge className={getUrgencyColor(issue.urgency)}>{issue.urgency}</Badge>}
           </div>
         </div>
 
@@ -337,21 +280,8 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
             <CardContent>
               <div className="space-y-3">
                 {issue.dispatches.map((dispatch) => {
-                  const dispatchLabel =
-                    dispatch.status === 'accepted' ? 'Accepted' :
-                    dispatch.status === 'closed' ? 'Closed' :
-                    dispatch.status === 'sent' ? 'Sent' :
-                    dispatch.status === 'delivered' ? 'Delivered' :
-                    dispatch.status === 'replied' ? 'Replied' :
-                    dispatch.status === 'failed' ? 'Failed' :
-                    dispatch.status === 'expired' ? 'Expired' : 'Queued';
-
-                  const dispatchColor =
-                    dispatch.status === 'accepted' ? 'bg-green-100 text-green-800' :
-                    dispatch.status === 'closed' ? 'bg-gray-100 text-gray-600' :
-                    dispatch.status === 'replied' ? 'bg-blue-100 text-blue-800' :
-                    dispatch.status === 'failed' ? 'bg-red-100 text-red-800' :
-                    '';
+                  const dispatchLabel = getDispatchStatusLabel(dispatch.status);
+                  const dispatchColor = getDispatchStatusColor(dispatch.status);
 
                   return (
                     <div key={dispatch.id} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">

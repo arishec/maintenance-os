@@ -5,6 +5,12 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  JOB_STATUS_LABELS,
+  JOB_STATUS_COLORS,
+  JOB_STATUS_MICROCOPY,
+  JOB_PROGRESS_STEPS,
+} from '@/lib/status';
 
 interface JobProps {
   id: string;
@@ -17,30 +23,6 @@ interface JobProps {
   completedAt?: string | null;
   notes?: string | null;
 }
-
-const JOB_STATUS_LABELS: Record<string, string> = {
-  selected: 'Contractor Selected',
-  scheduled: 'Scheduled',
-  in_progress: 'In Progress',
-  completed: 'Completed',
-  canceled: 'Canceled',
-};
-
-const JOB_STATUS_MICROCOPY: Record<string, string> = {
-  selected: 'Contractor hired — confirm scheduling next',
-  scheduled: 'Work has been scheduled',
-  in_progress: 'Work is currently underway',
-  completed: 'Work finished',
-  canceled: 'This job was canceled',
-};
-
-const JOB_STATUS_COLORS: Record<string, string> = {
-  selected: 'bg-blue-100 text-blue-800',
-  scheduled: 'bg-indigo-100 text-indigo-800',
-  in_progress: 'bg-blue-100 text-blue-800',
-  completed: 'bg-green-100 text-green-800',
-  canceled: 'bg-gray-100 text-gray-600',
-};
 
 export function JobLifecyclePanel({ job }: { job: JobProps }) {
   const router = useRouter();
@@ -147,9 +129,9 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
           {/* Status progress bar */}
           {job.status !== 'canceled' && job.status !== 'completed' && (
             <div className="flex items-center gap-1">
-              {['selected', 'scheduled', 'in_progress', 'completed'].map((step, idx) => {
-                const steps = ['selected', 'scheduled', 'in_progress', 'completed'];
-                const currentIdx = steps.indexOf(job.status);
+              {JOB_PROGRESS_STEPS.map((step, idx) => {
+                const steps = JOB_PROGRESS_STEPS;
+                const currentIdx = (steps as readonly string[]).indexOf(job.status);
                 const isActive = idx <= currentIdx;
                 return (
                   <div

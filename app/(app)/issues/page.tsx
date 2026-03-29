@@ -6,97 +6,16 @@ import { LayoutShell } from '@/components/layout-shell';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-
-// ──────────────────────────────────────────────
-// View → DB status mapping (per spec)
-// ──────────────────────────────────────────────
-
-const VIEW_STATUS_MAP = {
-  all: undefined,
-  open: [
-    'new',
-    'classified',
-    'awaiting_dispatch',
-    'awaiting_quotes',
-    'quotes_received',
-    'active_job',
-  ],
-  awaiting_quotes: ['awaiting_quotes'],
-  quotes_received: ['quotes_received'],
-  active_jobs: ['active_job'],
-  completed: ['completed'],
-  canceled: ['canceled'],
-  archived: ['archived'],
-} as const;
-
-type IssueView = keyof typeof VIEW_STATUS_MAP;
-
-const VIEW_LABELS: Record<string, string> = {
-  all: 'All',
-  open: 'Open',
-  awaiting_quotes: 'Awaiting quotes',
-  quotes_received: 'Quotes received',
-  active_jobs: 'Active jobs',
-  completed: 'Completed',
-  canceled: 'Canceled',
-  archived: 'Archived',
-};
-
-// ──────────────────────────────────────────────
-// Display labels (user-friendly)
-// ──────────────────────────────────────────────
-
-const STATUS_DISPLAY: Record<string, string> = {
-  new: 'New',
-  classified: 'Ready to send',
-  awaiting_dispatch: 'Ready to send',
-  awaiting_quotes: 'Awaiting quotes',
-  quotes_received: 'Quotes received',
-  active_job: 'Active job',
-  completed: 'Completed',
-  canceled: 'Canceled',
-  archived: 'Archived',
-};
-
-function statusColor(status: string): string {
-  const map: Record<string, string> = {
-    new: 'border-slate-200 bg-slate-50 text-slate-700',
-    classified: 'border-blue-200 bg-blue-50 text-blue-700',
-    awaiting_dispatch: 'border-blue-200 bg-blue-50 text-blue-700',
-    awaiting_quotes: 'border-yellow-200 bg-yellow-50 text-yellow-700',
-    quotes_received: 'border-green-200 bg-green-50 text-green-700',
-    active_job: 'border-blue-200 bg-blue-50 text-blue-700',
-    completed: 'border-green-200 bg-green-50 text-green-700',
-    canceled: 'border-slate-200 bg-slate-50 text-slate-700',
-    archived: 'border-slate-200 bg-slate-50 text-slate-700',
-  };
-  return map[status] ?? 'border-slate-200 bg-slate-50 text-slate-700';
-}
-
-function urgencyColor(urgency: string | null): string {
-  const map: Record<string, string> = {
-    emergency: 'border-red-200 bg-red-50 text-red-700',
-    high: 'border-orange-200 bg-orange-50 text-orange-700',
-    medium: 'border-yellow-200 bg-yellow-50 text-yellow-700',
-    low: 'border-green-200 bg-green-50 text-green-700',
-  };
-  return map[urgency ?? ''] ?? 'border-slate-200 bg-slate-50 text-slate-700';
-}
-
-function categoryLabel(category: string | null): string {
-  if (!category) return 'Unknown';
-  const special: Record<string, string> = {
-    hvac: 'HVAC',
-    general_handyman: 'General Handyman',
-  };
-  if (special[category.toLowerCase()]) return special[category.toLowerCase()];
-  return category.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-}
-
-function urgencyLabel(urgency: string | null): string {
-  if (!urgency) return 'Unknown';
-  return urgency.charAt(0).toUpperCase() + urgency.slice(1);
-}
+import {
+  ISSUE_STATUS_LABELS,
+  VIEW_STATUS_MAP,
+  VIEW_LABELS,
+  type IssueView,
+  getIssueStatusColor,
+  getUrgencyColor,
+  getUrgencyLabel,
+  getCategoryLabel,
+} from '@/lib/status';
 
 // ──────────────────────────────────────────────
 // Build URL with filters
@@ -286,11 +205,11 @@ export default async function IssuesPage({
                   <Badge
                     className={`cursor-pointer transition-colors ${
                       isActive
-                        ? urgencyColor(u) + ' ring-2 ring-offset-1 ring-slate-400'
+                        ? getUrgencyColor(u) + ' ring-2 ring-offset-1 ring-slate-400'
                         : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
                     }`}
                   >
-                    {urgencyLabel(u)}
+                    {getUrgencyLabel(u)}
                   </Badge>
                 </Link>
               );
@@ -316,7 +235,7 @@ export default async function IssuesPage({
                         : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
                     }`}
                   >
-                    {categoryLabel(c)}
+                    {getCategoryLabel(c)}
                   </Badge>
                 </Link>
               );
@@ -405,18 +324,18 @@ export default async function IssuesPage({
                           </td>
                           <td className="p-3 sm:p-4 hidden lg:table-cell">
                             <Badge className="border-slate-200 bg-slate-50 text-slate-700">
-                              {categoryLabel(issue.category)}
+                              {getCategoryLabel(issue.category)}
                             </Badge>
                           </td>
                           <td className="p-3 sm:p-4 hidden lg:table-cell">
-                            <Badge className={urgencyColor(issue.urgency)}>
-                              {urgencyLabel(issue.urgency)}
+                            <Badge className={getUrgencyColor(issue.urgency)}>
+                              {getUrgencyLabel(issue.urgency)}
                             </Badge>
                           </td>
                           <td className="p-3 sm:p-4">
                             <div>
-                              <Badge className={statusColor(issue.status)}>
-                                {STATUS_DISPLAY[issue.status] || issue.status}
+                              <Badge className={getIssueStatusColor(issue.status)}>
+                                {ISSUE_STATUS_LABELS[issue.status] || issue.status}
                               </Badge>
                               {statusSub && (
                                 <p className="text-xs text-muted-foreground mt-1">{statusSub}</p>

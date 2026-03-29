@@ -26,17 +26,9 @@ const urgencyOptions = [
   { value: 'low', label: 'Low' },
 ];
 
-const statusOptions = [
-  { value: 'new', label: 'New' },
-  { value: 'classified', label: 'Classified' },
-  { value: 'awaiting_dispatch', label: 'Awaiting Dispatch' },
-  { value: 'awaiting_quotes', label: 'Awaiting Quotes' },
-  { value: 'quotes_received', label: 'Quotes Received' },
-  { value: 'active_job', label: 'Active Job' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'canceled', label: 'Canceled' },
-  { value: 'archived', label: 'Archived' },
-];
+import { ISSUE_STATUS_OPTIONS } from '@/lib/status';
+
+const statusOptions = ISSUE_STATUS_OPTIONS;
 
 export default function EditIssuePage({
   params,
