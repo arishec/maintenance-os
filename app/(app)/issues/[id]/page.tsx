@@ -7,6 +7,7 @@ import { LayoutShell } from '@/components/layout-shell';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { isDispatchStale, formatStaleAge } from '@/lib/dispatch-helpers';
 import { PhotoUploadButton } from './photo-upload-button';
 import { SelectContractorButton } from './select-contractor-button';
 import { ClassifyButton } from './classify-button';
@@ -228,6 +229,8 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
               contractorName: activeJob.contractor.name,
               companyName: activeJob.contractor.companyName,
               agreedPrice: activeJob.selectedEstimate ? String(activeJob.selectedEstimate) : null,
+              actualCost: (activeJob as Record<string, unknown>).actualCost ? String((activeJob as Record<string, unknown>).actualCost) : null,
+              completionNotes: (activeJob as Record<string, unknown>).completionNotes as string | null ?? null,
               scheduledFor: activeJob.scheduledFor ? activeJob.scheduledFor.toISOString() : null,
               startedAt: activeJob.startedAt ? activeJob.startedAt.toISOString() : null,
               completedAt: activeJob.completedAt ? activeJob.completedAt.toISOString() : null,
@@ -335,6 +338,33 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
         </Card>
 
         {/* Dispatches Section */}
+        {/* Stale dispatch nudge banners */}
+        {issue.dispatches?.filter((d) =>
+          isDispatchStale({ status: d.status, createdAt: d.createdAt, responses: d.responses ?? [] })
+        ).map((staleDispatch) => (
+          <div key={`stale-${staleDispatch.id}`} className="rounded-xl border border-amber-300 bg-amber-50 p-4 flex items-start gap-3">
+            <span className="text-amber-600 text-lg mt-0.5">⏳</span>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-amber-900">
+                No response from {staleDispatch.contractor.name} in {formatStaleAge({ status: staleDispatch.status, createdAt: staleDispatch.createdAt, responses: staleDispatch.responses ?? [] })}
+              </p>
+              <p className="text-xs text-amber-700 mt-1">
+                Would you like to resend the request or try another contractor?
+              </p>
+              <div className="flex gap-2 mt-3">
+                <ResendDispatchButton
+                  issueId={issue.id}
+                  dispatchId={staleDispatch.id}
+                  contractorName={staleDispatch.contractor.name}
+                />
+                <Link href="/contractors">
+                  <Button size="sm" variant="outline">Try another contractor</Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        ))}
+
         {issue.dispatches && issue.dispatches.length > 0 && (
           <Card>
             <CardHeader>

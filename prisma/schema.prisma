@@ -289,6 +289,10 @@ model Job {
   scheduledFor       DateTime?
   status             JobStatus
   notes              String?
+  actualCost         Decimal?            @db.Decimal(10,2)
+  completionNotes    String?
+  satisfactionRating Int?
+  satisfactionNotes  String?
   startedAt          DateTime?
   completedAt        DateTime?
   createdAt          DateTime            @default(now())

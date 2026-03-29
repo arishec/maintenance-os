@@ -18,6 +18,8 @@ interface JobProps {
   contractorName: string;
   companyName?: string | null;
   agreedPrice?: string | null;
+  actualCost?: string | null;
+  completionNotes?: string | null;
   scheduledFor?: string | null;
   startedAt?: string | null;
   completedAt?: string | null;
@@ -30,6 +32,9 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
   const [error, setError] = useState<string | null>(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [scheduleDate, setScheduleDate] = useState('');
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [actualCost, setActualCost] = useState('');
+  const [completionNotes, setCompletionNotes] = useState('');
 
   const handleStatusChange = async (nextStatus: string, extra?: { scheduledFor?: string }) => {
     setIsLoading(nextStatus);
@@ -62,6 +67,31 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
     const dateTime = new Date(y, m - 1, d, 12, 0, 0).toISOString();
     setShowScheduleModal(false);
     handleStatusChange('scheduled', { scheduledFor: dateTime });
+  };
+
+  const handleCompleteConfirm = async () => {
+    setIsLoading('completed');
+    setError(null);
+    setShowCompleteModal(false);
+    try {
+      const res = await fetch(`/api/jobs/${job.id}/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          actualCost: actualCost || null,
+          completionNotes: completionNotes || null,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to complete job');
+      }
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setIsLoading(null);
+    }
   };
 
   const handleCancel = async () => {
@@ -101,6 +131,12 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
                 <p className="text-sm font-medium">${Number(job.agreedPrice).toLocaleString()}</p>
               </div>
             )}
+            {job.actualCost && (
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">Actual Cost</label>
+                <p className="text-sm font-medium">${Number(job.actualCost).toLocaleString()}</p>
+              </div>
+            )}
             {job.scheduledFor && (
               <div>
                 <label className="text-xs font-medium text-muted-foreground">Scheduled For</label>
@@ -125,6 +161,12 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
             <div>
               <label className="text-xs font-medium text-muted-foreground">Notes</label>
               <p className="text-sm mt-1">{job.notes}</p>
+            </div>
+          )}
+          {job.completionNotes && (
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Completion Notes</label>
+              <p className="text-sm mt-1">{job.completionNotes}</p>
             </div>
           )}
 
@@ -204,10 +246,10 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
             <div className="flex flex-wrap items-center gap-2">
               <Button
                 size="sm"
-                onClick={() => handleStatusChange('completed')}
+                onClick={() => setShowCompleteModal(true)}
                 disabled={isLoading !== null}
               >
-                {isLoading === 'completed' ? 'Updating...' : 'Mark Completed'}
+                {isLoading === 'completed' ? 'Completing...' : 'Mark Completed'}
               </Button>
               <Button
                 size="sm"
@@ -222,6 +264,55 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
           )}
         </CardContent>
       </Card>
+
+      {/* Completion Modal — captures actual cost + notes */}
+      {showCompleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setShowCompleteModal(false)}
+          />
+          <div className="relative z-10 w-full max-w-sm mx-4 rounded-xl bg-white p-6 shadow-xl space-y-4">
+            <h3 className="text-lg font-semibold">Mark this job complete</h3>
+            <p className="text-sm text-muted-foreground">
+              Record the final cost so you can track maintenance spending over time.
+            </p>
+            <div>
+              <label className="block text-sm font-medium mb-1">Actual cost ($)</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={actualCost}
+                onChange={(e) => setActualCost(e.target.value)}
+                placeholder="e.g. 450.00"
+                className="w-full rounded-lg border border-border p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Notes (optional)</label>
+              <textarea
+                value={completionNotes}
+                onChange={(e) => setCompletionNotes(e.target.value)}
+                placeholder="e.g. Replaced pipe and tightened fittings"
+                rows={3}
+                className="w-full rounded-lg border border-border p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              />
+            </div>
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setShowCompleteModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleCompleteConfirm}>
+                Save and Complete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Schedule Date Picker Modal */}
       {showScheduleModal && (

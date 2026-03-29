@@ -2868,3 +2868,108 @@ TO DEPLOY:
 cd "~/dev projects/maintenance-os-v1"
 npm install && npx prisma generate
 git add -A && git commit -m "Code review fixes: lookup field names, safe resend dispatch, strict reply routing, remove fake delivery status" && git push
+
+========================================
+SESSION 29 — PHASE 1 ROADMAP BUILD
+Date: March 29, 2026
+========================================
+
+Built all three Phase 1 features from the product roadmap:
+1. Actual cost tracking on completed jobs
+2. Dashboard redesign (attention-based)
+3. Stale dispatch detection + nudges
+
+FEATURE 1: ACTUAL COST TRACKING
+
+Schema changes (prisma/schema.prisma):
+- Added to Job model: actualCost Decimal?, completionNotes String?, satisfactionRating Int?, satisfactionNotes String?
+
+API changes (app/api/jobs/[id]/complete/route.ts):
+- Now parses optional actualCost and completionNotes from request body
+- Saves to job record on completion
+- Includes cost/notes in timeline event payload
+
+UI changes (app/(app)/issues/[id]/job-lifecycle-panel.tsx):
+- "Mark Completed" now opens a modal instead of completing immediately
+- Modal has: Actual cost ($) input, Notes textarea, Save and Complete button
+- Cost is optional but encouraged via copy: "Record the final cost so you can track maintenance spending over time"
+- Shows actualCost and completionNotes in job details when present
+- Added actualCost + completionNotes to JobProps interface
+
+Issue detail page (app/(app)/issues/[id]/page.tsx):
+- Passes actualCost and completionNotes to JobLifecyclePanel
+
+FEATURE 2: ATTENTION-BASED DASHBOARD
+
+New helper (lib/dashboard.ts):
+- getNeedsAttentionItems(userId) — derives attention items from:
+  A. quotes_received issues (user must review/select)
+  B. Contractor questions with no owner reply after
+  C. Jobs selected but not scheduled (missing scheduledFor)
+  D. Stale dispatches (sent/delivered, no reply, >72 hours)
+  E. Completed jobs missing actualCost
+- getScheduledTodayItems(userId) — jobs scheduled/in_progress with scheduledFor = today
+- getWaitingOnContractorsItems(userId) — dispatches sent but NOT stale yet
+- getRecentActivityItems(userId) — last 10 meaningful timeline events
+- getOverviewCounts(userId) — openIssues, quotesReady, activeJobs, completedThisMonth, properties
+- ALL derived from existing data. No new statuses or fields.
+
+New components (components/dashboard/):
+- needs-attention-list.tsx — color-coded cards with urgency (high/medium/low), icons, action links
+- scheduled-today-list.tsx — jobs happening today with contractor + time
+- waiting-on-contractors-list.tsx — issues with pending dispatches, shows count + age
+- recent-activity-list.tsx — timeline feed with colored dots per event type
+- overview-cards.tsx — compact 5-card grid (open issues, quotes ready, active jobs, completed this month, properties)
+
+Dashboard page (app/(app)/dashboard/page.tsx):
+- Complete rewrite from counts-first to attention-first layout
+- Section order: Needs attention → Scheduled today → Waiting on contractors → Recent activity + Overview
+- Onboarding stepper preserved for new users
+- All data fetched in parallel via Promise.all
+
+FEATURE 3: STALE DISPATCH DETECTION
+
+New helper (lib/dispatch-helpers.ts):
+- isDispatchStale(dispatch, thresholdHours=72) — derives stale state from status + createdAt + responses count
+- getStaleAge(dispatch) — returns { days, hours }
+- formatStaleAge(dispatch) — returns "3 days" or "6 hours"
+- NO new dispatch status. Pure derived behavior.
+
+Issue detail page (app/(app)/issues/[id]/page.tsx):
+- Added stale dispatch nudge banners above contractor contacts section
+- Shows amber banner per stale dispatch: "No response from [name] in [X days]"
+- Includes "Resend" and "Try another contractor" action buttons
+- Uses isDispatchStale and formatStaleAge from dispatch-helpers
+
+Dashboard integration:
+- Stale dispatches appear in "Needs attention" section via dashboard helpers
+- Urgency: medium at 3 days, high at 5+ days
+
+ARCHITECTURE NOTES:
+- Zero new statuses or schema fields for dashboard or stale detection
+- Everything derived from timestamps + existing statuses
+- Follows "if it can be derived, do not store it" rule
+- New write path only for actualCost (on job completion)
+- All dashboard helpers are server-side, no client-side data fetching
+
+FILES CREATED:
+- lib/dashboard.ts
+- lib/dispatch-helpers.ts
+- components/dashboard/needs-attention-list.tsx
+- components/dashboard/scheduled-today-list.tsx
+- components/dashboard/waiting-on-contractors-list.tsx
+- components/dashboard/recent-activity-list.tsx
+- components/dashboard/overview-cards.tsx
+
+FILES CHANGED:
+- prisma/schema.prisma (Job model: actualCost, completionNotes, satisfactionRating, satisfactionNotes)
+- app/api/jobs/[id]/complete/route.ts (accepts and saves actualCost + completionNotes)
+- app/(app)/issues/[id]/job-lifecycle-panel.tsx (completion modal, cost display)
+- app/(app)/issues/[id]/page.tsx (stale dispatch banners, pass cost props to job panel)
+- app/(app)/dashboard/page.tsx (complete rewrite: attention-based layout)
+
+TO DEPLOY:
+cd "~/dev projects/maintenance-os-v1"
+npx prisma db push   # adds new Job fields
+npx prisma generate   # regenerate client with new fields
+git add -A && git commit -m "Phase 1: attention dashboard, actual cost tracking, stale dispatch nudges" && git push

@@ -20,6 +20,22 @@ export async function POST(
       return NextResponse.json({ error: 'Not found.' }, { status: 404 });
     }
 
+    // Parse optional cost/notes from body
+    let actualCost: number | null = null;
+    let completionNotes: string | null = null;
+    try {
+      const body = await request.json();
+      if (body.actualCost != null && body.actualCost !== '') {
+        actualCost = parseFloat(body.actualCost);
+        if (isNaN(actualCost)) actualCost = null;
+      }
+      if (body.completionNotes && typeof body.completionNotes === 'string') {
+        completionNotes = body.completionNotes.trim() || null;
+      }
+    } catch {
+      // No body or invalid JSON — that's fine, cost is optional
+    }
+
     const now = new Date();
 
     // Update job
@@ -28,6 +44,8 @@ export async function POST(
       data: {
         status: 'completed',
         completedAt: now,
+        ...(actualCost != null ? { actualCost } : {}),
+        ...(completionNotes ? { completionNotes } : {}),
       },
       include: {
         contractor: true,
@@ -53,6 +71,8 @@ export async function POST(
       eventType: 'job_completed',
       payload: {
         completedAt: now.toISOString(),
+        ...(actualCost != null ? { actualCost } : {}),
+        ...(completionNotes ? { completionNotes } : {}),
       },
     });
 
