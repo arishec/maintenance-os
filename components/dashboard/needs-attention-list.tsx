@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { AttentionItem } from '@/lib/dashboard';
-import { AlertTriangle, MessageSquare, Calendar, Clock, DollarSign } from 'lucide-react';
+import { AlertTriangle, MessageSquare, Calendar, Clock, DollarSign, CheckCircle2 } from 'lucide-react';
 
 const urgencyStyles = {
   high: 'border-l-red-500 bg-red-50/50',
@@ -8,19 +8,38 @@ const urgencyStyles = {
   low: 'border-l-blue-500 bg-blue-50/50',
 };
 
+const urgencyDots = {
+  high: 'bg-red-500',
+  medium: 'bg-amber-500',
+  low: 'bg-blue-400',
+};
+
 function getIcon(reason: string) {
   if (reason.includes('question')) return <MessageSquare className="h-4 w-4 text-amber-600" />;
   if (reason.includes('No response')) return <Clock className="h-4 w-4 text-red-600" />;
   if (reason.includes('scheduling') || reason.includes('Schedule')) return <Calendar className="h-4 w-4 text-amber-600" />;
   if (reason.includes('cost')) return <DollarSign className="h-4 w-4 text-blue-600" />;
+  if (reason.includes('Quotes') || reason.includes('review')) return <AlertTriangle className="h-4 w-4 text-red-600" />;
   return <AlertTriangle className="h-4 w-4 text-red-600" />;
+}
+
+function timeSince(date: Date): string {
+  const hours = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60));
+  if (hours < 1) return 'just now';
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
 }
 
 export function NeedsAttentionList({ items }: { items: AttentionItem[] }) {
   if (items.length === 0) {
     return (
-      <div className="rounded-xl border border-border bg-white p-6 text-center">
-        <p className="text-sm text-muted-foreground">Nothing needs your attention right now.</p>
+      <div className="rounded-xl border border-green-200 bg-green-50/50 p-6 flex items-center gap-3">
+        <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />
+        <div>
+          <p className="text-sm font-medium text-green-900">You're all caught up</p>
+          <p className="text-xs text-green-700 mt-0.5">No issues need your attention right now.</p>
+        </div>
       </div>
     );
   }
@@ -37,12 +56,20 @@ export function NeedsAttentionList({ items }: { items: AttentionItem[] }) {
             <div className="flex items-start gap-3 min-w-0">
               <div className="mt-0.5 shrink-0">{getIcon(item.reason)}</div>
               <div className="min-w-0">
-                <p className="text-sm font-medium truncate">{item.issueTitle}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium truncate">{item.issueTitle}</p>
+                  <span className={`h-2 w-2 rounded-full shrink-0 ${urgencyDots[item.urgency]}`} />
+                </div>
                 <p className="text-xs text-muted-foreground">{item.propertyName}</p>
-                <p className="text-xs text-muted-foreground mt-1">{item.reason}</p>
+                <p className="text-xs font-medium mt-1" style={{ color: item.urgency === 'high' ? '#dc2626' : item.urgency === 'medium' ? '#d97706' : '#2563eb' }}>
+                  {item.reason}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">{timeSince(item.timestamp)}</p>
               </div>
             </div>
-            <span className="shrink-0 text-xs font-medium text-primary">{item.actionLabel} →</span>
+            <span className="shrink-0 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
+              {item.actionLabel} →
+            </span>
           </div>
         </Link>
       ))}

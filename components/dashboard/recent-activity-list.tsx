@@ -28,12 +28,16 @@ export function RecentActivityList({ items }: { items: ActivityItem[] }) {
   return (
     <div className="space-y-1">
       {items.map((item) => {
+        const desc = item.count > 1
+          ? `${item.description} (${item.count}x)`
+          : item.description;
+
         const inner = (
           <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-muted/50">
             <span className={`h-2 w-2 rounded-full shrink-0 ${eventDots[item.eventType] || 'bg-gray-300'}`} />
             <div className="min-w-0 flex-1">
               <p className="text-sm truncate">
-                <span className="font-medium">{item.description}</span>
+                <span className="font-medium">{desc}</span>
                 {item.issueTitle && (
                   <span className="text-muted-foreground"> · {item.issueTitle}</span>
                 )}

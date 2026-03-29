@@ -2973,3 +2973,51 @@ cd "~/dev projects/maintenance-os-v1"
 npx prisma db push   # adds new Job fields
 npx prisma generate   # regenerate client with new fields
 git add -A && git commit -m "Phase 1: attention dashboard, actual cost tracking, stale dispatch nudges" && git push
+
+========================================
+SESSION 29b — DASHBOARD REFINEMENT PASS
+Date: March 29, 2026
+========================================
+
+Based on product review feedback, refined the dashboard from "what happened" to "what should I do."
+
+CHANGES:
+
+1. "Needs Attention" is now ALWAYS visible (was hidden when empty)
+   - Shows green "You're all caught up" when no items
+   - Red badge count when items exist
+   - Renamed to "What needs your attention"
+
+2. Attention items now show urgency dots + colored reason text + time since
+   - Red dot/text for high urgency
+   - Amber for medium
+   - Blue for low
+   - Action button styled as pill
+
+3. Recent activity now GROUPS by event type + issue
+   - "You replied to contractor (3x)" instead of 3 separate rows
+   - Reduces noise, feels more intelligent
+
+4. Overview cards are now ACTION-ORIENTED + clickable
+   - "3 quotes to review" instead of "Quotes ready: 3"
+   - Color highlights when active (red/amber/blue/green tints)
+   - Links to filtered issue views
+   - Hover lift effect
+
+5. Waiting on contractors list now shows urgency
+   - Calm (gray) when <2 days
+   - Warming (amber) at 2 days
+   - Hot (red) at 3+ days
+   - Time-since label updates color dynamically
+
+FILES CHANGED:
+- app/(app)/dashboard/page.tsx (attention section always visible, renamed)
+- components/dashboard/needs-attention-list.tsx (urgency dots, colored reasons, time since, better empty state)
+- components/dashboard/recent-activity-list.tsx (grouped counts display)
+- components/dashboard/overview-cards.tsx (action labels, color highlights, clickable links)
+- components/dashboard/waiting-on-contractors-list.tsx (urgency-colored wait times)
+- lib/dashboard.ts (ActivityItem.count field, grouping logic)
+
+TO DEPLOY:
+cd "~/dev projects/maintenance-os-v1"
+git add -A && git commit -m "Dashboard refinement: always-visible attention, grouped activity, action-oriented cards, urgency colors" && git push

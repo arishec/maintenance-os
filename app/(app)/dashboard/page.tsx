@@ -82,18 +82,18 @@ export default async function DashboardPage() {
           </Card>
         )}
 
-        {/* Section 1 — Needs attention (most important) */}
-        {attentionItems.length > 0 && (
-          <section>
-            <h2 className="text-lg font-semibold mb-3">
-              Needs attention
-              <span className="ml-2 text-sm font-normal text-muted-foreground">
-                {attentionItems.length} item{attentionItems.length !== 1 ? 's' : ''}
+        {/* Section 1 — Needs attention (ALWAYS visible — this is the dashboard) */}
+        <section>
+          <h2 className="text-lg font-semibold mb-3">
+            What needs your attention
+            {attentionItems.length > 0 && (
+              <span className="ml-2 inline-flex items-center justify-center rounded-full bg-red-100 text-red-700 px-2 py-0.5 text-xs font-medium">
+                {attentionItems.length}
               </span>
-            </h2>
-            <NeedsAttentionList items={attentionItems} />
-          </section>
-        )}
+            )}
+          </h2>
+          <NeedsAttentionList items={attentionItems} />
+        </section>
 
         {/* Section 2 — Scheduled today */}
         {scheduledToday.length > 0 && (

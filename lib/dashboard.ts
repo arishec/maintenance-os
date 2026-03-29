@@ -40,6 +40,7 @@ export interface ActivityItem {
   issueId: string | null;
   issueTitle: string | null;
   timestamp: Date;
+  count: number;
 }
 
 export interface OverviewCounts {
@@ -366,14 +367,30 @@ export async function getRecentActivityItems(userId: string): Promise<ActivityIt
     issue_created: 'Issue reported',
   };
 
-  return events.map((e) => ({
-    id: e.id,
-    eventType: e.eventType,
-    description: eventDescriptions[e.eventType] || e.eventType,
-    issueId: e.issueId,
-    issueTitle: e.issue?.title ?? null,
-    timestamp: e.createdAt,
-  }));
+  // Group by eventType + issueId to reduce noise (e.g. "You replied 3 times" instead of 3 rows)
+  const grouped = new Map<string, ActivityItem>();
+  for (const e of events) {
+    const key = `${e.eventType}::${e.issueId ?? 'none'}`;
+    const existing = grouped.get(key);
+    if (existing) {
+      existing.count += 1;
+      // Keep the most recent timestamp
+      if (e.createdAt > existing.timestamp) existing.timestamp = e.createdAt;
+    } else {
+      grouped.set(key, {
+        id: e.id,
+        eventType: e.eventType,
+        description: eventDescriptions[e.eventType] || e.eventType,
+        issueId: e.issueId,
+        issueTitle: e.issue?.title ?? null,
+        timestamp: e.createdAt,
+        count: 1,
+      });
+    }
+  }
+
+  return Array.from(grouped.values())
+    .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 }
 
 export async function getOverviewCounts(userId: string): Promise<OverviewCounts> {
