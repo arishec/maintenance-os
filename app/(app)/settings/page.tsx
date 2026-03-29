@@ -60,10 +60,10 @@ export default async function SettingsPage() {
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium">Email digests</p>
-                <p className="text-xs text-muted-foreground">Weekly summary of all property activity</p>
+                <p className="text-sm font-medium">SMS dispatch</p>
+                <p className="text-xs text-muted-foreground">SMS delivery to US numbers is pending carrier approval. Email dispatch works now.</p>
               </div>
-              <div className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Off</div>
+              <div className="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded">Pending</div>
             </div>
           </CardContent>
         </Card>
