@@ -3,6 +3,14 @@ import { z } from 'zod';
 import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
+/** Normalize phone to +1XXXXXXXXXX format (US) */
+function normalizePhone(phone: string): string {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
+  return phone.trim(); // return as-is if can't normalize
+}
+
 const contractorSchema = z.object({
   name: z.string().min(1),
   companyName: z.string().optional(),
@@ -47,6 +55,31 @@ export async function POST(request: NextRequest) {
     if (!body.phone && !body.email) {
       return NextResponse.json({ error: 'Either phone or email is required.' }, { status: 400 });
     }
+
+    // Normalize contact info
+    if (body.email) body.email = body.email.toLowerCase().trim();
+    if (body.phone) body.phone = normalizePhone(body.phone);
+
+    // Check for obvious duplicates (same owner, same email or phone)
+    if (body.email || body.phone) {
+      const existing = await prisma.contractor.findFirst({
+        where: {
+          ownerUserId: user.id,
+          isArchived: false,
+          OR: [
+            ...(body.email ? [{ email: body.email }] : []),
+            ...(body.phone ? [{ phone: body.phone }] : []),
+          ],
+        },
+      });
+      if (existing) {
+        return NextResponse.json(
+          { error: `A contractor with this ${existing.email === body.email ? 'email' : 'phone'} already exists: ${existing.name}` },
+          { status: 409 }
+        );
+      }
+    }
+
     const contractor = await prisma.contractor.create({
       data: { ...body, ownerUserId: user.id },
     });

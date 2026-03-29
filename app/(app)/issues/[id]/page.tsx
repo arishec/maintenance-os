@@ -13,6 +13,8 @@ import { ClassifyButton } from './classify-button';
 import { JobLifecyclePanel } from './job-lifecycle-panel';
 import { RawMessageToggle } from './raw-message-toggle';
 import { ReplyToContractorButton } from './reply-to-contractor-button';
+import { ManualQuoteButton } from './manual-quote-button';
+import { ResendDispatchButton } from './resend-dispatch-button';
 
 import {
   ISSUE_STATUS_LABELS,
@@ -22,6 +24,41 @@ import {
   getDispatchStatusColor,
   formatLabel,
 } from '@/lib/status';
+
+/** Human-readable timeline event descriptions */
+function formatTimelineEvent(eventType: string, payload: Record<string, unknown> | null): string {
+  const p = payload || {};
+  switch (eventType) {
+    case 'issue_created':
+      return 'Issue reported';
+    case 'issue_classified':
+      return `AI classified as ${p.category || 'unknown'} — ${p.urgency || ''} urgency`;
+    case 'dispatch_sent': {
+      const count = p.contractorCount as number || 1;
+      return `Sent to ${count} contractor${count !== 1 ? 's' : ''}`;
+    }
+    case 'contractor_replied':
+      return `${p.contractorName || 'Contractor'} replied`;
+    case 'owner_reply_sent':
+      return `You replied to ${p.contractorName || 'contractor'} via ${p.channel === 'sms' ? 'SMS' : 'Email'}`;
+    case 'contractor_selected':
+      return `Selected ${p.contractorName || 'contractor'} for the job`;
+    case 'job_scheduled':
+      return 'Job scheduled';
+    case 'job_started':
+      return 'Job started';
+    case 'job_completed':
+      return 'Job marked complete';
+    case 'manual_quote_added':
+      return `Manually added quote from ${p.contractorName || 'contractor'}${p.flatEstimate ? ` — $${p.flatEstimate}` : ''}`;
+    case 'dispatch_resent':
+      return `Resent request to ${p.contractorName || 'contractor'}`;
+    case 'issue_submitted_by_tenant':
+      return 'Submitted by tenant';
+    default:
+      return eventType.replace(/_/g, ' ');
+  }
+}
 
 /** Light cleanup for contractor follow-up questions: capitalize, add punctuation */
 function tidyQuestion(raw: string): string {
@@ -67,6 +104,10 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
       jobs: {
         include: { contractor: true, selectedResponse: true },
         orderBy: { createdAt: 'desc' },
+      },
+      timelineEvents: {
+        orderBy: { createdAt: 'desc' },
+        take: 20,
       },
     },
   });
@@ -327,6 +368,13 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
                             {dispatch.responses.length} response{dispatch.responses.length !== 1 ? 's' : ''}
                           </span>
                         )}
+                        {(dispatch.status === 'sent' || dispatch.status === 'delivered' || dispatch.status === 'failed') && !dispatch.responses?.length && (
+                          <ResendDispatchButton
+                            issueId={issue.id}
+                            dispatchId={dispatch.id}
+                            contractorName={dispatch.contractor.name}
+                          />
+                        )}
                       </div>
                     </div>
                   );
@@ -496,19 +544,50 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
           </Card>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex flex-col gap-2 sm:flex-row">
+        {/* Manual Quote + Actions */}
+        <div className="flex flex-wrap gap-2">
+          {issue.status !== 'completed' && issue.status !== 'canceled' && (
+            <ManualQuoteButton issueId={issue.id} />
+          )}
           {(issue.status === 'classified' || issue.status === 'awaiting_dispatch') && (
-            <Link href={`/issues/${issue.id}/dispatch`} className="w-full sm:w-auto">
-              <Button className="w-full sm:w-auto">Contact Contractors</Button>
+            <Link href={`/issues/${issue.id}/dispatch`}>
+              <Button size="sm">Contact Contractors</Button>
             </Link>
           )}
           {issue.status !== 'completed' && issue.status !== 'canceled' && (
-            <Link href={`/issues/${issue.id}/edit`} className="w-full sm:w-auto">
-              <Button variant="outline" className="w-full sm:w-auto">Edit</Button>
+            <Link href={`/issues/${issue.id}/edit`}>
+              <Button size="sm" variant="outline">Edit</Button>
             </Link>
           )}
         </div>
+
+        {/* Activity Timeline */}
+        {issue.timelineEvents && issue.timelineEvents.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Activity</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {issue.timelineEvents.map((event) => {
+                  const payload = event.eventPayloadJson as Record<string, unknown> | null;
+                  return (
+                    <div key={event.id} className="flex gap-3 text-sm">
+                      <div className="flex-shrink-0 w-1.5 rounded-full bg-muted mt-1.5 self-stretch" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-foreground">{formatTimelineEvent(event.eventType, payload)}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {new Date(event.createdAt).toLocaleDateString()} at{' '}
+                          {new Date(event.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </LayoutShell>
   );

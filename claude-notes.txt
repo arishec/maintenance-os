@@ -2631,7 +2631,51 @@ POLISH PASS (same session):
 7. Email formatting — outbound emails now include "Hi {first},", message, "Thanks, {owner}" sign-off
    SMS also gets greeting + sign-off
 
+========================================
+SESSION 26b — Launch Resilience Features
+Date: March 29, 2026
+========================================
+
+FEATURES BUILT:
+
+1. MANUAL QUOTE ENTRY
+   - POST /api/issues/[id]/manual-quote — creates ContractorResponse from phone/text/in-person quotes
+   - Creates or finds existing Dispatch record (synthetic for manual entries)
+   - ManualQuoteButton component with modal: contractor select, price, availability, notes
+   - Auto-updates issue status to quotes_received
+   - Timeline event: manual_quote_added
+
+2. PHONE NORMALIZATION + EMAIL LOWERCASE + DEDUP
+   - normalizePhone() in contractor create route: strips non-digits, formats +1XXXXXXXXXX
+   - email lowercased + trimmed before save
+   - Duplicate detection: checks existing active contractors for same email or phone
+   - Returns 409 with existing contractor name if duplicate found
+
+3. TIMELINE UI ON ISSUE DETAIL PAGE
+   - Fetches timelineEvents (last 20) in issue query
+   - Renders "Activity" card at bottom of issue page
+   - formatTimelineEvent() maps event types to human-readable strings
+   - Covers: created, classified, dispatch_sent, contractor_replied, owner_reply_sent,
+     contractor_selected, job_scheduled/started/completed, manual_quote_added, dispatch_resent
+
+4. RESEND DISPATCH BUTTON
+   - POST /api/issues/[id]/resend-dispatch — resends with new replyToken
+   - Clears previous failure state, updates sentAt
+   - ResendDispatchButton appears on dispatches with no response yet
+   - Shows in Contractor Contacts card as small "Resend" button
+   - Timeline event: dispatch_resent
+
+FILES CREATED:
+- app/api/issues/[id]/manual-quote/route.ts
+- app/api/issues/[id]/resend-dispatch/route.ts
+- app/(app)/issues/[id]/manual-quote-button.tsx
+- app/(app)/issues/[id]/resend-dispatch-button.tsx
+
+FILES CHANGED:
+- app/(app)/issues/[id]/page.tsx (timeline UI, manual quote button, resend button, formatTimelineEvent)
+- app/api/contractors/route.ts (normalizePhone, email lowercase, duplicate check)
+
 TO DEPLOY:
 cd ~/maintenance-os-v1
 rm -f .git/HEAD.lock
-git add -A && git commit -m "Add outbound reply tracking + quote response UI polish" && git push
+git add -A && git commit -m "Add manual quote entry, timeline UI, resend dispatch, contractor dedup" && git push
