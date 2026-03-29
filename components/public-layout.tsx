@@ -11,7 +11,6 @@ export async function PublicLayout({ children }: { children: React.ReactNode }) 
   const navLinks = [
     { href: '/features', label: 'Features' },
     { href: '/how-it-works', label: 'How It Works' },
-    { href: '/pricing', label: 'Pricing' },
     { href: '/for-homeowners', label: 'Homeowners' },
     { href: '/for-landlords', label: 'Landlords' },
     { href: '/guides', label: 'Guides' },
@@ -23,8 +22,9 @@ export async function PublicLayout({ children }: { children: React.ReactNode }) 
       <header className="border-b border-gray-200">
         <div className="mx-auto max-w-6xl px-8 py-4 flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="text-2xl font-bold text-gray-900 hover:opacity-80 cursor-pointer transition-opacity">
+          <Link href="/" className="text-2xl font-bold text-gray-900 hover:opacity-80 cursor-pointer transition-opacity flex items-center gap-2">
             Maintenance OS
+            <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">Beta</span>
           </Link>
 
           {/* Nav Links */}
@@ -93,14 +93,6 @@ export async function PublicLayout({ children }: { children: React.ReactNode }) 
                     className="text-gray-600 hover:text-gray-900 transition-colors"
                   >
                     Features
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/pricing"
-                    className="text-gray-600 hover:text-gray-900 transition-colors"
-                  >
-                    Pricing
                   </Link>
                 </li>
                 <li>

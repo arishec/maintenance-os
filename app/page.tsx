@@ -37,7 +37,7 @@ export default async function HomePage() {
                   href={isSignedIn ? '/dashboard' : '/sign-up'}
                   className="inline-flex rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
                 >
-                  {isSignedIn ? 'Go to dashboard' : 'Start free — no credit card'}
+                  {isSignedIn ? 'Go to dashboard' : 'Join the beta — free'}
                 </Link>
                 <Link
                   href="/how-it-works"
@@ -199,16 +199,16 @@ export default async function HomePage() {
           {/* Final CTA */}
           <section className="mt-24 rounded-2xl bg-blue-50 border border-blue-100 p-8 md:p-12 text-center">
             <h2 className="text-2xl font-bold text-gray-900">
-              Start tracking repairs the right way
+              We&apos;re in beta — everything is free
             </h2>
             <p className="mt-3 text-gray-600">
-              See how Maintenance OS works with your first issue — no credit card required.
+              Sign up, report your first issue, and help us build the best way to manage property repairs.
             </p>
             <Link
               href={isSignedIn ? '/dashboard' : '/sign-up'}
               className="mt-6 inline-flex rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
             >
-              {isSignedIn ? 'Go to dashboard' : 'Start free'}
+              {isSignedIn ? 'Go to dashboard' : 'Join the beta'}
             </Link>
           </section>
 

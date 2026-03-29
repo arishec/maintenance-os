@@ -3242,3 +3242,68 @@ TO DEPLOY:
 cd "~/dev projects/maintenance-os-v1"
 rm -f .git/HEAD.lock
 git add -A && git commit -m "Code hardening: webhook auth, indexes, ownership helpers, AI error handling" && git push
+
+========================================
+SESSION 31 - March 29, 2026
+========================================
+TWILIO A2P 10DLC REGISTRATION STATUS CHECK
+
+Discovery: The A2P 10DLC registration was ALREADY FULLY SUBMITTED from a previous session.
+All steps are complete:
+  1. ✅ Starter Customer Profile — created and active
+  2. ✅ Sole Proprietor Brand — "Maintenance OS", registered
+  3. ✅ Campaign Registration — submitted, currently UNDER REVIEW
+  4. ✅ Phone Number Registration — +1 478 812 6475 linked to messaging service
+
+Campaign details:
+  - Campaign name: "Maintenance OS sends transactional SMS notificat..."
+  - Use case: Sole Proprietor ($2.00/month)
+  - Campaign SID: CM4b5789e18e143087dde3880af6c7c41e
+  - Linked Messaging Service SID: MG5998378591...
+  - Brand SID: BN6cd9730f2b79d5b5cc4db9067b2349b0
+  - Campaign status: IN PROGRESS (under review, 2-3 weeks typical)
+  - Privacy URL: https://ifbids.com/privacy
+  - Terms URL: https://ifbids.com/terms
+  - Opt-out keywords: OPTOUT, CANCEL, END, QUIT, UNSUBSCRIBE, REVOKE, STOP, STOPALL
+  - Help keywords: HELP, INFO
+
+Other verified Twilio setup:
+  - Phone number: +1 478 812 6475 (Macon, GA) — active with SMS, MMS, Voice, Fax
+  - Inbound SMS webhook: https://ifbids.com/api/webhooks/twilio/inbound (HTTP POST)
+  - Vercel env vars: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER — all set
+
+BLOCKER: Cannot send A2P SMS traffic until campaign registration is approved by TCR.
+Twilio says they will email if there are issues. Check back in a few days.
+
+BETA MODE CHANGES (same session):
+  Made the site say "Beta" and removed all payment/paywall logic so everything is free.
+  All changes are easily reversible — paywalls are commented out with "BETA:" markers.
+
+  Files changed:
+  - components/layout-shell.tsx: Added "Beta" badge next to logo in all 4 locations (top bar, mobile bar, mobile drawer, desktop sidebar). Removed "Pricing" from marketing nav links.
+  - components/public-layout.tsx: Added "Beta" badge next to logo. Removed "Pricing" from nav and footer.
+  - app/page.tsx: CTA changed to "Join the beta — free". Final section rewritten as beta invite.
+  - app/pricing/page.tsx: Replaced two-tier pricing with single "Free while in beta" page listing all features.
+  - app/api/issues/route.ts: Commented out 3-issue paywall check (BETA marker).
+  - app/api/issues/[id]/dispatch/route.ts: Commented out dispatch paywall check (BETA marker).
+  - app/(app)/settings/page.tsx: Replaced Billing card with "Plan: Beta (Active)" card. Removed ManageSubscriptionButton import.
+  - components/paywall-modal.tsx: Replaced Stripe upgrade flow with simple "You're in the beta!" message + close button.
+
+  What still works:
+  - Stripe API routes still exist (checkout, portal, webhook) — just not linked to from UI
+  - User.plan field still exists in DB — just not enforced
+  - issueCount still tracked — just not limited
+  - All auth, ownership, and business logic unchanged
+
+  To re-enable payments later:
+  1. Uncomment BETA markers in issues/route.ts and dispatch/route.ts
+  2. Restore paywall-modal.tsx (git checkout)
+  3. Restore settings/page.tsx billing section
+  4. Add "Pricing" back to nav links in layout-shell.tsx and public-layout.tsx
+  5. Restore pricing/page.tsx (git checkout)
+
+REMAINING PENDING ITEMS:
+  - Wait for A2P 10DLC campaign approval (2-3 weeks)
+  - Test end-to-end SMS flow after approval
+  - Configure status callback URL if not yet set (/api/webhooks/twilio/status)
+  - Database indexes applied via `prisma db push` ✅ (done this session)

@@ -28,7 +28,6 @@ export function LayoutShell({ children }: { children: ReactNode }) {
   const marketingLinks = [
     { href: '/features', label: 'Features' },
     { href: '/how-it-works', label: 'How It Works' },
-    { href: '/pricing', label: 'Pricing' },
     { href: '/for-homeowners', label: 'Homeowners' },
     { href: '/for-landlords', label: 'Landlords' },
     { href: '/guides', label: 'Guides' },
@@ -40,8 +39,9 @@ export function LayoutShell({ children }: { children: ReactNode }) {
       <div className="border-b border-border bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 lg:px-8">
           <div className="flex items-center gap-8">
-            <Link href="/" className="text-lg font-semibold hover:opacity-80 cursor-pointer transition-opacity">
+            <Link href="/" className="text-lg font-semibold hover:opacity-80 cursor-pointer transition-opacity flex items-center gap-2">
               Maintenance OS
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">Beta</span>
             </Link>
             <nav className="hidden md:flex items-center gap-6">
               {marketingLinks.map((link) => {
@@ -78,7 +78,7 @@ export function LayoutShell({ children }: { children: ReactNode }) {
           >
             <Menu className="h-6 w-6" />
           </button>
-          <span className="text-lg font-semibold">Maintenance OS</span>
+          <span className="text-lg font-semibold flex items-center gap-2">Maintenance OS <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">Beta</span></span>
         </div>
         <div className="flex items-center gap-2">
           <NotificationsBell dropDirection="down" />
@@ -103,7 +103,7 @@ export function LayoutShell({ children }: { children: ReactNode }) {
           <div className="fixed inset-y-0 left-0 w-72 bg-white p-4 shadow-xl">
             <div className="mb-6 flex items-center justify-between">
               <div>
-                <div className="text-lg font-semibold">Maintenance OS</div>
+                <div className="text-lg font-semibold flex items-center gap-2">Maintenance OS <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">Beta</span></div>
                 <div className="text-xs text-muted-foreground">Homeowner + landlord workflow</div>
               </div>
               <button
@@ -172,7 +172,7 @@ export function LayoutShell({ children }: { children: ReactNode }) {
         {/* Desktop sidebar - hidden on mobile */}
         <aside className="hidden lg:flex flex-col rounded-2xl border border-border bg-white p-4 shadow-sm">
           <div className="mb-4 px-2">
-            <div className="text-lg font-semibold">Maintenance OS</div>
+            <div className="text-lg font-semibold flex items-center gap-2">Maintenance OS <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">Beta</span></div>
             <div className="text-xs text-muted-foreground">Homeowner + landlord workflow</div>
           </div>
           <Link href="/issues/new">

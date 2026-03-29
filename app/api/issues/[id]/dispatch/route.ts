@@ -27,13 +27,13 @@ export async function POST(
     const { id: issueId } = await params;
     const body = dispatchSchema.parse(await request.json());
 
-    // Paywall check: free users cannot dispatch
-    if (user.plan === 'free') {
-      return NextResponse.json(
-        { error: 'PAYWALL_REQUIRED', message: 'Upgrade to Pro to send issues to contractors.' },
-        { status: 403 }
-      );
-    }
+    // BETA: paywall disabled — all features free during beta
+    // if (user.plan === 'free') {
+    //   return NextResponse.json(
+    //     { error: 'PAYWALL_REQUIRED', message: 'Upgrade to Pro to send issues to contractors.' },
+    //     { status: 403 }
+    //   );
+    // }
 
     // Verify issue exists and user owns it
     const issue = await prisma.issue.findFirst({

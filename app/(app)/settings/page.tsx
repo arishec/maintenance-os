@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation';
 import { requireDbUser } from '@/lib/auth';
 import { LayoutShell } from '@/components/layout-shell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ManageSubscriptionButton } from './manage-subscription-button';
 
 export default async function SettingsPage() {
   let user;
@@ -11,8 +10,6 @@ export default async function SettingsPage() {
   } catch {
     redirect('/sign-in');
   }
-
-  const isPro = user.plan === 'pro';
 
   return (
     <LayoutShell>
@@ -73,34 +70,18 @@ export default async function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Billing</CardTitle>
+            <CardTitle className="text-lg">Plan</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium">{isPro ? 'Pro plan' : 'Free plan'}</p>
-                  <span className={`text-xs px-2 py-0.5 rounded ${isPro ? 'bg-blue-50 text-blue-700' : 'bg-muted text-muted-foreground'}`}>
-                    {isPro ? 'Active' : 'Current'}
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {isPro
-                    ? 'Unlimited issues, SMS & email contractor dispatch'
-                    : 'Track up to 3 issues total'}
-                </p>
-              </div>
-              {!isPro && (
-                <a href="/pricing" className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline">
-                  Upgrade
-                </a>
-              )}
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium">Beta</p>
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                Active
+              </span>
             </div>
-            {isPro && (
-              <div className="pt-2 border-t border-border">
-                <ManageSubscriptionButton />
-              </div>
-            )}
+            <p className="text-xs text-muted-foreground mt-1">
+              All features are free during beta — unlimited issues, contractor dispatch, and more.
+            </p>
           </CardContent>
         </Card>
       </div>
