@@ -155,6 +155,11 @@ export async function POST(
 
     try {
       const dispatch = selectedResponse.dispatch;
+      const replyToken = dispatch.replyToken;
+      const tokenizedReplyTo = replyToken
+        ? `replies+${replyToken}@ifbids.com`
+        : undefined;
+
       if (dispatch.channel === 'sms' && contractor.phone) {
         await sendRepairRequestSms(contractor.phone, confirmationMsg);
       } else if (contractor.email) {
@@ -169,7 +174,8 @@ export async function POST(
             <p>Reply to this email to confirm your availability or ask any questions.</p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 16px 0;">
             <p style="color: #888; font-size: 12px;">Sent via Maintenance OS</p>
-          </div>`
+          </div>`,
+          tokenizedReplyTo
         );
       }
     } catch (notifyErr) {

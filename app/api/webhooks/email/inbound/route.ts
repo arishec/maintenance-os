@@ -185,7 +185,7 @@ export async function POST(request: NextRequest) {
       const candidateDispatches = await prisma.dispatch.findMany({
         where: {
           channel: 'email',
-          status: { in: ['sent', 'delivered'] },
+          status: { in: ['sent', 'delivered', 'accepted'] },
         },
         include: {
           contractor: true,
