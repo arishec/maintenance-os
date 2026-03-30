@@ -5,6 +5,7 @@ import { parseContractorReply } from '@/lib/ai/parse-contractor-reply';
 import { logTimelineEvent } from '@/lib/timeline';
 import { getReceivedEmail } from '@/lib/resend';
 import { sendOwnerNotificationEmail } from '@/lib/notifications';
+import { forwardSupportEmail } from '@/lib/support-forward';
 
 const REPLY_TOKEN_PATTERN = /MNT-[A-Z0-9]{6}/;
 
@@ -56,6 +57,16 @@ export async function POST(request: NextRequest) {
 
     if (!emailId || !from) {
       console.warn('email.received event missing email_id or from');
+      return NextResponse.json({ success: true }, { status: 200 });
+    }
+
+    // Check if this is a support/feedback email — forward to admin, don't process as contractor reply
+    const supportAddresses = ['support@ifbids.com', 'feedback@ifbids.com'];
+    const isSupport = toArray?.some(addr => supportAddresses.includes(addr.toLowerCase()));
+    if (isSupport) {
+      forwardSupportEmail({ emailId, from, to: toArray, subject }).catch((err) =>
+        console.error('Failed to forward support email:', err)
+      );
       return NextResponse.json({ success: true }, { status: 200 });
     }
 
