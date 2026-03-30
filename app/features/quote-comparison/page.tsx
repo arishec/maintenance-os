@@ -3,306 +3,395 @@ import Link from 'next/link';
 import { PublicLayout } from '@/components/public-layout';
 
 export const metadata: Metadata = {
-  title: 'Contractor Quote Comparison',
+  title: 'Quote Comparison — Compare Contractor Quotes Without the Mess',
   description:
-    'Compare multiple contractor quotes side by side. See prices, timelines, and contractor details at a glance to make informed decisions.',
+    'No spreadsheets. No copying and pasting. Get multiple bids organized instantly so you can choose the right contractor with confidence.',
   alternates: {
     canonical: '/features/quote-comparison',
   },
 };
 
+const problemItems = [
+  'One contractor texts you',
+  'Another emails a PDF',
+  'Another leaves a voicemail',
+];
+
+const solutionItems = [
+  'See all quotes in one place',
+  'Compare pricing instantly',
+  'Evaluate timelines and details',
+  'Make a confident decision fast',
+];
+
+const decisionBenefits = [
+  {
+    title: 'See prices side by side',
+    body: 'Instantly know who\u2019s cheapest and fastest.',
+  },
+  {
+    title: 'Understand what you\u2019re actually getting',
+    body: 'Compare scope, notes, and warranties.',
+  },
+  {
+    title: 'Avoid bad decisions',
+    body: 'Spot red flags before you hire.',
+  },
+  {
+    title: 'Choose in one click',
+    body: 'Accept the best quote and move forward.',
+  },
+];
+
+const whyItMatters = [
+  {
+    title: 'Save money',
+    body: 'Multiple bids often reduce costs by hundreds per job.',
+  },
+  {
+    title: 'Save time',
+    body: 'No spreadsheets, no manual comparison.',
+  },
+  {
+    title: 'Negotiate better',
+    body: 'Use competing quotes to get better pricing.',
+  },
+  {
+    title: 'Build better contractor relationships',
+    body: 'Track who performs well over time.',
+  },
+];
+
+const organized = [
+  'Quotes stored automatically',
+  'Contractor history tracked',
+  'Notes saved for future decisions',
+  'Export if needed',
+];
+
 export default function QuoteComparisonPage() {
   return (
     <PublicLayout>
-      <main className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16">
-        {/* Header */}
-        <div className="mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Contractor Quote Comparison
+      <main className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+        {/* Hero */}
+        <div className="mb-12 sm:mb-16 text-center">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            Compare Contractor Quotes
+            <br className="hidden sm:block" />{' '}
+            Without the Mess
           </h1>
-          <p className="text-xl text-gray-600">
-            Get multiple bids and compare them side by side. Make data-driven decisions and save money on
-            repairs.
+          <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+            No spreadsheets. No copying and pasting. Get multiple bids organized
+            instantly so you can choose the right contractor with confidence.
           </p>
-        </div>
-
-        {/* The Problem */}
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 sm:p-6 lg:p-8 mb-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">The Problem With Getting Multiple Quotes</h2>
-
-          <div className="space-y-3">
-            <p className="text-gray-700">
-              You call Contractor A. They text a quote. You call Contractor B. They email a PDF. You call
-              Contractor C and they leave a voicemail. Now you have quotes scattered across text, email, and
-              voicemail.
-            </p>
-            <p className="text-gray-700">
-              You want to compare them. So you open a spreadsheet and manually type in prices. Or you copy and
-              paste into a Word doc. It's messy and error-prone.
-            </p>
-            <p className="text-gray-700">
-              What if you missed something? What if one quote includes materials and another doesn't? How do you
-              really know which one is the best deal?
-            </p>
-          </div>
-        </div>
-
-        {/* The Solution */}
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 sm:p-6 lg:p-8 mb-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">How Quote Comparison Solves This</h2>
-
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">✓ All Quotes in One Place</h3>
-              <p className="text-gray-600">
-                When contractors respond to your dispatch, their quotes appear in Maintenance OS. No scattered
-                texts or emails. One organized comparison view.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">✓ See Prices Side by Side</h3>
-              <p className="text-gray-600">
-                A table shows contractor name, quote price, timeline, and notes. Instantly see who's cheapest and
-                who's fastest. No mental math or spreadsheets.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">✓ View Contractor Details</h3>
-              <p className="text-gray-600">
-                See contact info, past performance, ratings, and notes from previous jobs. Evaluate not just price,
-                but reliability.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">✓ Make an Informed Decision</h3>
-              <p className="text-gray-600">
-                Accept the best quote with one click. Decline others respectfully. Update the issue status to
-                "Hired" and move forward.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">✓ Keep Notes and Rationale</h3>
-              <p className="text-gray-600">
-                Document why you chose one contractor over another. "Lowest price but longer timeline" or "More
-                expensive but best reviews." Track your decisions.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Example Workflow */}
-        <div className="mb-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8">Example: Roof Repair</h2>
-
-          <div className="space-y-6">
-            <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
-              <h3 className="font-bold text-gray-900 mb-3">1. You Report the Issue</h3>
-              <p className="text-gray-600">
-                Roof is leaking in the master bedroom. Upload photos. Mark as Urgent.
-              </p>
-            </div>
-
-            <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
-              <h3 className="font-bold text-gray-900 mb-3">2. You Dispatch to 3 Roofers</h3>
-              <p className="text-gray-600">
-                Send the issue to Smith Roofing, Peak Repairs, and Honest Contractors simultaneously.
-              </p>
-            </div>
-
-            <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
-              <h3 className="font-bold text-gray-900 mb-3">3. Quotes Come In</h3>
-              <p className="text-gray-600">
-                Within 24 hours, you have 3 responses. All appear in your Maintenance OS dashboard:
-              </p>
-              <div className="mt-4 bg-white rounded border border-gray-200 p-4">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-gray-200">
-                        <th className="text-left py-2 font-bold">Contractor</th>
-                        <th className="text-right py-2 font-bold">Price</th>
-                        <th className="text-left py-2 font-bold">Timeline</th>
-                        <th className="text-left py-2 font-bold">Notes</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="border-b border-gray-200">
-                        <td className="py-2">Smith Roofing</td>
-                        <td className="text-right">$2,800</td>
-                        <td>5-7 days</td>
-                        <td className="text-sm">New shingles, detailed inspection</td>
-                      </tr>
-                      <tr className="border-b border-gray-200">
-                        <td className="py-2">Peak Repairs</td>
-                        <td className="text-right">$2,200</td>
-                        <td>10-14 days</td>
-                        <td className="text-sm">Patch repair, may need more work</td>
-                      </tr>
-                      <tr>
-                        <td className="py-2">Honest Contractors</td>
-                        <td className="text-right">$2,500</td>
-                        <td>7-10 days</td>
-                        <td className="text-sm">Full repair, warranty included</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
-            <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
-              <h3 className="font-bold text-gray-900 mb-3">4. You Compare and Decide</h3>
-              <p className="text-gray-600">
-                Peak Repairs is cheapest but warns of potential future issues. Smith Roofing is most expensive but
-                comprehensive. Honest Contractors is a middle ground with a warranty.
-              </p>
-              <p className="text-gray-600 mt-2">
-                You've worked with Honest Contractors before. Good quality. You click "Accept" on their quote.
-              </p>
-            </div>
-
-            <div className="border border-gray-200 rounded-lg p-6 bg-green-50">
-              <h3 className="font-bold text-gray-900 mb-3">5. Issue Status Updates</h3>
-              <p className="text-gray-600">
-                The roof repair issue moves to "Dispatched - Contractor Selected." Honest Contractors gets
-                notified you accepted their bid. Work starts next week.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Why It Matters */}
-        <div className="mb-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8">Why Quote Comparison Matters</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:p-6 lg:p-8">
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-3">💰 Save Money</h3>
-              <p className="text-gray-600">
-                On a $2,500 repair, getting 3 quotes could save you $300–500. Over years of home ownership or
-                multiple rental properties, that adds up.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-3">⏰ Save Time</h3>
-              <p className="text-gray-600">
-                No spreadsheets, no copying and pasting, no manual comparison. Everything is already organized and
-                ready to compare.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-3">🤝 Better Decisions</h3>
-              <p className="text-gray-600">
-                See not just price, but timelines, contractor history, and notes. Make informed decisions, not just
-                cheapest-wins decisions.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-3">📊 Data for Negotiation</h3>
-              <p className="text-gray-600">
-                Future jobs can reference past quotes and contractors. Build relationships with reliable ones.
-                Negotiate better rates by showing you compare.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Features */}
-        <div className="mb-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8">Features</h2>
-
-          <div className="space-y-4">
-            <div className="flex gap-4">
-              <span className="text-2xl font-bold text-blue-600">✓</span>
-              <div>
-                <h3 className="font-bold text-gray-900">Side-by-side comparison table</h3>
-                <p className="text-gray-600">Prices, timelines, contractor details all visible at once</p>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <span className="text-2xl font-bold text-blue-600">✓</span>
-              <div>
-                <h3 className="font-bold text-gray-900">Contractor ratings and history</h3>
-                <p className="text-gray-600">See past performance and reliability in your records</p>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <span className="text-2xl font-bold text-blue-600">✓</span>
-              <div>
-                <h3 className="font-bold text-gray-900">Accept or decline with one click</h3>
-                <p className="text-gray-600">No complex negotiations, just clear decisions</p>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <span className="text-2xl font-bold text-blue-600">✓</span>
-              <div>
-                <h3 className="font-bold text-gray-900">Add notes for future reference</h3>
-                <p className="text-gray-600">Document why you chose one contractor. Learn from decisions</p>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <span className="text-2xl font-bold text-blue-600">✓</span>
-              <div>
-                <h3 className="font-bold text-gray-900">Export or print comparisons</h3>
-                <p className="text-gray-600">Save for records or share with co-owners</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Related Features */}
-        <div className="mb-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8">Works Well With</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
-              href="/features/contractor-dispatch"
-              className="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow"
+              href="/sign-up"
+              className="inline-flex justify-center rounded-xl bg-blue-600 px-8 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors w-full sm:w-auto"
             >
-              <h3 className="font-bold text-gray-900 mb-2">Contractor Dispatch</h3>
-              <p className="text-gray-600 text-sm">
-                Dispatch to multiple contractors to collect quotes for comparison
-              </p>
+              Compare Quotes Free
             </Link>
-
             <Link
-              href="/guides/how-to-compare-contractor-quotes"
-              className="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow"
+              href="#example"
+              className="inline-flex justify-center rounded-xl border border-gray-300 bg-white px-8 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors w-full sm:w-auto"
             >
-              <h3 className="font-bold text-gray-900 mb-2">Guide: Comparing Quotes</h3>
-              <p className="text-gray-600 text-sm">
-                Learn best practices for evaluating and choosing among bids
-              </p>
+              See Example
             </Link>
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 sm:p-8 lg:p-12 text-center border border-blue-100">
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">
-            Stop wasting time comparing quotes manually
+        {/* Problem */}
+        <section className="mb-12 sm:mb-16">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Getting multiple quotes is chaotic
           </h2>
-          <p className="text-gray-600 mb-6 text-lg">
-            Get multiple bids and compare them in seconds.
+          <div className="space-y-3 mb-4">
+            {problemItems.map((item) => (
+              <div
+                key={item}
+                className="flex items-center gap-3 rounded-xl border border-red-100 bg-red-50 p-3"
+              >
+                <svg
+                  className="h-5 w-5 flex-shrink-0 text-red-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+                <span className="text-gray-700 text-sm">{item}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-gray-700 text-sm mb-1">
+            Now you&apos;re piecing everything together manually.
+          </p>
+          <p className="text-gray-900 font-bold text-sm">
+            Comparing prices, timelines, and details becomes messy &mdash; and
+            easy to get wrong.
+          </p>
+        </section>
+
+        {/* Solution */}
+        <section className="mb-12 sm:mb-16">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            All your quotes. One clean view.
+          </h2>
+          <p className="text-gray-700 text-sm mb-4">
+            Everything is organized automatically so you can:
+          </p>
+          <div className="space-y-3">
+            {solutionItems.map((item) => (
+              <div key={item} className="flex items-center gap-3">
+                <svg
+                  className="h-5 w-5 flex-shrink-0 text-green-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4.5 12.75l6 6 9-13.5"
+                  />
+                </svg>
+                <span className="text-gray-700 text-sm">{item}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Early CTA */}
+        <section className="rounded-2xl bg-blue-50 border border-blue-100 p-6 sm:p-8 text-center mb-12 sm:mb-16">
+          <p className="text-gray-900 font-bold mb-1">
+            Start comparing quotes in seconds.
           </p>
           <Link
             href="/sign-up"
-            className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="inline-flex justify-center rounded-xl bg-blue-600 px-8 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors mt-3"
           >
             Get Started Free
           </Link>
-        </div>
+        </section>
+
+        {/* Example */}
+        <section id="example" className="mb-12 sm:mb-16">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            See how it works (real example)
+          </h2>
+          <p className="text-gray-700 text-sm mb-2">
+            You dispatch a roof repair to 3 contractors.
+          </p>
+          <p className="text-gray-700 text-sm mb-6">
+            Within 24 hours, you get:
+          </p>
+
+          <div className="rounded-xl border border-gray-200 bg-white overflow-hidden mb-6">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="text-left py-3 px-4 font-bold text-gray-900">
+                      Contractor
+                    </th>
+                    <th className="text-right py-3 px-4 font-bold text-gray-900">
+                      Price
+                    </th>
+                    <th className="text-left py-3 px-4 font-bold text-gray-900">
+                      Timeline
+                    </th>
+                    <th className="text-left py-3 px-4 font-bold text-gray-900">
+                      Notes
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-gray-100">
+                    <td className="py-3 px-4 font-medium text-gray-900">
+                      Smith Roofing
+                    </td>
+                    <td className="py-3 px-4 text-right font-medium">$2,800</td>
+                    <td className="py-3 px-4 text-gray-600">5&ndash;7 days</td>
+                    <td className="py-3 px-4 text-gray-600">
+                      New shingles, detailed inspection
+                    </td>
+                  </tr>
+                  <tr className="border-b border-gray-100">
+                    <td className="py-3 px-4 font-medium text-gray-900">
+                      Peak Repairs
+                    </td>
+                    <td className="py-3 px-4 text-right font-medium">$2,200</td>
+                    <td className="py-3 px-4 text-gray-600">10&ndash;14 days</td>
+                    <td className="py-3 px-4 text-gray-600">
+                      Patch repair, may need more work
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-3 px-4 font-medium text-gray-900">
+                      Honest Contractors
+                    </td>
+                    <td className="py-3 px-4 text-right font-medium">$2,500</td>
+                    <td className="py-3 px-4 text-gray-600">7&ndash;10 days</td>
+                    <td className="py-3 px-4 text-gray-600">
+                      Full repair, warranty included
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <p className="text-gray-600 text-sm mb-1">
+            Instead of digging through messages&hellip;
+          </p>
+          <p className="text-gray-900 font-bold text-sm">
+            You see everything side by side instantly.
+          </p>
+        </section>
+
+        {/* Decision benefits */}
+        <section className="mb-12 sm:mb-16">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Make better decisions, faster
+          </h2>
+          <div className="space-y-4">
+            {decisionBenefits.map((item) => (
+              <div
+                key={item.title}
+                className="flex items-start gap-4 rounded-xl border border-green-100 bg-green-50 p-4 sm:p-5"
+              >
+                <svg
+                  className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4.5 12.75l6 6 9-13.5"
+                  />
+                </svg>
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-1">{item.title}</h3>
+                  <p className="text-gray-600 text-sm">{item.body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Why it matters */}
+        <section className="mb-12 sm:mb-16">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Why quote comparison matters
+          </h2>
+          <div className="space-y-4 max-w-2xl">
+            {whyItMatters.map((item) => (
+              <div key={item.title} className="flex items-start gap-3">
+                <svg
+                  className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4.5 12.75l6 6 9-13.5"
+                  />
+                </svg>
+                <div>
+                  <span className="font-bold text-gray-900">{item.title}</span>
+                  <p className="text-gray-600 text-sm">{item.body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Everything stays organized */}
+        <section className="mb-12 sm:mb-16">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Everything stays organized
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {organized.map((item) => (
+              <div
+                key={item}
+                className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3"
+              >
+                <svg
+                  className="h-5 w-5 flex-shrink-0 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4.5 12.75l6 6 9-13.5"
+                  />
+                </svg>
+                <span className="text-gray-700 text-sm">{item}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Related */}
+        <section className="mb-12 sm:mb-16">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Works seamlessly with
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Link
+              href="/features/contractor-dispatch"
+              className="border border-gray-200 rounded-xl p-5 hover:shadow-lg transition-shadow"
+            >
+              <h3 className="font-bold text-gray-900 mb-1">
+                Contractor Dispatch
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Send requests and collect quotes instantly.
+              </p>
+            </Link>
+            <Link
+              href="/features/property-maintenance-tracking"
+              className="border border-gray-200 rounded-xl p-5 hover:shadow-lg transition-shadow"
+            >
+              <h3 className="font-bold text-gray-900 mb-1">Property Tracking</h3>
+              <p className="text-gray-600 text-sm">
+                Keep all repairs and quotes tied to each property.
+              </p>
+            </Link>
+          </div>
+        </section>
+
+        {/* Final CTA */}
+        <section className="rounded-2xl bg-blue-50 border border-blue-100 p-6 sm:p-8 md:p-12 text-center">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">
+            Stop guessing. Start comparing properly.
+          </h2>
+          <p className="text-gray-600 mb-6">
+            See every quote clearly. Choose faster. Save money.
+          </p>
+          <Link
+            href="/sign-up"
+            className="inline-flex justify-center rounded-xl bg-blue-600 px-8 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+          >
+            Get Started Free
+          </Link>
+        </section>
       </main>
     </PublicLayout>
   );
