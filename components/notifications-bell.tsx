@@ -19,10 +19,12 @@ export function NotificationsBell({ dropDirection = 'up' }: { dropDirection?: 'u
   const [isLoading, setIsLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   useEffect(() => {
     fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 60000);
-    return () => clearInterval(interval);
+    intervalRef.current = setInterval(fetchUnreadCount, 60000);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, []);
 
   useEffect(() => {
@@ -44,10 +46,16 @@ export function NotificationsBell({ dropDirection = 'up' }: { dropDirection?: 'u
   const fetchUnreadCount = async () => {
     try {
       const response = await fetch('/api/notifications?countOnly=true');
+      if (!response.ok) {
+        // Not authenticated or server error — stop polling to avoid log spam
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        return;
+      }
       const data = await response.json();
       setUnreadCount(data.count ?? 0);
-    } catch (error) {
-      console.error('Failed to fetch unread count:', error);
+    } catch {
+      // Network error — stop polling
+      if (intervalRef.current) clearInterval(intervalRef.current);
     }
   };
 
