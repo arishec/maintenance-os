@@ -5,388 +5,388 @@ import { PublicLayout } from '@/components/public-layout';
 export const metadata: Metadata = {
   title: 'Property Maintenance Software for Landlords',
   description:
-    'Manage maintenance across multiple rental properties. Dispatch to contractors, collect tenant requests, and maintain detailed repair records.',
+    'Manage repairs, collect requests, compare quotes, and track every job across all your properties — in one place.',
   alternates: {
     canonical: '/for-landlords',
   },
 };
 
+const problems = [
+  {
+    title: 'Issues are scattered everywhere',
+    body: 'One tenant texts, another emails, another calls. Requests get lost.',
+  },
+  {
+    title: 'No clear system across properties',
+    body: 'Property 1 has a leak. Property 2 needs HVAC. Property 3 needs painting. Nothing is centralized.',
+  },
+  {
+    title: 'Contractor coordination is slow',
+    body: 'You\u2019re calling different contractors, waiting for replies, and juggling schedules.',
+  },
+  {
+    title: 'No record of work done',
+    body: 'Who fixed what? When? How much did it cost? You\u2019re digging through old messages.',
+  },
+  {
+    title: 'You\u2019re overpaying',
+    body: 'Without comparing quotes, you accept the first price \u2014 with no leverage.',
+  },
+];
+
+const solutions = [
+  {
+    title: 'See everything across all properties',
+    body: 'View issues, jobs, and progress in one dashboard. No more guesswork.',
+  },
+  {
+    title: 'Collect tenant requests in one place',
+    body: 'Tenants submit issues through a simple system instead of texts and calls.',
+  },
+  {
+    title: 'Dispatch to contractors instantly',
+    body: 'Send requests via SMS or email in seconds \u2014 no back-and-forth.',
+  },
+  {
+    title: 'Compare quotes before you decide',
+    body: 'See pricing and timelines side-by-side. Choose the best option, not the first.',
+  },
+  {
+    title: 'Track every job and cost',
+    body: 'Know what\u2019s in progress, what\u2019s done, and how much you\u2019re spending.',
+  },
+];
+
+const useCases = [
+  {
+    title: 'Managing 2\u201310 properties',
+    body: 'Keep everything organized without needing complex software.',
+  },
+  {
+    title: 'Property managers',
+    body: 'Coordinate tenants, contractors, and owners in one system.',
+  },
+  {
+    title: 'Vacation rentals',
+    body: 'Handle turnover repairs and guest-reported issues quickly.',
+  },
+  {
+    title: 'Self-managed landlords',
+    body: 'Avoid expensive property management tools and stay in control.',
+  },
+];
+
+const benefits = [
+  {
+    title: 'Save hours every week',
+    body: 'No more juggling texts, emails, and spreadsheets.',
+  },
+  {
+    title: 'Reduce maintenance costs',
+    body: 'Compare quotes and negotiate with real data.',
+  },
+  {
+    title: 'Respond faster to tenants',
+    body: 'Keep everything organized and visible.',
+  },
+  {
+    title: 'Have proof when you need it',
+    body: 'Every repair, cost, and contractor is recorded.',
+  },
+  {
+    title: 'Scale without chaos',
+    body: 'Handle more properties without increasing complexity.',
+  },
+];
+
+const featureSnapshot = [
+  'Tenant intake forms',
+  'Contractor dispatch (SMS + email)',
+  'Quote comparison',
+  'Multi-property tracking',
+  'Repair history and records',
+];
+
 export default function ForLandlordsPage() {
   return (
     <PublicLayout>
-      <main className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16">
-        {/* Header */}
-        <div className="mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Property Maintenance Software for Landlords
+      <main className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+        {/* Hero */}
+        <div className="mb-14 sm:mb-20 text-center">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            Stop chasing tenants and contractors
+            <br className="hidden sm:block" />{' '}
+            across properties
           </h1>
-          <p className="text-xl text-gray-600">
-            Manage maintenance chaos across multiple properties. Coordinate contractors and tenants in one
-            system.
+          <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+            Manage repairs, collect requests, compare quotes, and track every
+            job &mdash; all in one place.
           </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              href="/sign-up"
+              className="inline-flex justify-center rounded-xl bg-blue-600 px-8 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors w-full sm:w-auto"
+            >
+              Get Started Free
+            </Link>
+            <Link
+              href="/how-it-works"
+              className="inline-flex justify-center rounded-xl border border-gray-300 bg-white px-8 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors w-full sm:w-auto"
+            >
+              See How It Works
+            </Link>
+          </div>
         </div>
 
-        {/* The Problem */}
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 sm:p-6 lg:p-8 mb-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">The Challenge of Multi-Property Management</h2>
-
+        {/* Problem */}
+        <section className="mb-14 sm:mb-20">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">
+            Managing multiple properties gets chaotic fast
+          </h2>
           <div className="space-y-4">
-            <div className="flex gap-4">
-              <div className="text-2xl">🏠🏠🏠</div>
-              <div>
-                <h3 className="font-bold text-gray-900">Multiple properties, multiple problems</h3>
-                <p className="text-gray-600">
-                  Property 1 has a leak, property 2 has a broken heater, property 3 needs painting. Keep track
-                  of which issue is where? Impossible.
-                </p>
+            {problems.map((item) => (
+              <div
+                key={item.title}
+                className="flex items-start gap-4 rounded-xl border border-red-100 bg-red-50 p-4 sm:p-5"
+              >
+                <svg
+                  className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-1">{item.title}</h3>
+                  <p className="text-gray-600 text-sm">{item.body}</p>
+                </div>
               </div>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="text-2xl">📞</div>
-              <div>
-                <h3 className="font-bold text-gray-900">Tenant requests are disorganized</h3>
-                <p className="text-gray-600">
-                  Tenants call, text, email. You're juggling messages across multiple channels. Some requests
-                  get lost.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="text-2xl">🔧</div>
-              <div>
-                <h3 className="font-bold text-gray-900">Contractor coordination is a nightmare</h3>
-                <p className="text-gray-600">
-                  You call Jim the plumber for property 1, Sarah the electrician for property 2. They respond
-                  at different times. Nothing's coordinated.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="text-2xl">🤯</div>
-              <div>
-                <h3 className="font-bold text-gray-900">No central record of work done</h3>
-                <p className="text-gray-600">
-                  Which contractor fixed the roof at property 2? When? Cost? You end up with scattered
-                  invoices and no system.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="text-2xl">💰</div>
-              <div>
-                <h3 className="font-bold text-gray-900">You're paying more than you should</h3>
-                <p className="text-gray-600">
-                  Without comparing quotes, you accept the first price. You have no record of contractor
-                  performance to negotiate better rates.
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
-        </div>
+        </section>
 
-        {/* The Solution */}
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 sm:p-6 lg:p-8 mb-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">How Maintenance OS Solves This</h2>
-
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">✓ Manage unlimited properties in one place</h3>
-              <p className="text-gray-600">
-                Each property gets its own dashboard. See at a glance which properties have open issues, what's
-                in progress, and what's done. Zoom out to see all properties at once.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">✓ Collect tenant requests systematically</h3>
-              <p className="text-gray-600">
-                Give tenants a simple form to submit maintenance requests. Instead of texts and calls, you have
-                one organized queue of issues with details and photos.
-              </p>
-              <Link
-                href="/features/tenant-intake"
-                className="text-blue-600 hover:text-blue-700 font-medium text-sm"
+        {/* Solution */}
+        <section className="mb-14 sm:mb-20">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">
+            Run maintenance like a system &mdash; not chaos
+          </h2>
+          <div className="space-y-4">
+            {solutions.map((item) => (
+              <div
+                key={item.title}
+                className="flex items-start gap-4 rounded-xl border border-green-100 bg-green-50 p-4 sm:p-5"
               >
-                Learn more about tenant intake →
-              </Link>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">✓ Dispatch to contractors in seconds</h3>
-              <p className="text-gray-600">
-                Send maintenance requests to your contractors via SMS and email with one click. They respond
-                quickly. No phone tag, no email chains.
-              </p>
-              <Link
-                href="/features/contractor-dispatch"
-                className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-              >
-                Learn more about contractor dispatch →
-              </Link>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">✓ Compare quotes and control costs</h3>
-              <p className="text-gray-600">
-                Get multiple quotes for the same job. Compare prices side by side. Make data-driven decisions.
-                Negotiate better rates by showing contractors you compare.
-              </p>
-              <Link
-                href="/features/quote-comparison"
-                className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-              >
-                Learn more about quote comparison →
-              </Link>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">✓ Keep a searchable repair history</h3>
-              <p className="text-gray-600">
-                Every repair, every contractor, every cost is recorded. Filter by property, date, or
-                contractor. Track contractor performance over time. Perfect for legal records and tenant
-                disputes.
-              </p>
-              <Link
-                href="/features/repair-history"
-                className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-              >
-                Learn more about repair history →
-              </Link>
-            </div>
+                <svg
+                  className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4.5 12.75l6 6 9-13.5"
+                  />
+                </svg>
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-1">{item.title}</h3>
+                  <p className="text-gray-600 text-sm">{item.body}</p>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+        </section>
 
         {/* Use Cases */}
-        <div className="mb-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8">Perfect For...</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:p-6 lg:p-8">
-            <div className="border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-3">Small Landlords (2–10 Properties)</h3>
-              <p className="text-gray-600 mb-4">
-                Managing a few rental units? Keep all maintenance organized without complex software. Track
-                tenant requests and contractor work in one place.
-              </p>
-            </div>
-
-            <div className="border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-3">Property Managers</h3>
-              <p className="text-gray-600 mb-4">
-                Managing properties for others? Maintenance OS helps you coordinate repairs efficiently, respond
-                to tenant requests quickly, and maintain detailed records for owners.
-              </p>
-            </div>
-
-            <div className="border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-3">Vacation Rental Owners</h3>
-              <p className="text-gray-600 mb-4">
-                Manage turnover maintenance and guest-reported issues across multiple vacation properties.
-                Dispatch to local contractors quickly and keep records for owners.
-              </p>
-            </div>
-
-            <div className="border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-3">Self-Managed Landlords (Cost-Conscious)</h3>
-              <p className="text-gray-600 mb-4">
-                Self-managing to save on fees? Maintenance OS replaces expensive property management software
-                for coordination and record-keeping.
-              </p>
-            </div>
+        <section className="mb-14 sm:mb-20">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">
+            Built for how landlords actually operate
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {useCases.map((item) => (
+              <div
+                key={item.title}
+                className="border border-gray-200 rounded-xl p-5 sm:p-6"
+              >
+                <h3 className="font-bold text-gray-900 mb-2">{item.title}</h3>
+                <p className="text-gray-600 text-sm">{item.body}</p>
+              </div>
+            ))}
           </div>
-        </div>
+        </section>
 
         {/* Key Benefits */}
-        <div className="mb-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8">Key Benefits for Landlords</h2>
-
-          <div className="space-y-4">
-            <div className="flex gap-4">
-              <div className="text-blue-600 font-bold text-2xl">📊</div>
-              <div>
-                <h3 className="font-bold text-gray-900">Better data = better decisions</h3>
-                <p className="text-gray-600">
-                  See maintenance costs per property. Identify contractors who consistently deliver on time
-                  and budget.
-                </p>
+        <section className="mb-14 sm:mb-20">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">
+            Why landlords switch to Maintenance OS
+          </h2>
+          <div className="space-y-4 max-w-2xl mx-auto">
+            {benefits.map((item) => (
+              <div key={item.title} className="flex items-start gap-4">
+                <svg
+                  className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4.5 12.75l6 6 9-13.5"
+                  />
+                </svg>
+                <div>
+                  <h3 className="font-bold text-gray-900">{item.title}</h3>
+                  <p className="text-gray-600 text-sm">{item.body}</p>
+                </div>
               </div>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="text-blue-600 font-bold text-2xl">⏱️</div>
-              <div>
-                <h3 className="font-bold text-gray-900">Save hours of admin work</h3>
-                <p className="text-gray-600">
-                  Instead of juggling spreadsheets and emails, Maintenance OS automates coordination. Dispatch
-                  in seconds, compare quotes instantly.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="text-blue-600 font-bold text-2xl">😌</div>
-              <div>
-                <h3 className="font-bold text-gray-900">Happier tenants</h3>
-                <p className="text-gray-600">
-                  Tenants see their requests in the system. They know when contractors are coming. You respond
-                  faster. Fewer complaints.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="text-blue-600 font-bold text-2xl">📜</div>
-              <div>
-                <h3 className="font-bold text-gray-900">Proof when you need it</h3>
-                <p className="text-gray-600">
-                  Tenant dispute? Property sale? Insurance claim? You have a complete, dated record of all work
-                  done.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="text-blue-600 font-bold text-2xl">💵</div>
-              <div>
-                <h3 className="font-bold text-gray-900">Control costs</h3>
-                <p className="text-gray-600">
-                  Compare quotes. Negotiate with contractors. Track spending per property. No more overpaying
-                  for maintenance.
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
-        </div>
+        </section>
 
-        {/* Feature Highlights */}
-        <div className="mb-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8">Features Built for Multi-Property Management</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Link
-              href="/features/tenant-intake"
-              className="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow"
-            >
-              <h3 className="font-bold text-gray-900 mb-2">Tenant Intake</h3>
-              <p className="text-gray-600 text-sm">Simple forms for tenants to request maintenance</p>
-            </Link>
-
-            <Link
-              href="/features/contractor-dispatch"
-              className="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow"
-            >
-              <h3 className="font-bold text-gray-900 mb-2">Contractor Dispatch</h3>
-              <p className="text-gray-600 text-sm">Send requests to contractors via SMS and email</p>
-            </Link>
-
-            <Link
-              href="/features/quote-comparison"
-              className="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow"
-            >
-              <h3 className="font-bold text-gray-900 mb-2">Quote Comparison</h3>
-              <p className="text-gray-600 text-sm">Compare contractor bids side by side</p>
-            </Link>
-
-            <Link
-              href="/features/repair-history"
-              className="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow"
-            >
-              <h3 className="font-bold text-gray-900 mb-2">Repair History</h3>
-              <p className="text-gray-600 text-sm">Searchable timeline per property</p>
-            </Link>
-
-            <Link
-              href="/features/property-maintenance-tracking"
-              className="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow"
-            >
-              <h3 className="font-bold text-gray-900 mb-2">Multi-Property Tracking</h3>
-              <p className="text-gray-600 text-sm">Manage all properties in one dashboard</p>
-            </Link>
-
-            <div className="border border-gray-200 rounded-lg p-6">
-              <h3 className="font-bold text-gray-900 mb-2">Contractor Network</h3>
-              <p className="text-gray-600 text-sm">Keep contractor contacts and history organized</p>
-            </div>
+        {/* Feature Snapshot */}
+        <section className="mb-14 sm:mb-20">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">
+            Everything you need to manage maintenance
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {featureSnapshot.map((item) => (
+              <div
+                key={item}
+                className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4"
+              >
+                <svg
+                  className="h-5 w-5 flex-shrink-0 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4.5 12.75l6 6 9-13.5"
+                  />
+                </svg>
+                <span className="text-sm font-medium text-gray-700">{item}</span>
+              </div>
+            ))}
           </div>
-        </div>
+        </section>
 
         {/* Pricing */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 sm:p-8 lg:p-12 border border-blue-100 mb-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">Transparent Pricing for Property Managers</h2>
-          <ul className="space-y-3 mb-6 text-gray-700">
-            <li className="flex gap-3">
-              <span className="text-blue-600 font-bold">✓</span>
-              <span>
-                <strong>Free tier:</strong> Up to 1 property. Report issues, track repairs, keep records.
-              </span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-blue-606 font-bold">✓</span>
-              <span>
-                <strong>Professional tier:</strong> Up to 5 properties. Add SMS contractor dispatch for
-                $0.50–0.75 per SMS.
-              </span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-blue-606 font-bold">✓</span>
-              <span>
-                <strong>No monthly fees.</strong> Only pay for the SMS dispatches you send.
-              </span>
-            </li>
-          </ul>
-          <Link
-            href="/pricing"
-            className="text-blue-600 hover:text-blue-700 font-medium"
-          >
-            See full pricing →
-          </Link>
-        </div>
+        <section className="rounded-2xl border border-blue-100 bg-blue-50 p-6 sm:p-8 lg:p-10 mb-14 sm:mb-20">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 text-center">
+            Simple, transparent pricing
+          </h2>
+          <div className="space-y-4 max-w-2xl mx-auto">
+            <div className="flex items-start gap-3">
+              <svg
+                className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+              <div>
+                <span className="font-bold text-gray-900">Free tier</span>
+                <p className="text-gray-600 text-sm">Track repairs for 1 property, unlimited issues.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <svg
+                className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+              <div>
+                <span className="font-bold text-gray-900">Professional tier</span>
+                <p className="text-gray-600 text-sm">Manage up to 5 properties.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <svg
+                className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+              <div>
+                <span className="font-bold text-gray-900">Pay only for SMS</span>
+                <p className="text-gray-600 text-sm">$0.50&ndash;$0.75 per message when you dispatch contractors.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <svg
+                className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+              <div>
+                <span className="font-bold text-gray-900">No monthly commitment</span>
+                <p className="text-gray-600 text-sm">Scale as you grow.</p>
+              </div>
+            </div>
+          </div>
+        </section>
 
-        {/* Guides */}
-        <div className="mb-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Landlord Resources</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Resources */}
+        <section className="mb-14 sm:mb-20">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 text-center">
+            Learn how to manage maintenance better
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Link
               href="/guides/how-to-manage-rental-property-maintenance"
-              className="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow"
+              className="border border-gray-200 rounded-xl p-5 sm:p-6 hover:shadow-lg transition-shadow"
             >
-              <h3 className="font-bold text-gray-900 mb-2">How to Manage Rental Property Maintenance</h3>
-              <p className="text-gray-600 text-sm">
-                Best practices for organizing tenant requests, dispatching to contractors, and keeping
-                records.
-              </p>
+              <h3 className="font-bold text-gray-900 mb-1">How to manage rental property maintenance</h3>
             </Link>
-
             <Link
               href="/guides/how-to-compare-contractor-quotes"
-              className="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow"
+              className="border border-gray-200 rounded-xl p-5 sm:p-6 hover:shadow-lg transition-shadow"
             >
-              <h3 className="font-bold text-gray-900 mb-2">How to Compare Contractor Quotes</h3>
-              <p className="text-gray-600 text-sm">
-                Evaluate bids, negotiate pricing, and make data-driven decisions to control maintenance costs.
-              </p>
+              <h3 className="font-bold text-gray-900 mb-1">How to compare contractor quotes</h3>
             </Link>
           </div>
-        </div>
+        </section>
 
-        {/* CTA */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 sm:p-8 lg:p-12 text-center border border-blue-100">
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">
-            Simplify maintenance for all your properties
+        {/* Final CTA */}
+        <section className="rounded-2xl bg-blue-50 border border-blue-100 p-6 sm:p-8 md:p-12 text-center">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">
+            Simplify maintenance across all your properties
           </h2>
-          <p className="text-gray-600 mb-6 text-lg">
-            Free for 1 property. Professional tier for up to 5. Scale with your portfolio.
+          <p className="text-gray-600 mb-6">
+            Start free today. Scale as your portfolio grows.
           </p>
           <Link
             href="/sign-up"
-            className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="inline-flex justify-center rounded-xl bg-blue-600 px-8 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
           >
             Get Started Free
           </Link>
-        </div>
+        </section>
       </main>
     </PublicLayout>
   );
