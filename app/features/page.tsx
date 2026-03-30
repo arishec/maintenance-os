@@ -13,6 +13,11 @@ export const metadata: Metadata = {
 
 const features = [
   {
+    headline: 'AI looks at your photos and classifies the issue',
+    body: 'Upload a photo and AI instantly describes what it sees \u2014 water damage, cracked drywall, a broken fixture. It uses that analysis to classify the issue, set urgency, and recommend the right trade. Contractors receive the photos and AI descriptions so they can quote accurately before showing up.',
+    href: '/features/property-maintenance-tracking',
+  },
+  {
     headline: 'Stop losing track of repairs',
     body: 'Know exactly what\u2019s happening at every property \u2014 without digging through texts or emails. Track every issue from the moment it\u2019s reported to final completion. See status, updates, photos, and notes all in one place. No more guessing what was fixed, when, or by who.',
     href: '/features/property-maintenance-tracking',
