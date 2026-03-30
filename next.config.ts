@@ -7,6 +7,20 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: false,
   },
+  async redirects() {
+    return [
+      {
+        source: '/for-landlords',
+        destination: '/landlord-maintenance-software',
+        permanent: true,
+      },
+      {
+        source: '/for-homeowners',
+        destination: '/home-repair-tracking',
+        permanent: true,
+      },
+    ];
+  },
   experimental: {},
   images: {
     remotePatterns: [

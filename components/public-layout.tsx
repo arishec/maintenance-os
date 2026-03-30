@@ -12,8 +12,8 @@ export async function PublicLayout({ children }: { children: React.ReactNode }) 
   const navLinks = [
     { href: '/features', label: 'Features' },
     { href: '/how-it-works', label: 'How It Works' },
-    { href: '/for-homeowners', label: 'Homeowners' },
-    { href: '/for-landlords', label: 'Landlords' },
+    { href: '/home-repair-tracking', label: 'Homeowners' },
+    { href: '/landlord-maintenance-software', label: 'Landlords' },
     { href: '/guides', label: 'Guides' },
   ];
 
@@ -178,7 +178,7 @@ export async function PublicLayout({ children }: { children: React.ReactNode }) 
               <ul className="space-y-2">
                 <li>
                   <Link
-                    href="/for-homeowners"
+                    href="/home-repair-tracking"
                     className="text-gray-600 hover:text-gray-900 transition-colors"
                   >
                     For Homeowners
@@ -186,7 +186,7 @@ export async function PublicLayout({ children }: { children: React.ReactNode }) 
                 </li>
                 <li>
                   <Link
-                    href="/for-landlords"
+                    href="/landlord-maintenance-software"
                     className="text-gray-600 hover:text-gray-900 transition-colors"
                   >
                     For Landlords

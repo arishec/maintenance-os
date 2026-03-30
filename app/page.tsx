@@ -98,9 +98,12 @@ export default async function HomePage() {
               <h1 className="max-w-4xl text-4xl sm:text-5xl font-semibold tracking-tight text-slate-950 md:text-6xl md:leading-[1.02]">
                 Manage repairs without chasing contractors
               </h1>
-              <p className="mt-6 max-w-2xl text-xl leading-8 text-slate-600">
+              <p className="mt-2 text-lg font-medium text-slate-500">
+                Property maintenance software for landlords and homeowners
+              </p>
+              <p className="mt-5 max-w-2xl text-xl leading-8 text-slate-600">
                 Turn messy texts, calls, and scattered quotes into one clear system — intake, dispatch, compare, track, and history.
-</p>
+              </p>
               <div className="mt-8 flex flex-wrap gap-4">
                 <Link
                   href={ctaHref}
@@ -122,6 +125,13 @@ export default async function HomePage() {
               <p className="mt-4 text-sm text-slate-400">
                 Built for homeowners and landlords managing real properties — not spreadsheets.
               </p>
+              <div className="mt-5 flex flex-wrap gap-x-4 gap-y-1 text-sm text-blue-600">
+                <Link href="/track-rental-property-repairs" className="hover:underline">Track repairs</Link>
+                <span className="text-slate-300">·</span>
+                <Link href="/compare-contractor-quotes" className="hover:underline">Compare contractor quotes</Link>
+                <span className="text-slate-300">·</span>
+                <Link href="/features" className="hover:underline">See all features</Link>
+              </div>
             </div>
 
             {/* Old way → New way visual */}
@@ -156,6 +166,13 @@ export default async function HomePage() {
                 </div>
               </div>
             </div>
+          </section>
+
+          {/* ───── SEO CONTEXT ───── */}
+          <section className="mx-auto max-w-7xl px-6 pb-10 lg:px-10">
+            <p className="mx-auto max-w-3xl text-center text-base leading-7 text-slate-500">
+              Maintenance OS is <Link href="/property-maintenance-software" className="text-blue-600 hover:underline">property maintenance software</Link> designed for <Link href="/landlord-maintenance-software" className="text-blue-600 hover:underline">landlords</Link> and <Link href="/home-repair-tracking" className="text-blue-600 hover:underline">homeowners</Link> who need a better way to track repairs, manage contractor quotes, and keep maintenance organized across one or multiple properties.
+            </p>
           </section>
 
           {/* ───── FLOW: 5-STEP SYSTEM ───── */}

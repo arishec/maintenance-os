@@ -28,8 +28,8 @@ export function LayoutShell({ children }: { children: ReactNode }) {
   const marketingLinks = [
     { href: '/features', label: 'Features' },
     { href: '/how-it-works', label: 'How It Works' },
-    { href: '/for-homeowners', label: 'Homeowners' },
-    { href: '/for-landlords', label: 'Landlords' },
+    { href: '/home-repair-tracking', label: 'Homeowners' },
+    { href: '/landlord-maintenance-software', label: 'Landlords' },
     { href: '/guides', label: 'Guides' },
   ];
 
