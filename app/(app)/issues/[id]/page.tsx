@@ -160,7 +160,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
           </div>
           <div className="flex gap-2 flex-shrink-0">
             <Badge className={getIssueStatusColor(issue.status)}>{displayStatus}</Badge>
-            {issue.urgency && <Badge className={getUrgencyColor(issue.urgency)}>{issue.urgency}</Badge>}
+            {issue.urgency && <Badge className={getUrgencyColor(issue.urgency)}>{formatLabel(issue.urgency)}</Badge>}
           </div>
         </div>
 

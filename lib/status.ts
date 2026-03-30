@@ -222,13 +222,19 @@ export function getCategoryLabel(category: string | null): string {
 export function formatLabel(value: string): string {
   const special: Record<string, string> = {
     hvac: 'HVAC',
+    immediately: 'Immediately',
+    today: 'Today',
     within_24_hours: 'Within 24 hours',
     within_48_hours: 'Within 48 hours',
+    within_2_to_3_days: 'Within 2–3 days',
     within_1_week: 'Within 1 week',
     within_2_weeks: 'Within 2 weeks',
     within_1_month: 'Within 1 month',
     not_urgent: 'Not urgent',
     general_handyman: 'General Handyman',
+    general_contractor: 'General Contractor',
+    appliance_repair: 'Appliance Repair',
+    pest_control: 'Pest Control',
   };
   if (special[value.toLowerCase()]) return special[value.toLowerCase()];
   return value

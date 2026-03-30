@@ -6,6 +6,7 @@ import { LayoutShell } from '@/components/layout-shell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PropertyDetailClient } from './property-detail-client';
+import { formatLabel } from '@/lib/status';
 
 const propertyTypeLabels: Record<string, string> = {
   single_family: 'Single Family',
@@ -181,7 +182,7 @@ export default async function PropertyDetailPage({
                         </span>
                         {issue.urgency && (
                           <span className="text-xs rounded-full bg-muted px-2 py-1">
-                            {issue.urgency}
+                            {formatLabel(issue.urgency)}
                           </span>
                         )}
                       </div>

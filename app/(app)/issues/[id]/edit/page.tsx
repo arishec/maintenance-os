@@ -11,6 +11,8 @@ import { Textarea } from '@/components/ui/textarea';
 const locationOptions = [
   { value: 'kitchen', label: 'Kitchen' },
   { value: 'bathroom', label: 'Bathroom' },
+  { value: 'bedroom', label: 'Bedroom' },
+  { value: 'living_room', label: 'Living Room' },
   { value: 'basement', label: 'Basement' },
   { value: 'exterior', label: 'Exterior' },
   { value: 'hvac_closet', label: 'HVAC Closet' },

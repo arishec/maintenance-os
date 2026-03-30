@@ -14,9 +14,23 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 
+function formatLabel(value: string): string {
+  const special: Record<string, string> = {
+    hvac: 'HVAC', immediately: 'Immediately', today: 'Today',
+    within_24_hours: 'Within 24 hours', within_2_to_3_days: 'Within 2–3 days',
+    within_1_week: 'Within 1 week', general_handyman: 'General Handyman',
+    general_contractor: 'General Contractor', appliance_repair: 'Appliance Repair',
+    pest_control: 'Pest Control',
+  };
+  if (special[value.toLowerCase()]) return special[value.toLowerCase()];
+  return value.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
 const locationOptions = [
   { value: 'kitchen', label: 'Kitchen' },
   { value: 'bathroom', label: 'Bathroom' },
+  { value: 'bedroom', label: 'Bedroom' },
+  { value: 'living_room', label: 'Living Room' },
   { value: 'basement', label: 'Basement' },
   { value: 'exterior', label: 'Exterior' },
   { value: 'hvac_closet', label: 'HVAC Closet' },
@@ -242,7 +256,7 @@ export default function NewIssuePage() {
               <div className="grid gap-4 grid-cols-2">
                 <div>
                   <label className="text-xs font-medium text-muted-foreground">Category</label>
-                  <p className="mt-1 text-sm font-medium">{classification.category}</p>
+                  <p className="mt-1 text-sm font-medium">{formatLabel(classification.category)}</p>
                 </div>
                 <div>
                   <label className="text-xs font-medium text-muted-foreground">Urgency</label>
@@ -252,11 +266,11 @@ export default function NewIssuePage() {
                 </div>
                 <div>
                   <label className="text-xs font-medium text-muted-foreground">Timeframe</label>
-                  <p className="mt-1 text-sm font-medium">{classification.suggestedTimeframe}</p>
+                  <p className="mt-1 text-sm font-medium">{formatLabel(classification.suggestedTimeframe)}</p>
                 </div>
                 <div>
                   <label className="text-xs font-medium text-muted-foreground">Trade</label>
-                  <p className="mt-1 text-sm font-medium">{classification.recommendedTrade}</p>
+                  <p className="mt-1 text-sm font-medium">{formatLabel(classification.recommendedTrade)}</p>
                 </div>
               </div>
               <Link href={`/issues/${issueId}`}>

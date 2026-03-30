@@ -10,6 +10,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { PaywallModal } from '@/components/paywall-modal';
 import { formatPhone } from '@/lib/utils';
 
+function formatLabel(value: string): string {
+  const special: Record<string, string> = {
+    hvac: 'HVAC', general_handyman: 'General Handyman',
+    general_contractor: 'General Contractor', appliance_repair: 'Appliance Repair',
+    pest_control: 'Pest Control',
+  };
+  if (special[value.toLowerCase()]) return special[value.toLowerCase()];
+  return value.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
 interface Issue {
   id: string;
   title: string | null;
@@ -77,9 +87,11 @@ export default function DispatchPage() {
   };
 
   const relevantTrades = issue?.category ? (tradeMap[issue.category] ?? []) : [];
-  const filteredContractors = showAll || relevantTrades.length === 0
+  const tradeFiltered = contractors.filter(c => relevantTrades.includes(c.trade));
+  // If no contractors match the recommended trade, show all by default
+  const filteredContractors = showAll || relevantTrades.length === 0 || tradeFiltered.length === 0
     ? contractors
-    : contractors.filter(c => relevantTrades.includes(c.trade));
+    : tradeFiltered;
 
   function toggleContractor(contractor: Contractor) {
     const exists = selected.find(s => s.contractorId === contractor.id);
@@ -167,8 +179,8 @@ export default function DispatchPage() {
                 <div className="mt-1 text-sm text-muted-foreground">{issue.description.slice(0, 150)}</div>
               </div>
               <div className="flex flex-wrap gap-2">
-                {issue.category && <Badge>{issue.category}</Badge>}
-                {issue.urgency && <Badge>{issue.urgency}</Badge>}
+                {issue.category && <Badge>{formatLabel(issue.category)}</Badge>}
+                {issue.urgency && <Badge>{formatLabel(issue.urgency)}</Badge>}
               </div>
             </div>
           </CardContent>
