@@ -95,7 +95,7 @@ export default async function HomePage() {
               <div className="mb-4 inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-sm font-medium text-rose-700">
                 Most landlords don&apos;t have a system — they have conversations
               </div>
-              <h1 className="max-w-4xl text-5xl font-semibold tracking-tight text-slate-950 md:text-6xl md:leading-[1.02]">
+              <h1 className="max-w-4xl text-4xl sm:text-5xl font-semibold tracking-tight text-slate-950 md:text-6xl md:leading-[1.02]">
                 Manage repairs without chasing contractors
               </h1>
               <p className="mt-6 max-w-2xl text-xl leading-8 text-slate-600">
@@ -163,7 +163,7 @@ export default async function HomePage() {
             <div className="mx-auto max-w-7xl px-6 py-20 lg:px-10">
               <div className="mx-auto max-w-3xl text-center">
                 <div className="text-sm font-semibold uppercase tracking-[0.24em] text-blue-700">One system, start to finish</div>
-                <h2 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 md:text-5xl">
+                <h2 className="mt-4 text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950 md:text-5xl">
                   The full repair workflow in one place
                 </h2>
                 <p className="mt-5 text-lg leading-8 text-slate-600">
@@ -183,7 +183,7 @@ export default async function HomePage() {
                       </div>
                     </div>
                     <div>
-                      <h3 className="text-3xl font-semibold tracking-tight text-slate-950">{step.subtitle}</h3>
+                      <h3 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-950">{step.subtitle}</h3>
                       <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">{step.body}</p>
                     </div>
                     <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">
@@ -213,7 +213,7 @@ export default async function HomePage() {
             <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr]">
               <div>
                 <div className="text-sm font-semibold uppercase tracking-[0.24em] text-blue-700">Why this works better</div>
-                <h2 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950">
+                <h2 className="mt-4 text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950">
                   A system feels different than a pile of conversations
                 </h2>
                 <p className="mt-5 text-lg leading-8 text-slate-600">
@@ -239,7 +239,7 @@ export default async function HomePage() {
             <div className="mx-auto max-w-7xl px-6 lg:px-10">
               <div className="mx-auto max-w-4xl text-center">
                 <div className="text-sm font-semibold uppercase tracking-[0.24em] text-blue-300">The moment of clarity</div>
-                <h2 className="mt-4 text-4xl font-semibold tracking-tight md:text-5xl">
+                <h2 className="mt-4 text-3xl sm:text-4xl font-semibold tracking-tight md:text-5xl">
                   This is what a real repair system looks like
                 </h2>
                 <p className="mt-5 text-lg leading-8 text-slate-300">
