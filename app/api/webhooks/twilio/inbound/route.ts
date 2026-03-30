@@ -247,11 +247,15 @@ export async function POST(request: NextRequest) {
     });
 
     // Create notification with parsed details when available
+    const fmtNum = (n: number) => n.toLocaleString('en-US');
     let notifBody = `${contractor.name} replied to your request for ${issue.title}`;
     if (parsedReply?.flatEstimate) {
-      notifBody = `${contractor.name} quoted $${parsedReply.flatEstimate} for ${issue.title}`;
+      notifBody = `${contractor.name} quoted $${fmtNum(parsedReply.flatEstimate)} for ${issue.title}`;
     } else if (parsedReply?.estimateLow && parsedReply?.estimateHigh) {
-      notifBody = `${contractor.name} quoted $${parsedReply.estimateLow}–$${parsedReply.estimateHigh} for ${issue.title}`;
+      notifBody = `${contractor.name} quoted $${fmtNum(parsedReply.estimateLow)}–$${fmtNum(parsedReply.estimateHigh)} for ${issue.title}`;
+    }
+    if (parsedReply?.availabilityText) {
+      notifBody += `, available ${parsedReply.availabilityText}`;
     }
     if (parsedReply?.followUpQuestion) {
       notifBody += ` — they asked: "${parsedReply.followUpQuestion}"`;
@@ -267,12 +271,24 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Build quote string for structured email
+    let quoteStr: string | null = null;
+    if (parsedReply?.flatEstimate) {
+      quoteStr = String(parsedReply.flatEstimate);
+    } else if (parsedReply?.estimateLow && parsedReply?.estimateHigh) {
+      quoteStr = `${parsedReply.estimateLow}–${parsedReply.estimateHigh}`;
+    }
+
     // Send email notification to property owner (non-blocking)
     await sendOwnerNotificationEmail({
       userId: issue.property.ownerUserId,
       issueId: issue.id,
       issueTitle: issue.title ?? 'Untitled issue',
       notifBody,
+      contractorName: contractor.name,
+      quote: quoteStr,
+      availability: parsedReply?.availabilityText || null,
+      question: parsedReply?.followUpQuestion || null,
     });
 
     return getTwiMLResponse();
