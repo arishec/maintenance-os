@@ -7,7 +7,7 @@ import { PublicLayout } from '@/components/public-layout';
 export const metadata: Metadata = {
   title: 'Maintenance OS — Manage Repairs Without Chasing Contractors',
   description:
-    'Turn messy texts, calls, and scattered quotes into one clear workflow: intake, dispatch, compare, track, and repair history.',
+    'Turn messy texts, calls, and scattered quotes into one clear system — intake, dispatch, compare, track, and history.',
   alternates: {
     canonical: '/',
   },
@@ -82,7 +82,7 @@ export default async function HomePage() {
   const { userId } = await auth();
   const isSignedIn = !!userId;
   const ctaHref = isSignedIn ? '/dashboard' : '/sign-up';
-  const ctaLabel = isSignedIn ? 'Go to dashboard' : 'Get started free';
+  const ctaLabel = isSignedIn ? 'Go to dashboard' : 'Get started for free';
 
   return (
     <>
@@ -99,8 +99,8 @@ export default async function HomePage() {
                 Manage repairs without chasing contractors
               </h1>
               <p className="mt-6 max-w-2xl text-xl leading-8 text-slate-600">
-                Turn messy texts, calls, and scattered quotes into one clear workflow: intake, dispatch, compare, track, and repair history.
-              </p>
+                Turn messy texts, calls, and scattered quotes into one clear system — intake, dispatch, compare, track, and history.
+</p>
               <div className="mt-8 flex flex-wrap gap-4">
                 <Link
                   href={ctaHref}
@@ -108,19 +108,19 @@ export default async function HomePage() {
                 >
                   {ctaLabel}
                 </Link>
-                <a
-                  href="#flow"
+                <Link
+                  href="/how-it-works"
                   className="rounded-2xl border border-slate-300 bg-white px-6 py-4 text-base font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-50"
                 >
-                  See the workflow
-                </a>
+                  See how it works
+                </Link>
               </div>
               <div className="mt-6 grid max-w-xl gap-3 text-sm text-slate-600 sm:grid-cols-2">
                 <div className="rounded-2xl border border-slate-200 bg-white p-4">No credit card required in beta</div>
                 <div className="rounded-2xl border border-slate-200 bg-white p-4">Works for homeowners and landlords</div>
               </div>
               <p className="mt-4 text-sm text-slate-400">
-                Used by homeowners and landlords managing 1–50+ properties.
+                Built for homeowners and landlords managing real properties — not spreadsheets.
               </p>
             </div>
 
@@ -217,13 +217,13 @@ export default async function HomePage() {
                   A system feels different than a pile of conversations
                 </h2>
                 <p className="mt-5 text-lg leading-8 text-slate-600">
-                  One request becomes one clear workflow — intake, dispatch, comparison, tracking, and history. Everything connected, nothing lost.
+                  One request becomes one clear workflow — everything connected, nothing lost.
                 </p>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 {benefits.map((benefit) => (
                   <div key={benefit.title} className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm">
-                    <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50">
+                    <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-full bg-blue-100">
                       <svg className="h-5 w-5 text-blue-700" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
                     </div>
                     <h3 className="text-xl font-semibold tracking-tight text-slate-950">{benefit.title}</h3>
