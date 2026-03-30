@@ -354,6 +354,9 @@ export async function POST(request: NextRequest) {
     } else if (parsedReply?.estimateLow && parsedReply?.estimateHigh) {
       notifBody = `${contractor.name} quoted $${parsedReply.estimateLow}–$${parsedReply.estimateHigh} for ${issue.title}`;
     }
+    if (parsedReply?.availabilityText) {
+      notifBody += `, available ${parsedReply.availabilityText}`;
+    }
     if (parsedReply?.followUpQuestion) {
       notifBody += ` — they asked: "${parsedReply.followUpQuestion}"`;
     }
