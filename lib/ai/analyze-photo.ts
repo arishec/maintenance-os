@@ -23,21 +23,25 @@ export async function analyzePhoto(photoUrl: string): Promise<string> {
           {
             type: 'text',
             text: `You are analyzing a photo submitted for a home/property maintenance issue.
-Describe what you see in 1-3 sentences. Focus on:
+Describe what you see in 1-3 plain sentences. Focus on:
 - What the problem or area appears to be (e.g. water damage, cracked drywall, leaking pipe)
 - Severity or extent of the issue if visible
 - Location details visible in the photo (e.g. under sink, ceiling corner, exterior wall)
-Be factual and concise. Do NOT speculate about causes unless obvious. Do NOT give repair advice.`,
+Be factual and concise. Do NOT speculate about causes unless obvious. Do NOT give repair advice.
+IMPORTANT: Return ONLY plain text sentences. No markdown, no headers, no bullet points, no formatting.`,
           },
         ],
       },
     ],
   });
 
-  const text = response.content
+  let text = response.content
     .map((block) => ('text' in block ? block.text : ''))
     .join('')
     .trim();
+
+  // Strip any markdown formatting that slips through
+  text = text.replace(/^#+\s*.+\n*/gm, '').replace(/\*\*/g, '').replace(/^[-*]\s+/gm, '').trim();
 
   return text || 'Unable to analyze photo.';
 }
