@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { PublicLayout } from '@/components/public-layout';
 import { ArticleJsonLd } from '@/components/seo/article-jsonld';
 
 export const metadata: Metadata = {
-  title: 'How to Compare Contractor Quotes',
+  title: 'How to Compare Contractor Quotes (Without Getting Ripped Off)',
   description:
     'Learn how to evaluate contractor bids, spot red flags, and choose the best contractor for your repair based on price, timeline, and reliability.',
   alternates: {
@@ -15,339 +16,316 @@ export default function HowToCompareContractorQuotesPage() {
   return (
     <PublicLayout>
       <ArticleJsonLd
-        headline="How to Compare Contractor Quotes"
+        headline="How to Compare Contractor Quotes (Without Getting Ripped Off)"
         description="Learn how to evaluate contractor bids, spot red flags, and choose the best contractor for your repair based on price, timeline, and reliability."
         path="/guides/how-to-compare-contractor-quotes"
         datePublished="2026-03-27"
-        dateModified="2026-03-27"
+        dateModified="2026-03-30"
       />
 
-      <main className="mx-auto max-w-3xl px-6 py-16">
-        <article className="prose prose-neutral max-w-none">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">How to Compare Contractor Quotes</h1>
-          <p className="text-gray-600 text-lg mb-8">
-            Get multiple bids, evaluate them strategically, and choose the contractor that delivers the best
-            value for your repair.
+      <main className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+        {/* ───── HERO ───── */}
+        <div className="text-center mb-16">
+          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6 leading-tight">
+            How to Compare Contractor Quotes (Without Getting Ripped Off)
+          </h1>
+          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            Get multiple bids, evaluate them strategically, and choose the contractor that delivers the best value — not just the lowest price.
+          </p>
+          <Link
+            href="/sign-up"
+            className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg"
+          >
+            Start Free With Maintenance OS
+          </Link>
+        </div>
+
+        {/* ───── INTRO / PAIN ───── */}
+        <div className="mb-16">
+          <p className="text-gray-700 text-lg mb-4">
+            Most people try to track quotes in texts, emails, or spreadsheets — and that&apos;s where mistakes happen.
+          </p>
+          <p className="text-gray-700 text-lg mb-4">
+            Contractor pricing varies wildly. For the same roof repair, you might get quotes ranging from $2,000 to $4,000. The difference is massive — but the cheapest isn&apos;t always best.
+          </p>
+          <p className="text-gray-700 text-lg">
+            This guide shows you exactly how to compare quotes, spot red flags, and make the right call every time.
+          </p>
+        </div>
+
+        {/* ───── HOW MANY QUOTES ───── */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">How Many Quotes Should You Get?</h2>
+          <div className="space-y-3">
+            <div className="flex gap-3">
+              <span className="inline-flex h-2.5 w-2.5 rounded-full bg-green-500 flex-shrink-0 mt-2" />
+              <p className="text-gray-700"><span className="font-bold">Small repairs ($100–$500):</span> 1–2 quotes. Get one from a trusted contractor. For bigger spend, get a backup.</p>
+            </div>
+            <div className="flex gap-3">
+              <span className="inline-flex h-2.5 w-2.5 rounded-full bg-blue-500 flex-shrink-0 mt-2" />
+              <p className="text-gray-700"><span className="font-bold">Medium repairs ($500–$2,000):</span> 2–3 quotes. Start to see patterns in pricing.</p>
+            </div>
+            <div className="flex gap-3">
+              <span className="inline-flex h-2.5 w-2.5 rounded-full bg-purple-500 flex-shrink-0 mt-2" />
+              <p className="text-gray-700"><span className="font-bold">Large repairs ($2,000+):</span> 3–4 quotes. Comparison becomes critical at this price point.</p>
+            </div>
+          </div>
+          <p className="text-gray-600 mt-4">
+            More than 4 quotes gives diminishing returns. You&apos;ll have enough data by then.
+          </p>
+        </div>
+
+        {/* ───── THE SETUP ───── */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Getting Quotes: The Setup</h2>
+          <p className="text-gray-700 mb-4">
+            Before asking for quotes, make sure you&apos;re asking for the same thing from everyone. Be specific about the problem, include photos so contractors can give accurate estimates, clarify the scope (repair vs. replace), ask for timeline, and request details on materials and warranty.
+          </p>
+          <p className="text-gray-700">
+            The more specific you are, the more comparable the quotes will be. Vague questions get vague answers.
           </p>
 
-          <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">Why Compare Quotes?</h2>
-          <p className="text-gray-700 mb-4">
-            Contractor pricing varies wildly. For the same roof repair, you might get quotes ranging from $2,000
-            to $4,000. The difference is massive.
-          </p>
-          <p className="text-gray-700 mb-4">
-            That said, cheapest isn't always best. A $2,000 bid from an unlicensed handyman might leave you with
-            problems later, while a $3,500 bid from a licensed roofer includes warranty and reliability.
-          </p>
-          <p className="text-gray-700 mb-4">
-            Getting multiple quotes lets you: find fair pricing, evaluate contractor competence, and make
-            informed decisions based on value, not just price.
-          </p>
+          {/* Micro conversion */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 mt-6">
+            <p className="text-gray-800 font-medium mb-2">
+              This is exactly what Maintenance OS is built for — send one request to multiple contractors and get structured quotes back automatically.
+            </p>
+            <Link href="/features/contractor-dispatch" className="text-blue-600 font-medium hover:underline">
+              See How Dispatch Works →
+            </Link>
+          </div>
+        </div>
 
-          <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">How Many Quotes Should You Get?</h2>
-          <p className="text-gray-700 mb-4">
-            The answer depends on the job size:
-          </p>
-          <ul className="list-disc list-inside space-y-2 text-gray-700 mb-4">
-            <li>
-              <strong>Small repairs ($100-500):</strong> 1-2 quotes. Get one from a trusted contractor. For major
-              work, get one backup.
-            </li>
-            <li>
-              <strong>Medium repairs ($500-2,000):</strong> 2-3 quotes. Start to see patterns in pricing.
-            </li>
-            <li>
-              <strong>Large repairs ($2,000+):</strong> 3-4 quotes. Get a good sense of fair market price.
-              Comparison becomes critical.
-            </li>
-          </ul>
-          <p className="text-gray-700 mb-4">
-            More than 4 quotes gets diminishing returns. You'll have enough data by then. More quotes means
-            delaying the decision.
-          </p>
+        {/* ───── WHAT TO LOOK FOR ───── */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">What to Look For in a Quote</h2>
+          <div className="space-y-3">
+            {[
+              { label: 'Total cost', desc: 'Does it include materials, labor, and permits — or just labor?' },
+              { label: 'Scope of work', desc: '"Fix roof leak" is different from "Install new shingles on 500 sq ft section."' },
+              { label: 'Materials', desc: '"30-year asphalt shingles" is different from "architectural shingles."' },
+              { label: 'Timeline', desc: 'When can they start? How long will it take?' },
+              { label: 'Warranty', desc: 'How long? What does it cover? Parts only or parts + labor?' },
+              { label: 'Payment terms', desc: 'How much upfront? When is final payment due?' },
+              { label: 'Contractor info', desc: 'License number, insurance, references.' },
+            ].map((item) => (
+              <div key={item.label} className="flex gap-4">
+                <svg className="h-6 w-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                <p className="text-gray-700"><span className="font-bold">{item.label}:</span> {item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
 
-          <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">Getting Quotes: The Setup</h2>
-          <p className="text-gray-700 mb-4">
-            Before asking for quotes, make sure you're asking for the same thing from everyone:
-          </p>
-          <ul className="list-disc list-inside space-y-2 text-gray-700 mb-4">
-            <li>
-              <strong>Be specific about the problem:</strong> "Roof is leaking in the master bedroom. About 4x4
-              feet. I have photos."
-            </li>
-            <li>
-              <strong>Include photos:</strong> Contractors can give rough estimates without seeing the problem,
-              but it helps to include photos
-            </li>
-            <li>
-              <strong>Clarify the scope:</strong> "I want the leak fixed, not a full roof replacement"
-            </li>
-            <li>
-              <strong>Ask for timeline:</strong> "When could you do this work?"
-            </li>
-            <li>
-              <strong>Specify if you want details:</strong> "Please include what materials will be used and any
-              warranty"
-            </li>
-          </ul>
-          <p className="text-gray-700 mb-4">
-            The more specific you are, the more comparable the quotes will be. If you ask vague questions, you'll
-            get vague answers.
-          </p>
+        {/* ───── RED FLAGS ───── */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Red Flags in Quotes</h2>
+          <div className="space-y-3">
+            {[
+              { label: 'No written quote', desc: 'Legitimate contractors give written estimates. Verbal only is a red flag.' },
+              { label: 'Extremely low price', desc: "If a quote is 30%+ lower than others, ask why. Lower price often means cutting corners." },
+              { label: 'Vague scope', desc: '"Roof repair — $1,500" without details. What\'s actually being done?' },
+              { label: 'No warranty mentioned', desc: "Licensed contractors typically warranty their work. No warranty is suspicious." },
+              { label: 'Cash only, no receipt', desc: 'A legitimate business keeps records. Cash-only jobs often have quality or legal issues.' },
+              { label: 'Pressure to decide now', desc: '"This price is only good for today" is a high-pressure tactic. Walk away.' },
+              { label: 'No license or insurance', desc: "Ask for proof. Licensed and insured contractors have nothing to hide." },
+            ].map((item) => (
+              <div key={item.label} className="flex items-start gap-3">
+                <svg className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                <p className="text-gray-700"><span className="font-bold">{item.label}:</span> {item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
 
-          <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">What to Look For in a Quote</h2>
-          <p className="text-gray-700 mb-4">
-            A good quote includes:
-          </p>
-          <ul className="list-disc list-inside space-y-2 text-gray-700 mb-4">
-            <li>
-              <strong>Total cost:</strong> The bottom-line price. Does it include materials, labor, permits, or
-              just labor?
-            </li>
-            <li>
-              <strong>Scope of work:</strong> What exactly is being done? "Fix roof leak" or "Install new shingles
-              on 500 sq ft section"?
-            </li>
-            <li>
-              <strong>Materials:</strong> What brands or grades? "30-year asphalt shingles" is different from
-              "architectural shingles"
-            </li>
-            <li>
-              <strong>Timeline:</strong> When could they start? How long will it take?
-            </li>
-            <li>
-              <strong>Warranty:</strong> Does the work have a warranty? How long? What does it cover?
-            </li>
-            <li>
-              <strong>Payment terms:</strong> How much upfront? When is final payment due?
-            </li>
-            <li>
-              <strong>Contractor info:</strong> License number, insurance info, references
-            </li>
-          </ul>
+        {/* ───── MID CTA ───── */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 sm:p-8 text-center mb-16">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Stop comparing quotes in your head
+          </h2>
+          <p className="text-gray-600 mb-6 text-lg">See every quote side-by-side in one place.</p>
+          <Link
+            href="/sign-up"
+            className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          >
+            Get Started Free
+          </Link>
+        </div>
 
-          <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">Red Flags in Quotes</h2>
+        {/* ───── SAMPLE COMPARISON ───── */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Sample Comparison Table</h2>
           <p className="text-gray-700 mb-4">
-            Watch out for these warning signs:
+            Here&apos;s how to organize quotes for easy comparison (example: kitchen faucet replacement):
           </p>
-          <ul className="list-disc list-inside space-y-2 text-gray-700 mb-4">
-            <li>
-              <strong>No written quote:</strong> Legitimate contractors give written estimates. Verbal only is a
-              red flag.
-            </li>
-            <li>
-              <strong>Extremely low price:</strong> If a quote is 30%+ lower than others, ask why. Lower price
-              often means cutting corners.
-            </li>
-            <li>
-              <strong>Vague scope:</strong> "Roof repair - $1,500" without details is unclear. What's actually
-              being done?
-            </li>
-            <li>
-              <strong>No warranty mentioned:</strong> Licensed contractors typically warranty their work. No
-              warranty mentioned is suspicious.
-            </li>
-            <li>
-              <strong>Cash only, no receipt:</strong> A legitimate business keeps records. Cash-only, no-receipt
-              jobs often have quality or legal issues.
-            </li>
-            <li>
-              <strong>Pressure to decide immediately:</strong> "This price is only good for today" is a
-              high-pressure tactic. Walk away.
-            </li>
-            <li>
-              <strong>No license or insurance info:</strong> Ask for proof. Licensed and insured contractors have
-              nothing to hide.
-            </li>
-          </ul>
-
-          <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">Comparing Prices Fairly</h2>
-          <p className="text-gray-700 mb-4">
-            Price is important, but you need to compare apples to apples:
-          </p>
-          <ul className="list-disc list-inside space-y-2 text-gray-700 mb-4">
-            <li>
-              <strong>Make sure each quote is for the same scope:</strong> If Contractor A is replacing the whole
-              roof and Contractor B is just patching, the prices aren't comparable
-            </li>
-            <li>
-              <strong>Check if materials are included:</strong> Does the price include materials, or just labor?
-            </li>
-            <li>
-              <strong>Understand the material difference:</strong> "Budget shingles" are cheaper than "premium
-              architectural shingles"
-            </li>
-            <li>
-              <strong>Factor in warranty:</strong> A contractor who warranties 5 years is more valuable than one
-              with no warranty
-            </li>
-            <li>
-              <strong>Look at timeline:</strong> Someone who can start next week is valuable if you need fast work
-            </li>
-          </ul>
-
-          <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">Beyond Price: Evaluating Contractors</h2>
-          <p className="text-gray-700 mb-4">
-            Price matters, but so does contractor quality:
-          </p>
-          <ul className="list-disc list-inside space-y-2 text-gray-700 mb-4">
-            <li>
-              <strong>Check references:</strong> Call people they've worked for recently. Did they do good work?
-              Finish on time?
-            </li>
-            <li>
-              <strong>Verify licensing:</strong> Check your state's contractor licensing board. Are they
-              licensed? Any complaints?
-            </li>
-            <li>
-              <strong>Check reviews:</strong> Google reviews, Yelp, Better Business Bureau. Look for patterns. One
-              bad review is common. Many complaints means avoid.
-            </li>
-            <li>
-              <strong>Ask about insurance:</strong> Legitimate contractors have general liability and workers comp
-              insurance. See the certificates.
-            </li>
-            <li>
-              <strong>Communication style:</strong> Do they call you back promptly? Do they explain things
-              clearly? Good communication matters.
-            </li>
-            <li>
-              <strong>Experience:</strong> Is this their specialty or a side job? Someone who does 20 roofs a year
-              is more reliable than someone who does 2.
-            </li>
-          </ul>
-
-          <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">Sample Comparison Table</h2>
-          <p className="text-gray-700 mb-4">
-            Here's how to organize quotes for easy comparison (example: kitchen faucet replacement):
-          </p>
-          <div className="bg-gray-50 rounded border border-gray-300 overflow-x-auto p-4 mb-4">
+          <div className="border border-gray-200 rounded-lg overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-300">
-                  <th className="text-left p-2 font-bold">Contractor</th>
-                  <th className="text-left p-2 font-bold">Price</th>
-                  <th className="text-left p-2 font-bold">Timeline</th>
-                  <th className="text-left p-2 font-bold">Warranty</th>
-                  <th className="text-left p-2 font-bold">Rating</th>
+                <tr className="bg-gray-50 border-b border-gray-200">
+                  <th className="text-left p-3 font-bold text-gray-900">Contractor</th>
+                  <th className="text-left p-3 font-bold text-gray-900">Price</th>
+                  <th className="text-left p-3 font-bold text-gray-900">Timeline</th>
+                  <th className="text-left p-3 font-bold text-gray-900">Warranty</th>
+                  <th className="text-left p-3 font-bold text-gray-900">Rating</th>
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-b border-gray-300">
-                  <td className="p-2">Jones Plumbing</td>
-                  <td className="p-2">$450</td>
-                  <td className="p-2">Next week</td>
-                  <td className="p-2">1 year parts</td>
-                  <td className="p-2">4.8/5</td>
+                <tr className="border-b border-gray-200">
+                  <td className="p-3 text-gray-700">Jones Plumbing</td>
+                  <td className="p-3 text-gray-700">$450</td>
+                  <td className="p-3 text-gray-700">Next week</td>
+                  <td className="p-3 text-gray-700">1 year parts</td>
+                  <td className="p-3 text-gray-700">4.8/5</td>
                 </tr>
-                <tr className="border-b border-gray-300">
-                  <td className="p-2">Budget Plumbing</td>
-                  <td className="p-2">$250</td>
-                  <td className="p-2">2 weeks</td>
-                  <td className="p-2">None</td>
-                  <td className="p-2">3.2/5</td>
+                <tr className="border-b border-gray-200 bg-red-50">
+                  <td className="p-3 text-gray-700">Budget Plumbing</td>
+                  <td className="p-3 text-gray-700">$250</td>
+                  <td className="p-3 text-gray-700">2 weeks</td>
+                  <td className="p-3 text-red-600 font-medium">None</td>
+                  <td className="p-3 text-gray-700">3.2/5</td>
                 </tr>
-                <tr>
-                  <td className="p-2">Premium Home Services</td>
-                  <td className="p-2">$550</td>
-                  <td className="p-2">Same day</td>
-                  <td className="p-2">2 years parts + labor</td>
-                  <td className="p-2">4.9/5</td>
+                <tr className="bg-green-50">
+                  <td className="p-3 text-gray-700 font-medium">Premium Home Services</td>
+                  <td className="p-3 text-gray-700">$550</td>
+                  <td className="p-3 text-gray-700">Same day</td>
+                  <td className="p-3 text-green-700 font-medium">2 years parts + labor</td>
+                  <td className="p-3 text-gray-700">4.9/5</td>
                 </tr>
               </tbody>
             </table>
           </div>
+          <p className="text-gray-500 text-sm mt-3">
+            Budget Plumbing is cheapest but has no warranty and poor reviews. Premium costs more but offers same-day service and the best warranty. Jones is the balanced option.
+          </p>
 
-          <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">Making Your Decision</h2>
+          {/* Micro conversion */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 mt-6">
+            <p className="text-gray-800 font-medium mb-2">
+              Maintenance OS builds this comparison for you automatically — every quote in one view, side-by-side.
+            </p>
+            <Link href="/features/quote-comparison" className="text-blue-600 font-medium hover:underline">
+              See Quote Comparison →
+            </Link>
+          </div>
+        </div>
+
+        {/* ───── COMPARING FAIRLY ───── */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Comparing Prices Fairly</h2>
           <p className="text-gray-700 mb-4">
-            After comparing quotes, here's how to decide:
+            Price matters, but you need to compare apples to apples. Make sure each quote covers the same scope of work. Check whether materials are included or just labor. Understand the material differences — budget shingles vs. premium architectural shingles. Factor in warranty length and coverage. And consider timeline — someone who can start next week is valuable if you need fast work.
           </p>
-          <ul className="list-disc list-inside space-y-2 text-gray-700 mb-4">
-            <li>
-              <strong>Eliminate obvious bad options:</strong> Very cheap quotes with no warranty or poor reviews
-              are likely low quality
-            </li>
-            <li>
-              <strong>Look for "good value":</strong> Not necessarily the cheapest, but solid quality at a fair
-              price
-            </li>
-            <li>
-              <strong>Consider your priorities:</strong> Need it done fast? Pay a bit more for quick availability.
-              Can wait? Save money.
-            </li>
-            <li>
-              <strong>Trust your gut:</strong> Did the contractor seem professional? Do you feel confident they'll
-              do good work?
-            </li>
-            <li>
-              <strong>Make a decision and move forward:</strong> Once you've chosen, stop second-guessing and
-              commit to the job
-            </li>
-          </ul>
+        </div>
 
-          <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">Common Mistakes When Comparing Quotes</h2>
-          <ul className="list-disc list-inside space-y-2 text-gray-700 mb-4">
-            <li>
-              <strong>Only comparing prices:</strong> A $200 savings on a $2,000 job isn't worth it if you get
-              poor quality
-            </li>
-            <li>
-              <strong>Getting too many quotes:</strong> After 3-4, additional quotes just delay your decision
-            </li>
-            <li>
-              <strong>Not asking clarifying questions:</strong> If a quote is unclear, ask for details before
-              deciding
-            </li>
-            <li>
-              <strong>Ignoring references:</strong> A contractor who's done good work for others will do it for
-              you
-            </li>
-            <li>
-              <strong>Negotiating down good contractors:</strong> If someone quotes fairly and has good reviews,
-              don't nickel and dime them
-            </li>
-            <li>
-              <strong>Hiring based on low price:</strong> Often costs more to fix poor work than to pay more
-              upfront
-            </li>
-          </ul>
-
-          <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">After You Choose</h2>
+        {/* ───── BEYOND PRICE ───── */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Beyond Price: Evaluating Contractors</h2>
           <p className="text-gray-700 mb-4">
-            Once you've hired a contractor:
+            Check references — call people they&apos;ve worked for recently. Verify licensing through your state&apos;s contractor board. Read reviews on Google and the Better Business Bureau (look for patterns, not one-offs). Ask for proof of insurance. Pay attention to communication style — do they call back promptly and explain things clearly? And check experience — someone who does 20 roofs a year is more reliable than someone who does 2.
           </p>
-          <ul className="list-disc list-inside space-y-2 text-gray-700 mb-4">
-            <li>
-              <strong>Get everything in writing:</strong> The quoted price, scope, timeline, and warranty should
-              be in a signed agreement
-            </li>
-            <li>
-              <strong>Pay as agreed:</strong> Many contractors want a deposit upfront. Usually 25-50% is normal.
-              Final payment on completion.
-            </li>
-            <li>
-              <strong>Document the work:</strong> Take photos when the work is done. Keep the invoice.
-            </li>
-            <li>
-              <strong>Inspect before final payment:</strong> Make sure the work meets your expectations before
-              handing over the final payment
-            </li>
-            <li>
-              <strong>Keep warranty documents:</strong> File the warranty paperwork. You'll need it if issues
-              arise.
-            </li>
-          </ul>
+        </div>
 
-          <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">Final Thoughts</h2>
+        {/* ───── MAKING YOUR DECISION ───── */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Making Your Decision</h2>
+          <div className="space-y-3">
+            <div className="flex gap-3">
+              <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-blue-100 text-blue-700 font-bold text-sm flex-shrink-0">1</span>
+              <p className="text-gray-700">Eliminate obvious bad options — very cheap with no warranty or poor reviews</p>
+            </div>
+            <div className="flex gap-3">
+              <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-blue-100 text-blue-700 font-bold text-sm flex-shrink-0">2</span>
+              <p className="text-gray-700">Look for &ldquo;good value&rdquo; — solid quality at a fair price, not necessarily the cheapest</p>
+            </div>
+            <div className="flex gap-3">
+              <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-blue-100 text-blue-700 font-bold text-sm flex-shrink-0">3</span>
+              <p className="text-gray-700">Consider your priorities — need it fast? Pay more for availability. Can wait? Save money.</p>
+            </div>
+            <div className="flex gap-3">
+              <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-blue-100 text-blue-700 font-bold text-sm flex-shrink-0">4</span>
+              <p className="text-gray-700">Trust your gut — did the contractor seem professional and competent?</p>
+            </div>
+            <div className="flex gap-3">
+              <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-blue-100 text-blue-700 font-bold text-sm flex-shrink-0">5</span>
+              <p className="text-gray-700">Decide and commit — stop second-guessing and move forward</p>
+            </div>
+          </div>
+        </div>
+
+        {/* ───── COMMON MISTAKES ───── */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Common Mistakes When Comparing Quotes</h2>
+          <div className="space-y-3">
+            {[
+              { label: 'Only comparing prices', desc: "A $200 savings on a $2,000 job isn't worth it if you get poor quality" },
+              { label: 'Getting too many quotes', desc: 'After 3–4, additional quotes just delay your decision' },
+              { label: 'Not asking clarifying questions', desc: 'If a quote is unclear, ask for details before deciding' },
+              { label: 'Ignoring references', desc: "A contractor who's done good work for others will do it for you" },
+              { label: 'Negotiating down good contractors', desc: 'If someone quotes fairly and has good reviews, respect that' },
+              { label: 'Hiring based on low price alone', desc: 'Often costs more to fix poor work than to pay more upfront' },
+            ].map((item) => (
+              <div key={item.label} className="flex items-start gap-3">
+                <svg className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                <p className="text-gray-700"><span className="font-bold">{item.label}:</span> {item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ───── AFTER YOU CHOOSE ───── */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">After You Choose</h2>
           <p className="text-gray-700 mb-4">
-            Comparing contractor quotes doesn't have to be complicated. Get a few bids, make sure they're for
-            the same scope, evaluate quality and reviews, and choose the contractor who offers the best value.
+            Get everything in writing — the quoted price, scope, timeline, and warranty in a signed agreement. Pay as agreed (25–50% deposit is normal, final payment on completion). Document the work with photos. Inspect before final payment. And keep warranty documents filed where you can find them.
           </p>
-          <p className="text-gray-700">
-            Remember: the cheapest quote often turns into the most expensive when you have to pay to fix poor
-            quality work. Choose based on value, not just price. You'll save money in the long run.
+
+          {/* Micro conversion */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 mt-6">
+            <p className="text-gray-800 font-medium mb-2">
+              Maintenance OS stores every quote, invoice, and contractor detail automatically — so you never lose track of what was agreed.
+            </p>
+            <Link href="/features/repair-history" className="text-blue-600 font-medium hover:underline">
+              See Repair History →
+            </Link>
+          </div>
+        </div>
+
+        {/* ───── KEY CONVERSION BLOCK ───── */}
+        <div className="bg-gray-900 text-white rounded-lg p-6 sm:p-8 mb-16">
+          <h2 className="text-2xl font-bold mb-4">
+            You shouldn&apos;t have to do all of this manually
+          </h2>
+          <p className="text-gray-300 mb-4">
+            Requesting quotes, comparing prices, tracking contractors, saving invoices — it adds up fast.
           </p>
-        </article>
+          <p className="text-gray-300 font-medium">
+            Maintenance OS handles the entire flow: dispatch to contractors, compare quotes side-by-side, choose the best option, and keep everything on record.
+          </p>
+        </div>
+
+        {/* ───── FINAL CTA ───── */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 sm:p-10 text-center border border-blue-100">
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">
+            Compare quotes without the mess
+          </h2>
+          <p className="text-gray-600 mb-6 text-lg max-w-xl mx-auto">
+            Every quote, every contractor, every decision — organized and easy to compare.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/sign-up"
+              className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg"
+            >
+              Get Started Free
+            </Link>
+            <Link
+              href="/features/quote-comparison"
+              className="inline-block border border-gray-300 text-gray-700 px-8 py-3 rounded-lg hover:bg-gray-50 transition-colors font-medium text-lg"
+            >
+              See Quote Comparison
+            </Link>
+          </div>
+        </div>
       </main>
     </PublicLayout>
   );
