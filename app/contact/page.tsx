@@ -5,7 +5,7 @@ import { ContactForm } from '@/components/contact-form';
 
 export const metadata: Metadata = {
   title: 'Contact Maintenance OS',
-  description: 'Get in touch with the Maintenance OS team. Questions, feedback, or need help getting started?',
+  description: 'Have a question about Maintenance OS? Get in touch and we\'ll help you get up and running quickly.',
   alternates: {
     canonical: '/contact',
   },
@@ -14,31 +14,51 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <PublicLayout>
-      <main className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
-        {/* Header */}
-        <div className="mb-12 sm:mb-16">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Contact Us
+      <main className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+        {/* ───── HEADER ───── */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
+            Have a question? Let&apos;s get you unstuck
           </h1>
-          <p className="text-lg text-gray-600">
-            Have questions or feedback? Send us a message and we&apos;ll get back to you.
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Whether you&apos;re setting up your first property or figuring out how it works — we&apos;ll help you get up and running quickly.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
-          {/* Form */}
+          {/* ───── FORM ───── */}
           <div>
+            <p className="text-sm text-gray-500 mb-4">We typically respond within a few hours.</p>
             <ContactForm />
+            <p className="text-xs text-gray-400 mt-3">No spam. No sales pressure. Just a real response.</p>
+
+            {/* Secondary CTA */}
+            <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+              <p className="text-sm text-gray-500 mb-3">Or skip the wait:</p>
+              <Link
+                href="/sign-up"
+                className="inline-block bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+              >
+                Get started free
+              </Link>
+            </div>
           </div>
 
-          {/* FAQ */}
+          {/* ───── FAQ ───── */}
           <div className="space-y-6">
             <h2 className="text-xl font-bold text-gray-900">Common Questions</h2>
 
             <div>
+              <h3 className="text-sm font-bold text-gray-900 mb-1">Do I need to install anything?</h3>
+              <p className="text-sm text-gray-600">
+                No. It&apos;s a simple web app — you can start using it in minutes.
+              </p>
+            </div>
+
+            <div>
               <h3 className="text-sm font-bold text-gray-900 mb-1">Is it really free?</h3>
               <p className="text-sm text-gray-600">
-                Yes. Everything is free while we&apos;re in beta — unlimited issues, contractor dispatch, quote comparison, and repair history.
+                Yes — everything is free while we&apos;re in beta. No limits, no credit card, no surprises.
               </p>
             </div>
 
@@ -76,9 +96,9 @@ export default function ContactPage() {
           </div>
         </div>
 
-        {/* CTA */}
-        <section className="rounded-2xl bg-blue-50 border border-blue-100 p-6 sm:p-8 md:p-12 text-center">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">
+        {/* ───── BOTTOM CTA ───── */}
+        <section className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 sm:p-10 text-center border border-blue-100 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">
             Ready to get started?
           </h2>
           <p className="text-gray-600 mb-6">
@@ -86,11 +106,16 @@ export default function ContactPage() {
           </p>
           <Link
             href="/sign-up"
-            className="inline-flex justify-center rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+            className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
           >
-            Get started for free
+            Get started free
           </Link>
         </section>
+
+        {/* ───── EMAIL FALLBACK ───── */}
+        <p className="text-center text-sm text-gray-400">
+          Prefer email? support@maintenanceos.com
+        </p>
       </main>
     </PublicLayout>
   );

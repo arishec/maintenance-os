@@ -91,7 +91,7 @@ export function ContactForm() {
         />
       </div>
       <Button type="submit" disabled={sending} className="w-full">
-        {sending ? 'Sending...' : 'Send message'}
+        {sending ? 'Sending...' : 'Send message → Get a response'}
       </Button>
     </form>
   );
