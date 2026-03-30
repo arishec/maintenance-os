@@ -163,10 +163,14 @@ export async function POST(
       if (dispatch.channel === 'sms' && contractor.phone) {
         await sendRepairRequestSms(contractor.phone, confirmationMsg);
       } else if (contractor.email) {
+        const selectionSubject = replyToken
+          ? `You've been selected [Ref: ${replyToken}] — ${issue.title || 'Maintenance request'}`
+          : `You've been selected: ${issue.title || 'Maintenance request'}`;
         await sendRepairRequestEmail(
           contractor.email,
-          `You've been selected: ${issue.title || 'Maintenance request'}`,
+          selectionSubject,
           `<div style="font-family: sans-serif; font-size: 14px; line-height: 1.6;">
+            ${replyToken ? `<p><strong>Reference: ${replyToken}</strong></p>` : ''}
             <p>Hi ${contractor.name},</p>
             <p>You've been selected for a job: <strong>${issue.title || 'Maintenance request'}</strong>.</p>
             <p><strong>Location:</strong> ${propertyAddress}</p>
