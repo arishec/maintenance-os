@@ -6,6 +6,7 @@ import { LayoutShell } from '@/components/layout-shell';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { formatPhone } from '@/lib/utils';
 
 function tradeLabel(trade: string): string {
   return trade.split('_').join(' ');
@@ -118,7 +119,7 @@ export default async function ContractorsPage() {
                         {contractor.phone && (
                           <div className="flex items-center gap-2">
                             <span className="text-muted-foreground">Phone:</span>
-                            <span>{contractor.phone}</span>
+                            <span>{formatPhone(contractor.phone)}</span>
                           </div>
                         )}
                         {contractor.email && (

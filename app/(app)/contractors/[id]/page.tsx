@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArchiveButton } from './archive-button';
+import { formatPhone } from '@/lib/utils';
 
 function tradeLabel(trade: string): string {
   return trade.split('_').join(' ');
@@ -88,7 +89,7 @@ export default async function ContractorDetailPage({
                   href={`tel:${contractor.phone}`}
                   className="text-base font-medium hover:underline"
                 >
-                  {contractor.phone}
+                  {formatPhone(contractor.phone)}
                 </a>
               </div>
             )}

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { PublicLayout } from '@/components/public-layout';
 
 export const metadata: Metadata = {
-  title: 'Compare Contractor Quotes Side by Side | Maintenance OS',
+  title: 'Compare Contractor Quotes Side by Side',
   description:
     'Stop comparing contractor quotes across texts, emails, and PDFs. Maintenance OS organizes every quote into one clean comparison view.',
   alternates: {

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { PaywallModal } from '@/components/paywall-modal';
+import { formatPhone } from '@/lib/utils';
 
 interface Issue {
   id: string;
@@ -214,14 +215,14 @@ export default function DispatchPage() {
                           <div className="font-medium">{contractor.name}</div>
                           <div className="text-xs text-muted-foreground">{contractor.trade.replace(/_/g, ' ')}</div>
                           <div className="text-xs text-muted-foreground mt-0.5 sm:hidden truncate">
-                            {contractor.phone && <span>{contractor.phone}</span>}
+                            {contractor.phone && <span>{formatPhone(contractor.phone)}</span>}
                             {contractor.phone && contractor.email && <span> · </span>}
                             {contractor.email && <span>{contractor.email}</span>}
                           </div>
                         </div>
                       </div>
                       <div className="hidden sm:block text-sm text-muted-foreground flex-shrink-0">
-                        {contractor.phone && <div>{contractor.phone}</div>}
+                        {contractor.phone && <div>{formatPhone(contractor.phone)}</div>}
                         {contractor.email && <div className="truncate max-w-[200px]">{contractor.email}</div>}
                       </div>
                       {isSelected && (

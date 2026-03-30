@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { PublicLayout } from '@/components/public-layout';
 
 export const metadata: Metadata = {
-  title: 'Pricing | Maintenance OS',
+  title: 'Pricing',
   description:
     'Maintenance OS is currently in beta. All features are free while we build.',
   alternates: {

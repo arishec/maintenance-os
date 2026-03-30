@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { PublicLayout } from '@/components/public-layout';
 
 export const metadata: Metadata = {
-  title: 'Property Maintenance Software for Landlords & Homeowners | Maintenance OS',
+  title: 'Property Maintenance Software for Landlords & Homeowners',
   description:
     'Track repairs, compare contractor quotes, and manage property maintenance in one system. Built for landlords and homeowners managing 1–50+ properties.',
   alternates: {
