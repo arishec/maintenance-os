@@ -258,7 +258,7 @@ export default function ForHomeownersPage() {
               <div>
                 <span className="font-bold text-gray-900">Optional SMS dispatch</span>
                 <p className="text-gray-600 text-sm">
-                  Pay only when you send messages to contractors (~$0.50&ndash;$0.75 per SMS).
+                  Included during beta.
                 </p>
               </div>
             </div>

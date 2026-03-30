@@ -291,21 +291,17 @@ export default function ContractorDispatchPage() {
         {/* Pricing */}
         <section className="rounded-2xl border border-blue-100 bg-blue-50 p-6 sm:p-8 lg:p-10 mb-12 sm:mb-16">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Simple, pay-as-you-go pricing
+            Simple pricing
           </h2>
           <div className="space-y-3 max-w-xl">
             <p className="text-gray-900">
-              <span className="font-bold text-lg">$0.50&ndash;$0.75 per SMS</span>
+              <span className="font-bold text-lg">SMS dispatch included during beta</span>
             </p>
             <p className="text-gray-600 text-sm">
-              No monthly fees. No minimums.
-            </p>
-            <p className="text-gray-700 text-sm">
-              <span className="font-bold">Example:</span> Send to 3 contractors
-              &rarr; about $2 total.
+              No monthly fees. No per-message charges. No surprises.
             </p>
             <p className="text-gray-900 font-bold text-sm">
-              Only pay when you use it.
+              Everything is free while we&apos;re building.
             </p>
           </div>
         </section>

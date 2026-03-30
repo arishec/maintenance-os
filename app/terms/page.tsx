@@ -71,9 +71,9 @@ export default function TermsPage() {
             <strong>Free Tier:</strong> The free tier is provided at no cost and may be terminated at any time.
           </p>
           <p className="text-gray-700 mb-4">
-            <strong>Professional Tier:</strong> SMS and email dispatch services incur charges based on usage.
-            You authorize us to charge your payment method for SMS costs at $0.50–$0.75 per message. Pricing
-            may change with 30 days' notice.
+            <strong>Professional Tier:</strong> SMS and email dispatch services may incur charges based on usage
+            after the beta period ends. Pricing will be published before any charges apply and may change with
+            30 days&apos; notice.
           </p>
           <p className="text-gray-700 mb-4">
             <strong>Invoicing:</strong> We will send monthly invoices for usage-based charges. Payment is due

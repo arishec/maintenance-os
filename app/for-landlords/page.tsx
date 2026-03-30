@@ -329,8 +329,8 @@ export default function ForLandlordsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
               </svg>
               <div>
-                <span className="font-bold text-gray-900">Pay only for SMS</span>
-                <p className="text-gray-600 text-sm">$0.50&ndash;$0.75 per message when you dispatch contractors.</p>
+                <span className="font-bold text-gray-900">Optional SMS dispatch</span>
+                <p className="text-gray-600 text-sm">Included during beta.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
