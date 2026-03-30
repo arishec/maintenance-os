@@ -88,22 +88,23 @@ export async function POST(
       },
     });
 
-    // Run AI vision analysis in the background — don't block the upload response
+    // Run AI vision analysis before returning — must await in serverless
+    // (Vercel kills the function after response, so background promises won't complete)
+    let aiDescription: string | null = null;
     if (fileUrl) {
-      analyzePhoto(fileUrl)
-        .then(async (description) => {
-          await prisma.issuePhoto.update({
-            where: { id: photo.id },
-            data: { aiDescription: description },
-          });
-          console.log(`[analyzePhoto] Photo ${photo.id}: ${description.substring(0, 80)}...`);
-        })
-        .catch((err) => {
-          console.error(`[analyzePhoto] Failed for photo ${photo.id}:`, err);
+      try {
+        aiDescription = await analyzePhoto(fileUrl);
+        await prisma.issuePhoto.update({
+          where: { id: photo.id },
+          data: { aiDescription },
         });
+        console.log(`[analyzePhoto] Photo ${photo.id}: ${aiDescription.substring(0, 80)}...`);
+      } catch (err) {
+        console.error(`[analyzePhoto] Failed for photo ${photo.id}:`, err);
+      }
     }
 
-    return NextResponse.json({ photo }, { status: 201 });
+    return NextResponse.json({ photo: { ...photo, aiDescription } }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({ error: message }, { status: 400 });
