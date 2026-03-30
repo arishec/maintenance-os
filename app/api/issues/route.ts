@@ -106,10 +106,20 @@ export async function POST(request: NextRequest) {
 
     // Try AI classification — if it fails (missing API key, etc), still return the issue
     try {
+      // Fetch any photo descriptions that may have been analyzed by now
+      const issuePhotos = await prisma.issuePhoto.findMany({
+        where: { issueId: issue.id },
+        select: { aiDescription: true },
+      });
+      const photoDescriptions = issuePhotos
+        .map((p) => p.aiDescription)
+        .filter((d): d is string => d !== null && d.length > 0);
+
       const classification = await classifyIssue({
         description: body.description,
         locationInProperty: body.locationInProperty,
         signals: body.signals,
+        photoDescriptions,
       });
 
       const classifiedIssue = await prisma.issue.update({

@@ -5,7 +5,12 @@ export async function classifyIssue(input: {
   description: string;
   locationInProperty?: string | null;
   signals?: string[];
+  photoDescriptions?: string[];
 }): Promise<IssueClassification> {
+  const photoContext = input.photoDescriptions?.length
+    ? `\nPhoto analysis (AI-generated from uploaded photos):\n${input.photoDescriptions.map((d, i) => `  Photo ${i + 1}: ${d}`).join('\n')}`
+    : '';
+
   const prompt = `You are classifying a home maintenance issue.
 Return JSON only with keys:
 - title
@@ -28,10 +33,10 @@ immediately, today, within_24_hours, within_2_to_3_days, within_1_week
 Allowed recommendedTrade values:
 plumbing, electrical, hvac, roofing, appliance_repair, handyman, pest_control, landscaping, cleaning, restoration, general_contractor, other
 
-Prefer caution over guessing.
+Prefer caution over guessing. Use the photo descriptions (if provided) together with the text description to make a more accurate classification.
 Issue description: ${input.description}
 Location: ${input.locationInProperty ?? 'unknown'}
-Signals: ${(input.signals ?? []).join(', ') || 'none provided'}`;
+Signals: ${(input.signals ?? []).join(', ') || 'none provided'}${photoContext}`;
 
   const anthropic = getAnthropicClient();
   const response = await anthropic.messages.create({

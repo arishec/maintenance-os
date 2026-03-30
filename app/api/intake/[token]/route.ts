@@ -118,10 +118,19 @@ export async function POST(
     // If this fails, the issue is still created and the submitter gets success
     let classifiedIssue = issue;
     try {
+      const issuePhotos = await prisma.issuePhoto.findMany({
+        where: { issueId: issue.id },
+        select: { aiDescription: true },
+      });
+      const photoDescriptions = issuePhotos
+        .map((p) => p.aiDescription)
+        .filter((d): d is string => d !== null && d.length > 0);
+
       const classification = await classifyIssue({
         description: body.description,
         locationInProperty: body.locationInProperty,
         signals: body.signals,
+        photoDescriptions,
       });
 
       classifiedIssue = await prisma.issue.update({

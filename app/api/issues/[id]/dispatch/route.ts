@@ -141,16 +141,16 @@ export async function POST(
       const smsMessage = `[Ref: ${replyToken}] ${messageWithPhotos}`;
       const emailSubject = `Repair request [Ref: ${replyToken}] — ${issue.title}`;
 
-      // Build HTML email with embedded photo images
+      // Build HTML email with embedded photo images + AI descriptions
       let photoHtml = '';
       if (body.includePhotos && issue.photos.length > 0) {
-        const photoUrls = issue.photos
-          .map(p => p.fileUrl)
-          .filter((url): url is string => url !== null);
-        if (photoUrls.length > 0) {
+        const photosWithData = issue.photos.filter(
+          (p): p is typeof p & { fileUrl: string } => p.fileUrl !== null
+        );
+        if (photosWithData.length > 0) {
           photoHtml = `
             <p style="margin-top: 16px; font-weight: 600; color: #333;">Photos:</p>
-            ${photoUrls.map(url => `<a href="${url}" target="_blank"><img src="${url}" alt="Issue photo" style="max-width: 100%; max-height: 400px; border-radius: 8px; margin: 8px 0; display: block;" /></a>`).join('\n')}
+            ${photosWithData.map(p => `<div style="margin: 8px 0;"><a href="${p.fileUrl}" target="_blank"><img src="${p.fileUrl}" alt="Issue photo" style="max-width: 100%; max-height: 400px; border-radius: 8px; display: block;" /></a>${(p as any).aiDescription ? `<p style="margin: 4px 0 12px; font-size: 13px; color: #666; font-style: italic;">AI analysis: ${(p as any).aiDescription}</p>` : ''}</div>`).join('\n')}
           `;
         }
       }

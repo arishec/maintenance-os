@@ -213,13 +213,14 @@ model Issue {
 }
 
 model IssuePhoto {
-  id        String   @id @default(uuid())
-  issueId    String
-  filePath   String
-  fileUrl    String?
-  sortOrder  Int      @default(0)
-  createdAt  DateTime @default(now())
-  issue      Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  id             String   @id @default(uuid())
+  issueId        String
+  filePath       String
+  fileUrl        String?
+  aiDescription  String?
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  issue          Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
 
   @@index([issueId])
 }

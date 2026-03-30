@@ -14,15 +14,22 @@ export async function POST(
 
     const issue = await prisma.issue.findFirst({
       where: { id, property: { ownerUserId: user.id } },
+      include: { photos: true },
     });
 
     if (!issue) {
       return NextResponse.json({ error: 'Issue not found.' }, { status: 404 });
     }
 
+    // Gather AI photo descriptions if available
+    const photoDescriptions = issue.photos
+      .map((p) => p.aiDescription)
+      .filter((d): d is string => d !== null && d.length > 0);
+
     const classification = await classifyIssue({
       description: issue.description,
       locationInProperty: issue.locationInProperty,
+      photoDescriptions,
     });
 
     const updatedIssue = await prisma.issue.update({

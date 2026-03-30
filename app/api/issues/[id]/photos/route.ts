@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { supabaseAdmin } from '@/lib/supabase';
+import { analyzePhoto } from '@/lib/ai/analyze-photo';
 
 export async function GET(
   request: NextRequest,
@@ -86,6 +87,21 @@ export async function POST(
         fileUrl,
       },
     });
+
+    // Run AI vision analysis in the background — don't block the upload response
+    if (fileUrl) {
+      analyzePhoto(fileUrl)
+        .then(async (description) => {
+          await prisma.issuePhoto.update({
+            where: { id: photo.id },
+            data: { aiDescription: description },
+          });
+          console.log(`[analyzePhoto] Photo ${photo.id}: ${description.substring(0, 80)}...`);
+        })
+        .catch((err) => {
+          console.error(`[analyzePhoto] Failed for photo ${photo.id}:`, err);
+        });
+    }
 
     return NextResponse.json({ photo }, { status: 201 });
   } catch (error) {

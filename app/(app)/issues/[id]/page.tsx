@@ -319,13 +319,20 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
             {photosWithUrls.length > 0 && (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {photosWithUrls.map((photo) => (
-                  <div key={photo.id} className="relative h-32 sm:h-48 w-full overflow-hidden rounded-xl bg-muted">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={photo.signedUrl || ''}
-                      alt="Issue photo"
-                      className="h-full w-full object-cover"
-                    />
+                  <div key={photo.id} className="space-y-1">
+                    <div className="relative h-32 sm:h-48 w-full overflow-hidden rounded-xl bg-muted">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={photo.signedUrl || ''}
+                        alt="Issue photo"
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    {photo.aiDescription && (
+                      <p className="text-xs text-muted-foreground leading-snug px-1">
+                        <span className="font-medium text-foreground">AI:</span> {photo.aiDescription}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
