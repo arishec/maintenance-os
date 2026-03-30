@@ -3,202 +3,336 @@ import Link from 'next/link';
 import { PublicLayout } from '@/components/public-layout';
 
 export const metadata: Metadata = {
-  title: 'Property Maintenance Tracking',
+  title: 'Property Maintenance Tracking — Never Lose Track of a Repair',
   description:
-    'Track every maintenance issue per property. Report problems, classify them by type, and monitor progress from initial report through completion.',
+    'Track every maintenance issue, contractor, and update across your properties — all in one place. Free forever.',
   alternates: {
     canonical: '/features/property-maintenance-tracking',
   },
 };
 
+const whyItMatters = [
+  'Issues get lost in texts and emails',
+  'You forget what was done and when',
+  'Contractors fall through the cracks',
+  'Costs spiral without visibility',
+];
+
+const painPoints = [
+  'You\u2019re digging through messages',
+  'You\u2019re guessing what\u2019s done',
+  'You\u2019re reacting instead of managing',
+];
+
+const capabilities = [
+  {
+    title: 'Track issues from start to finish',
+    body: 'Report problems instantly with photos, descriptions, and severity.',
+  },
+  {
+    title: 'Automatic categorization',
+    body: 'Know exactly what type of issue it is and what contractor you need.',
+  },
+  {
+    title: 'Set priorities',
+    body: 'Urgent vs normal vs low \u2014 organize your workload instantly.',
+  },
+  {
+    title: 'Real-time status tracking',
+    body: 'See every issue move from reported \u2192 dispatched \u2192 completed.',
+  },
+  {
+    title: 'Attach everything',
+    body: 'Photos, invoices, contractor notes, and history \u2014 all in one place.',
+  },
+];
+
+const valueProps = [
+  {
+    title: 'Never forget an issue',
+    body: 'Everything stays in one system.',
+  },
+  {
+    title: 'Instant visibility',
+    body: 'See what\u2019s open, in progress, and done.',
+  },
+  {
+    title: 'Search anything',
+    body: 'Find repairs by property, type, contractor, or date.',
+  },
+  {
+    title: 'Build a full repair history',
+    body: 'Perfect for resale, insurance, and planning.',
+  },
+];
+
+const audiences = [
+  {
+    title: 'Homeowners',
+    body: 'Know exactly what\u2019s been fixed and when.',
+  },
+  {
+    title: 'Landlords',
+    body: 'Manage repairs across multiple properties without chaos.',
+  },
+  {
+    title: 'Property managers',
+    body: 'Track everything and report with confidence.',
+  },
+];
+
 export default function PropertyMaintenanceTrackingPage() {
   return (
     <PublicLayout>
-      <main className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16">
-        {/* Header */}
-        <div className="mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Property Maintenance Tracking
+      <main className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+        {/* Hero */}
+        <div className="mb-12 sm:mb-16 text-center">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            Never Lose Track of a Repair Again
           </h1>
-          <p className="text-xl text-gray-600">
-            Keep every maintenance issue organized by property. Report, classify, and track repairs from start
-            to finish.
+          <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+            Track every maintenance issue, contractor, and update across your
+            properties &mdash; all in one place.
           </p>
-        </div>
-
-        {/* What It Does */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">What You Can Do</h2>
-
-          <div className="space-y-6">
-            <div className="border-l-4 border-blue-600 pl-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Report Issues Anywhere, Anytime</h3>
-              <p className="text-gray-600">
-                Spot a broken window? Water damage? Hvac problem? Report it directly in the app with a description,
-                photos, and severity level. Or have tenants submit requests via simple web forms.
-              </p>
-            </div>
-
-            <div className="border-l-4 border-blue-600 pl-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Automatic Categorization</h3>
-              <p className="text-gray-600">
-                Maintenance OS automatically categorizes issues by type: Plumbing, Electrical, HVAC, Structural,
-                General Repairs, etc. Quickly identify what needs attention and what type of contractor you need.
-              </p>
-            </div>
-
-            <div className="border-l-4 border-blue-600 pl-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Set Priority Levels</h3>
-              <p className="text-gray-600">
-                Mark issues as Urgent (safety concern, immediate action needed), Standard (normal repair), or
-                Low Priority (cosmetic, can wait). Prioritize your workload.
-              </p>
-            </div>
-
-            <div className="border-l-4 border-blue-600 pl-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Track Status in Real Time</h3>
-              <p className="text-gray-600">
-                Update status as issues progress: Reported → Quote Pending → Dispatched → In Progress →
-                Completed. Everyone knows where things stand.
-              </p>
-            </div>
-
-            <div className="border-l-4 border-blue-600 pl-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Attach Notes and Documentation</h3>
-              <p className="text-gray-600">
-                Add notes at any stage. Attach photos, contractor quotes, invoices, and completion reports. Keep
-                everything in one place.
-              </p>
-            </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              href="/sign-up"
+              className="inline-flex justify-center rounded-xl bg-blue-600 px-8 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors w-full sm:w-auto"
+            >
+              Start Tracking Free
+            </Link>
+            <Link
+              href="/how-it-works"
+              className="inline-flex justify-center rounded-xl border border-gray-300 bg-white px-8 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors w-full sm:w-auto"
+            >
+              See How It Works
+            </Link>
           </div>
         </div>
 
-        {/* Why It Matters */}
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-6 sm:p-8 lg:p-12 border border-green-100 mb-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Why Property Tracking Matters</h2>
+        {/* Why this matters */}
+        <section className="mb-12 sm:mb-16">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Why property maintenance tracking matters
+          </h2>
+          <div className="space-y-3 mb-4">
+            {whyItMatters.map((item) => (
+              <div
+                key={item}
+                className="flex items-center gap-3 rounded-xl border border-red-100 bg-red-50 p-3"
+              >
+                <svg
+                  className="h-5 w-5 flex-shrink-0 text-red-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+                <span className="text-gray-700 text-sm">{item}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-sm">
+            <span className="font-bold text-gray-900">With a proper system:</span>{' '}
+            <span className="text-gray-600">You see everything, instantly.</span>
+          </p>
+        </section>
 
+        {/* What this fixes */}
+        <section className="mb-12 sm:mb-16">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Stop managing maintenance the hard way
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="rounded-xl border border-red-100 bg-red-50 p-5">
+              <p className="font-bold text-gray-900 mb-3 text-sm">Without a system:</p>
+              <div className="space-y-2">
+                {painPoints.map((item) => (
+                  <div key={item} className="flex items-center gap-2">
+                    <svg
+                      className="h-4 w-4 flex-shrink-0 text-red-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                    <span className="text-gray-700 text-sm">{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-xl border border-green-100 bg-green-50 p-5">
+              <p className="font-bold text-gray-900 mb-3 text-sm">With Maintenance OS:</p>
+              <div className="flex items-center gap-2">
+                <svg
+                  className="h-4 w-4 flex-shrink-0 text-green-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4.5 12.75l6 6 9-13.5"
+                  />
+                </svg>
+                <span className="text-gray-700 text-sm font-medium">
+                  Everything is tracked automatically.
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Early CTA */}
+        <section className="rounded-2xl bg-blue-50 border border-blue-100 p-6 sm:p-8 text-center mb-12 sm:mb-16">
+          <p className="text-gray-900 font-bold mb-1">
+            Start organizing your maintenance today.
+          </p>
+          <Link
+            href="/sign-up"
+            className="inline-flex justify-center rounded-xl bg-blue-600 px-8 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors mt-3"
+          >
+            Start Free
+          </Link>
+        </section>
+
+        {/* Core capabilities */}
+        <section className="mb-12 sm:mb-16">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Everything you need to track maintenance
+          </h2>
           <div className="space-y-4">
-            <div className="flex gap-4">
-              <span className="text-2xl">🏠</span>
-              <div>
-                <h3 className="font-bold text-gray-900">Organize by property</h3>
-                <p className="text-gray-600">
-                  Each property has its own dashboard. You can see at a glance which properties have open issues
-                  and what needs attention.
-                </p>
+            {capabilities.map((item) => (
+              <div
+                key={item.title}
+                className="flex items-start gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4 sm:p-5"
+              >
+                <svg
+                  className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4.5 12.75l6 6 9-13.5"
+                  />
+                </svg>
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-1">{item.title}</h3>
+                  <p className="text-gray-600 text-sm">{item.body}</p>
+                </div>
               </div>
-            </div>
-
-            <div className="flex gap-4">
-              <span className="text-2xl">✅</span>
-              <div>
-                <h3 className="font-bold text-gray-900">Never forget an issue</h3>
-                <p className="text-gray-600">
-                  Report it once and it stays in the system. No more lost sticky notes, forgotten voice mails, or
-                  lost text conversations.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <span className="text-2xl">🔍</span>
-              <div>
-                <h3 className="font-bold text-gray-900">Filter and search easily</h3>
-                <p className="text-gray-600">
-                  Need all plumbing issues across your properties? Search by category. All urgent repairs? Filter
-                  by priority.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <span className="text-2xl">📋</span>
-              <div>
-                <h3 className="font-bold text-gray-900">Build a maintenance history</h3>
-                <p className="text-gray-600">
-                  Over time, you'll have a complete record of what was done at each property. Perfect for
-                  insurance, resale, or future planning.
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
-        </div>
+        </section>
 
-        {/* Who Benefits */}
-        <div className="mb-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8">Who Benefits Most</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="border border-gray-200 rounded-lg p-6">
-              <h3 className="font-bold text-gray-900 mb-3">Homeowners</h3>
-              <p className="text-gray-600 text-sm">
-                Track repairs on your home. Know what's been done, when, and by whom. Perfect for resale or
-                insurance claims.
-              </p>
-            </div>
-
-            <div className="border border-gray-200 rounded-lg p-6">
-              <h3 className="font-bold text-gray-900 mb-3">Landlords</h3>
-              <p className="text-gray-600 text-sm">
-                Manage maintenance across multiple properties. Collect tenant requests in one place. Keep legal
-                records.
-              </p>
-            </div>
-
-            <div className="border border-gray-200 rounded-lg p-6">
-              <h3 className="font-bold text-gray-900 mb-3">Property Managers</h3>
-              <p className="text-gray-600 text-sm">
-                Coordinate maintenance for multiple owners. Track every issue and completion. Report to owners with
-                confidence.
-              </p>
-            </div>
+        {/* Value */}
+        <section className="mb-12 sm:mb-16">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            What you get with proper tracking
+          </h2>
+          <div className="space-y-4">
+            {valueProps.map((item) => (
+              <div key={item.title} className="flex items-start gap-3">
+                <svg
+                  className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4.5 12.75l6 6 9-13.5"
+                  />
+                </svg>
+                <div>
+                  <span className="font-bold text-gray-900">{item.title}</span>
+                  <p className="text-gray-600 text-sm">{item.body}</p>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+        </section>
 
-        {/* Related Features */}
-        <div className="mb-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8">Related Features</h2>
+        {/* Who this is for */}
+        <section className="mb-12 sm:mb-16">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Built for anyone managing property maintenance
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {audiences.map((item) => (
+              <div
+                key={item.title}
+                className="border border-gray-200 rounded-xl p-5"
+              >
+                <h3 className="font-bold text-gray-900 mb-2">{item.title}</h3>
+                <p className="text-gray-600 text-sm">{item.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Related features */}
+        <section className="mb-12 sm:mb-16">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Powerful features that work together
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Link
               href="/features/contractor-dispatch"
-              className="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow"
+              className="border border-gray-200 rounded-xl p-5 hover:shadow-lg transition-shadow"
             >
-              <h3 className="font-bold text-gray-900 mb-2">Contractor Dispatch</h3>
-              <p className="text-gray-600 text-sm mb-4">
-                Once you've reported an issue, dispatch it to contractors via SMS and email.
+              <h3 className="font-bold text-gray-900 mb-1">Contractor Dispatch</h3>
+              <p className="text-gray-600 text-sm">
+                Send requests instantly via SMS and email.
               </p>
-              <span className="text-blue-600 hover:text-blue-700 text-sm">Learn more →</span>
             </Link>
-
             <Link
               href="/features/repair-history"
-              className="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow"
+              className="border border-gray-200 rounded-xl p-5 hover:shadow-lg transition-shadow"
             >
-              <h3 className="font-bold text-gray-900 mb-2">Repair History</h3>
-              <p className="text-gray-600 text-sm mb-4">
-                All tracked issues become part of your searchable repair history timeline.
+              <h3 className="font-bold text-gray-900 mb-1">Repair History</h3>
+              <p className="text-gray-600 text-sm">
+                Every issue becomes part of a searchable timeline.
               </p>
-              <span className="text-blue-600 hover:text-blue-700 text-sm">Learn more →</span>
             </Link>
           </div>
-        </div>
+        </section>
 
-        {/* CTA */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 sm:p-8 lg:p-12 text-center border border-blue-100">
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">
+        {/* Final CTA */}
+        <section className="rounded-2xl bg-blue-50 border border-blue-100 p-6 sm:p-8 md:p-12 text-center">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">
             Start tracking your property maintenance today
           </h2>
-          <p className="text-gray-600 mb-6 text-lg">
+          <p className="text-gray-600 mb-6">
             Free forever. No credit card required.
           </p>
           <Link
             href="/sign-up"
-            className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="inline-flex justify-center rounded-xl bg-blue-600 px-8 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
           >
             Get Started Free
           </Link>
-        </div>
+        </section>
       </main>
     </PublicLayout>
   );
