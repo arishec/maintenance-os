@@ -140,7 +140,21 @@ export async function POST(
       // Build channel-specific messages with embedded reply token
       const smsMessage = `[Ref: ${replyToken}] ${messageWithPhotos}`;
       const emailSubject = `Repair request [Ref: ${replyToken}] — ${issue.title}`;
-      const emailBody = `<div style="font-family: sans-serif; line-height: 1.6;"><p><strong>Reference: ${replyToken}</strong></p>${messageWithPhotos.replace(/\n/g, '<br>')}</div>`;
+
+      // Build HTML email with embedded photo images
+      let photoHtml = '';
+      if (body.includePhotos && issue.photos.length > 0) {
+        const photoUrls = issue.photos
+          .map(p => p.fileUrl)
+          .filter((url): url is string => url !== null);
+        if (photoUrls.length > 0) {
+          photoHtml = `
+            <p style="margin-top: 16px; font-weight: 600; color: #333;">Photos:</p>
+            ${photoUrls.map(url => `<a href="${url}" target="_blank"><img src="${url}" alt="Issue photo" style="max-width: 100%; max-height: 400px; border-radius: 8px; margin: 8px 0; display: block;" /></a>`).join('\n')}
+          `;
+        }
+      }
+      const emailBody = `<div style="font-family: sans-serif; line-height: 1.6;"><p><strong>Reference: ${replyToken}</strong></p>${baseMessage.replace(/\n/g, '<br>')}${photoHtml}<hr style="border:none;border-top:1px solid #eee;margin:16px 0;"><p style="color: #888; font-size: 12px;">Sent via Maintenance OS</p></div>`;
 
       let sentSuccessfully = false;
       let providerMessageId: string | null = null;
