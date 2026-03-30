@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { after } from 'next/server';
 import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { supabaseAdmin } from '@/lib/supabase';
@@ -88,23 +89,26 @@ export async function POST(
       },
     });
 
-    // Run AI vision analysis before returning — must await in serverless
-    // (Vercel kills the function after response, so background promises won't complete)
-    let aiDescription: string | null = null;
+    // Run AI vision analysis after response using next/server after()
+    // This keeps the serverless function alive to complete the work
+    // without blocking the upload response
     if (fileUrl) {
-      try {
-        aiDescription = await analyzePhoto(fileUrl);
-        await prisma.issuePhoto.update({
-          where: { id: photo.id },
-          data: { aiDescription },
-        });
-        console.log(`[analyzePhoto] Photo ${photo.id}: ${aiDescription.substring(0, 80)}...`);
-      } catch (err) {
-        console.error(`[analyzePhoto] Failed for photo ${photo.id}:`, err);
-      }
+      const photoId = photo.id;
+      after(async () => {
+        try {
+          const description = await analyzePhoto(fileUrl);
+          await prisma.issuePhoto.update({
+            where: { id: photoId },
+            data: { aiDescription: description },
+          });
+          console.log(`[analyzePhoto] Photo ${photoId}: ${description.substring(0, 80)}...`);
+        } catch (err) {
+          console.error(`[analyzePhoto] Failed for photo ${photoId}:`, err);
+        }
+      });
     }
 
-    return NextResponse.json({ photo: { ...photo, aiDescription } }, { status: 201 });
+    return NextResponse.json({ photo }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({ error: message }, { status: 400 });
