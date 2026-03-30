@@ -2,6 +2,7 @@ import { auth, currentUser } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
+import { sendNewSignupAlert } from '@/lib/signup-alert';
 
 export async function requireDbUser() {
   const { userId } = await auth();
@@ -12,18 +13,23 @@ export async function requireDbUser() {
     throw new Error('Authenticated user is missing an email address');
   }
 
+  const email = clerkUser.primaryEmailAddress.emailAddress;
+  const fullName = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || undefined;
+
+  // Check if this is a new user before upserting
+  const existing = await prisma.user.findUnique({ where: { clerkUserId: userId } });
+  const isNewUser = !existing;
+
   const user = await prisma.user.upsert({
     where: { clerkUserId: userId },
-    update: {
-      email: clerkUser.primaryEmailAddress.emailAddress,
-      fullName: [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || undefined,
-    },
-    create: {
-      clerkUserId: userId,
-      email: clerkUser.primaryEmailAddress.emailAddress,
-      fullName: [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || undefined,
-    },
+    update: { email, fullName },
+    create: { clerkUserId: userId, email, fullName },
   });
+
+  // Send signup alert in background (don't block the request)
+  if (isNewUser) {
+    sendNewSignupAlert(email, fullName).catch(() => {});
+  }
 
   return user;
 }
