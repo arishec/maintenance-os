@@ -41,6 +41,24 @@ export const ISSUE_NEXT_ACTION: Record<string, string> = {
   completed: 'Job complete',
 };
 
+/** Centralized issue lifecycle — the ONLY source of truth for allowed transitions */
+export const ISSUE_VALID_TRANSITIONS: Record<string, string[]> = {
+  new: ['classified', 'quotes_received', 'canceled'],
+  classified: ['awaiting_quotes', 'quotes_received', 'canceled'],
+  awaiting_dispatch: ['awaiting_quotes', 'quotes_received', 'canceled'],
+  awaiting_quotes: ['quotes_received', 'canceled'],
+  quotes_received: ['active_job', 'awaiting_quotes', 'canceled', 'archived'],
+  active_job: ['completed', 'canceled'],
+  completed: ['archived'],
+  canceled: ['archived'],
+  archived: [],
+};
+
+/** Check if a status transition is allowed */
+export function isIssueTransitionAllowed(from: string, to: string): boolean {
+  return (ISSUE_VALID_TRANSITIONS[from] ?? []).includes(to);
+}
+
 /** Statuses considered "open" for dashboard / filtering */
 export const OPEN_ISSUE_STATUSES = [
   'new',

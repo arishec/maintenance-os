@@ -12,7 +12,15 @@ const manualQuoteSchema = z.object({
   availabilityText: z.string().optional(),
   notes: z.string().optional(),
   followUpQuestion: z.string().optional(),
-});
+}).refine(
+  (data) => {
+    if (data.estimateLow && data.estimateHigh) {
+      return data.estimateHigh >= data.estimateLow;
+    }
+    return true;
+  },
+  { message: 'High estimate must be greater than or equal to low estimate.' }
+);
 
 export async function POST(
   request: NextRequest,
@@ -50,31 +58,6 @@ export async function POST(
       return NextResponse.json({ error: 'Contractor not found.' }, { status: 404 });
     }
 
-    // Find or create a dispatch record for this contractor+issue
-    // (manual quotes still need a dispatch parent for the data model)
-    // Only reuse active dispatches; avoid attaching to closed/accepted/failed ones
-    let dispatch = await prisma.dispatch.findFirst({
-      where: {
-        issueId,
-        contractorId: body.contractorId,
-        status: { in: ['sent', 'delivered', 'replied'] }
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    if (!dispatch) {
-      // Create a synthetic dispatch for manual entry
-      dispatch = await prisma.dispatch.create({
-        data: {
-          issueId,
-          contractorId: body.contractorId,
-          channel: 'email', // default — doesn't matter for manual
-          outboundMessage: 'Manual quote entry — no message sent',
-          status: 'replied', // skip straight to replied
-        },
-      });
-    }
-
     // Build raw message summary
     const parts: string[] = [];
     if (body.flatEstimate) parts.push(`Quote: $${body.flatEstimate}`);
@@ -83,40 +66,60 @@ export async function POST(
     if (body.notes) parts.push(body.notes);
     if (body.followUpQuestion) parts.push(`Question: ${body.followUpQuestion}`);
 
-    // Create the contractor response
-    const response = await prisma.contractorResponse.create({
-      data: {
-        dispatchId: dispatch.id,
-        rawMessage: `[Manual entry] ${parts.join(' | ')}`,
-        flatEstimate: body.flatEstimate ?? null,
-        estimateLow: body.estimateLow ?? null,
-        estimateHigh: body.estimateHigh ?? null,
-        availabilityText: body.availabilityText ?? null,
-        notes: body.notes ?? null,
-        followUpQuestion: body.followUpQuestion ?? null,
-        extractionConfidence: 1.0, // manual = full confidence
-        requiresReview: false,
-        receivedAt: new Date(),
-      },
-    });
+    // All DB writes in one transaction
+    const { response, dispatch } = await prisma.$transaction(async (tx) => {
+      // Find or create a dispatch record for this contractor+issue
+      let disp = await tx.dispatch.findFirst({
+        where: {
+          issueId,
+          contractorId: body.contractorId,
+          status: { in: ['sent', 'delivered', 'replied'] }
+        },
+        orderBy: { createdAt: 'desc' },
+      });
 
-    // Update dispatch status to replied
-    await prisma.dispatch.update({
-      where: { id: dispatch.id },
-      data: { status: 'replied', replyReceivedAt: new Date() },
-    });
+      if (!disp) {
+        disp = await tx.dispatch.create({
+          data: {
+            issueId,
+            contractorId: body.contractorId,
+            channel: 'email',
+            outboundMessage: 'Manual quote entry — no message sent',
+            status: 'replied',
+          },
+        });
+      }
 
-    // Update issue status to quotes_received if appropriate
-    const shouldUpdateStatus = ['awaiting_quotes', 'awaiting_dispatch', 'classified', 'new'].includes(issue.status);
-    if (shouldUpdateStatus) {
-      await prisma.issue.update({
-        where: { id: issueId },
+      const resp = await tx.contractorResponse.create({
+        data: {
+          dispatchId: disp.id,
+          rawMessage: `[Manual entry] ${parts.join(' | ')}`,
+          flatEstimate: body.flatEstimate ?? null,
+          estimateLow: body.estimateLow ?? null,
+          estimateHigh: body.estimateHigh ?? null,
+          availabilityText: body.availabilityText ?? null,
+          notes: body.notes ?? null,
+          followUpQuestion: body.followUpQuestion ?? null,
+          extractionConfidence: 1.0,
+          requiresReview: false,
+          receivedAt: new Date(),
+        },
+      });
+
+      await tx.dispatch.update({
+        where: { id: disp.id },
+        data: { status: 'replied', replyReceivedAt: new Date() },
+      });
+
+      // Race-safe: only advance status if still in pre-quote states
+      await tx.issue.updateMany({
+        where: {
+          id: issueId,
+          status: { in: ['awaiting_quotes', 'awaiting_dispatch', 'classified', 'new'] as any },
+        },
         data: { status: 'quotes_received' },
       });
-    }
 
-    // Timeline event
-    try {
       await logTimelineEvent({
         propertyId: issue.propertyId,
         issueId,
@@ -127,10 +130,10 @@ export async function POST(
           flatEstimate: body.flatEstimate ?? null,
           availabilityText: body.availabilityText ?? null,
         },
-      });
-    } catch (e) {
-      console.error('Timeline event failed:', e);
-    }
+      }, tx);
+
+      return { response: resp, dispatch: disp };
+    });
 
     return NextResponse.json({ response, dispatch }, { status: 201 });
   } catch (error) {

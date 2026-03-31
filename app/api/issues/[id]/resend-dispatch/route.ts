@@ -83,28 +83,28 @@ export async function POST(
     }
 
     if (sentSuccessfully) {
-      // Close the old dispatch so the old reply token won't create duplicate responses
-      await prisma.dispatch.update({
-        where: { id: dispatch.id },
-        data: { status: 'closed', closedReason: 'resent' } as any,
-      });
+      // All DB mutations in one transaction after successful send
+      await prisma.$transaction(async (tx) => {
+        // Close the old dispatch so the old reply token won't create duplicate responses
+        await tx.dispatch.update({
+          where: { id: dispatch.id },
+          data: { status: 'closed', closedReason: 'resent' } as any,
+        });
 
-      // Create a NEW dispatch row for the resend with fresh token
-      const newDispatch = await prisma.dispatch.create({
-        data: {
-          issueId,
-          contractorId: contractor.id,
-          channel: dispatch.channel,
-          replyToken,
-          outboundMessage: message,
-          status: 'sent',
-          sentAt: new Date(),
-          providerMessageId,
-        },
-      });
+        // Create a NEW dispatch row for the resend with fresh token
+        const newDispatch = await tx.dispatch.create({
+          data: {
+            issueId,
+            contractorId: contractor.id,
+            channel: dispatch.channel,
+            replyToken,
+            outboundMessage: message,
+            status: 'sent',
+            sentAt: new Date(),
+            providerMessageId,
+          },
+        });
 
-      // Timeline
-      try {
         await logTimelineEvent({
           propertyId: issue.propertyId,
           issueId,
@@ -116,10 +116,8 @@ export async function POST(
             originalDispatchId: dispatch.id,
             newDispatchId: newDispatch.id,
           },
-        });
-      } catch (e) {
-        console.error('Timeline event failed:', e);
-      }
+        }, tx);
+      });
     }
 
     return NextResponse.json({ success: true });

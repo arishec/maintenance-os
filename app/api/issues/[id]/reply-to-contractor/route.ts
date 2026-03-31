@@ -58,16 +58,33 @@ export async function POST(
     const contractorFirst = contractor.name.split(' ')[0];
     const ownerFirst = user.fullName?.split(' ')[0] || 'The Owner';
 
+    // Validate contact method before creating record
+    if (body.channel === 'email' && !contractor.email) {
+      return NextResponse.json({ error: 'Contractor has no email address.' }, { status: 400 });
+    }
+    if (body.channel === 'sms' && !contractor.phone) {
+      return NextResponse.json({ error: 'Contractor has no phone number.' }, { status: 400 });
+    }
+
+    // Create message record FIRST as 'queued' — durable history before send
+    const messageRecord = await prisma.contractorMessage.create({
+      data: {
+        issueId,
+        contractorId: contractor.id,
+        contractorResponseId: body.contractorResponseId ?? null,
+        direction: 'outbound',
+        channel: body.channel,
+        messageBody: body.message,
+        sendStatus: 'queued',
+      },
+    });
+
     // Send via the selected channel
     try {
       if (body.channel === 'email') {
-        if (!contractor.email) {
-          return NextResponse.json({ error: 'Contractor has no email address.' }, { status: 400 });
-        }
-
         const replyTo = `replies+${activeDispatch.replyToken}@ifbids.com`;
         await sendRepairRequestEmail(
-          contractor.email,
+          contractor.email!,
           `Re: ${issue.title || 'Maintenance request'}`,
           `<div style="font-family: sans-serif; font-size: 14px; line-height: 1.6;">
             <p>Hi ${contractorFirst},</p>
@@ -82,56 +99,42 @@ export async function POST(
           replyTo
         );
       } else {
-        if (!contractor.phone) {
-          return NextResponse.json({ error: 'Contractor has no phone number.' }, { status: 400 });
-        }
-
         await sendRepairRequestSms(
-          contractor.phone,
+          contractor.phone!,
           `Hi ${contractorFirst},\n\n${body.message}\n\nThanks,\n${ownerFirst}\n\nRe: ${issue.title || 'Maintenance request'}`
         );
       }
+
+      // Update record to 'sent' on success
+      await prisma.contractorMessage.update({
+        where: { id: messageRecord.id },
+        data: { sendStatus: 'sent' },
+      });
     } catch (sendError) {
+      // Update record to 'failed' so we have a durable record of the attempt
+      await prisma.contractorMessage.update({
+        where: { id: messageRecord.id },
+        data: { sendStatus: 'failed' },
+      }).catch((e) => console.error('Failed to update message status:', e));
+
       console.error('Failed to send reply:', sendError);
       return NextResponse.json({ error: 'Failed to send message. Please try again.' }, { status: 500 });
     }
 
-    // Create ContractorMessage record (durable history of outbound reply)
-    try {
-      await prisma.contractorMessage.create({
-        data: {
-          issueId,
-          contractorId: contractor.id,
-          contractorResponseId: body.contractorResponseId ?? null,
-          direction: 'outbound',
-          channel: body.channel,
-          messageBody: body.message,
-          sendStatus: 'sent',
-        },
-      });
-    } catch (e) {
-      console.error('Failed to create ContractorMessage record:', e);
-      // Don't fail the request — message was already sent
-    }
-
     // Log timeline event (non-blocking)
-    try {
-      await logTimelineEvent({
-        propertyId: issue.propertyId,
-        issueId,
-        actorType: 'user',
-        eventType: 'owner_reply_sent',
-        payload: {
-          channel: body.channel,
-          contractorName: contractor.name,
-          contractorId: contractor.id,
-          contractorResponseId: body.contractorResponseId ?? null,
-          messagePreview: body.message.substring(0, 100),
-        },
-      });
-    } catch (e) {
-      console.error('Timeline event failed:', e);
-    }
+    logTimelineEvent({
+      propertyId: issue.propertyId,
+      issueId,
+      actorType: 'user',
+      eventType: 'owner_reply_sent',
+      payload: {
+        channel: body.channel,
+        contractorName: contractor.name,
+        contractorId: contractor.id,
+        contractorResponseId: body.contractorResponseId ?? null,
+        messagePreview: body.message.substring(0, 100),
+      },
+    }).catch((e) => console.error('Timeline event failed:', e));
 
     return NextResponse.json({ success: true });
   } catch (error) {

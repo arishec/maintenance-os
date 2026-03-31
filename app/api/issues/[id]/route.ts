@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { logTimelineEvent } from '@/lib/timeline';
+import { isIssueTransitionAllowed } from '@/lib/status';
 import { sendRepairRequestEmail } from '@/lib/resend';
 import { sendRepairRequestSms } from '@/lib/twilio';
 import { safeErrorMessage } from '@/lib/utils';
@@ -116,18 +117,9 @@ export async function PATCH(
       return NextResponse.json({ error: 'Issue not found.' }, { status: 404 });
     }
 
-    // Block arbitrary status changes via PATCH — only allow cancel from non-terminal states
+    // Use centralized transition map for status changes via PATCH
     if (body.status && body.status !== issue.status) {
-      const allowedPatchTransitions: Record<string, string[]> = {
-        new: ['canceled'],
-        classified: ['canceled'],
-        awaiting_dispatch: ['canceled'],
-        awaiting_quotes: ['canceled'],
-        quotes_received: ['canceled'],
-        active_job: ['canceled'],
-      };
-      const allowed = allowedPatchTransitions[issue.status] ?? [];
-      if (!allowed.includes(body.status)) {
+      if (!isIssueTransitionAllowed(issue.status, body.status)) {
         return NextResponse.json(
           { error: 'This action isn\'t available right now.' },
           { status: 400 }
@@ -135,86 +127,89 @@ export async function PATCH(
       }
     }
 
-    const updatedIssue = await prisma.issue.update({
-      where: { id },
-      data: body,
-      include: {
-        property: true,
-        photos: true,
-        dispatches: {
-          include: {
-            contractor: true,
-            responses: true,
-          },
-        },
-        jobs: {
-          include: {
-            contractor: true,
-            selectedResponse: true,
-          },
-        },
-        usageMetrics: true,
-      },
-    });
-
-    // When canceling: close all open dispatches so late replies don't resurrect the issue
+    // Collect active jobs BEFORE the transaction so we can notify contractors after
+    let activeJobsToNotify: Array<{ contractor: { name: string; email: string | null; phone: string | null }; issue: { title: string | null } }> = [];
     if (body.status === 'canceled') {
-      // Fetch active jobs before canceling to notify contractors
-      const activeJobs = await prisma.job.findMany({
+      activeJobsToNotify = await prisma.job.findMany({
         where: {
           issueId: id,
           status: { in: ['selected', 'scheduled', 'in_progress'] },
         },
-        include: { contractor: true, issue: true },
-      });
-
-      // Send cancellation notifications to contractors with active jobs
-      for (const activeJob of activeJobs) {
-        try {
-          const issueTitle = activeJob.issue.title || 'a maintenance request';
-          const cancelMessage = `The property owner has canceled this maintenance request (${issueTitle}). No further action is needed on your end. We appreciate your time.`;
-
-          if (activeJob.contractor.email) {
-            await sendRepairRequestEmail(
-              activeJob.contractor.email,
-              `Canceled: ${issueTitle}`,
-              `<p>${cancelMessage}</p>`,
-            );
-            console.log(`[ISSUE CANCEL] Cancellation email sent to ${activeJob.contractor.email}`);
-          }
-          if (activeJob.contractor.phone) {
-            await sendRepairRequestSms(activeJob.contractor.phone, cancelMessage);
-            console.log(`[ISSUE CANCEL] Cancellation SMS sent to ${activeJob.contractor.phone}`);
-          }
-        } catch (notifyErr) {
-          console.error('[ISSUE CANCEL] Failed to notify contractor:', notifyErr);
-        }
-      }
-
-      await prisma.dispatch.updateMany({
-        where: {
-          issueId: id,
-          status: { in: ['queued', 'sent', 'delivered', 'replied', 'accepted'] },
-        },
-        data: { status: 'closed', closedReason: 'issue_canceled' } as any,
-      });
-      // Also cancel any active jobs
-      await prisma.job.updateMany({
-        where: {
-          issueId: id,
-          status: { in: ['selected', 'scheduled', 'in_progress'] },
-        },
-        data: { status: 'canceled' },
+        include: { contractor: true, issue: { select: { title: true } } },
       });
     }
 
-    await logTimelineEvent({
-      propertyId: updatedIssue.propertyId,
-      issueId: updatedIssue.id,
-      actorType: 'user',
-      eventType: 'issue_updated',
-      payload: body,
+    // All DB mutations in one transaction
+    const updatedIssue = await prisma.$transaction(async (tx) => {
+      const updated = await tx.issue.update({
+        where: { id },
+        data: body,
+        include: {
+          property: true,
+          photos: true,
+          dispatches: {
+            include: {
+              contractor: true,
+              responses: true,
+            },
+          },
+          jobs: {
+            include: {
+              contractor: true,
+              selectedResponse: true,
+            },
+          },
+          usageMetrics: true,
+        },
+      });
+
+      if (body.status === 'canceled') {
+        await tx.dispatch.updateMany({
+          where: {
+            issueId: id,
+            status: { in: ['queued', 'sent', 'delivered', 'replied', 'accepted'] },
+          },
+          data: { status: 'closed', closedReason: 'issue_canceled' } as any,
+        });
+        await tx.job.updateMany({
+          where: {
+            issueId: id,
+            status: { in: ['selected', 'scheduled', 'in_progress'] },
+          },
+          data: { status: 'canceled' },
+        });
+      }
+
+      await logTimelineEvent({
+        propertyId: updated.propertyId,
+        issueId: updated.id,
+        actorType: 'user',
+        eventType: 'issue_updated',
+        payload: body,
+      }, tx);
+
+      return updated;
     });
+
+    // External notifications AFTER transaction commits (non-blocking)
+    if (body.status === 'canceled' && activeJobsToNotify.length > 0) {
+      for (const activeJob of activeJobsToNotify) {
+        const issueTitle = activeJob.issue.title || 'a maintenance request';
+        const cancelMessage = `The property owner has canceled this maintenance request (${issueTitle}). No further action is needed on your end. We appreciate your time.`;
+
+        if (activeJob.contractor.email) {
+          sendRepairRequestEmail(
+            activeJob.contractor.email,
+            `Canceled: ${issueTitle}`,
+            `<p>${cancelMessage}</p>`,
+          ).catch((err) => console.error('[ISSUE CANCEL] Email failed:', err));
+        }
+        if (activeJob.contractor.phone) {
+          sendRepairRequestSms(activeJob.contractor.phone, cancelMessage)
+            .catch((err) => console.error('[ISSUE CANCEL] SMS failed:', err));
+        }
+      }
+    }
 
     return NextResponse.json({ issue: updatedIssue });
   } catch (error) {

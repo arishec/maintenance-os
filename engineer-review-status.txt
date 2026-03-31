@@ -1,0 +1,154 @@
+ENGINEER REVIEW STATUS — MAINTENANCE OS
+========================================
+Generated: March 31, 2026
+
+
+FILES THE ENGINEER REVIEWED
+========================================
+
+Frontend Pages (4):
+  app/(app)/issues/page.tsx                 — issues dashboard with filters/tabs
+  app/(app)/properties/page.tsx             — property list (partial review)
+  app/intake/[token]/page.tsx               — tenant intake form
+  app/compare-contractor-quotes/page.tsx    — marketing/SEO page
+
+API Routes (3):
+  app/api/intake/[token]/route.ts           — tenant issue submission + AI classification
+  app/api/contact/route.ts                  — contact form via Resend
+  app/api/internal/lookup/route.ts          — admin debug/inspection tool
+
+Webhooks (2):
+  app/api/webhooks/email/inbound/route.ts   — contractor email replies
+  app/api/webhooks/twilio/inbound/route.ts  — contractor SMS replies
+
+Lib (referenced but not fully audited):
+  lib/status.ts
+  lib/notifications.ts
+  lib/timeline.ts
+  lib/rate-limit.ts
+  lib/twilio.ts
+  lib/resend.ts
+  lib/tokens.ts
+
+
+FILES THE ENGINEER DID NOT REVIEW
+========================================
+
+API Routes — Core Issue Flow:
+  app/api/issues/route.ts                          — list/create issues
+  app/api/issues/[id]/route.ts                     — get/update/cancel issue
+  app/api/issues/[id]/archive/route.ts             — archive issue
+  app/api/issues/[id]/classify/route.ts            — AI classification
+  app/api/issues/[id]/dispatch/route.ts            — send to contractors (SMS/email)
+  app/api/issues/[id]/dispatches/route.ts          — list dispatches for issue
+  app/api/issues/[id]/manual-quote/route.ts        — manually add a quote
+  app/api/issues/[id]/photos/route.ts              — upload photos
+  app/api/issues/[id]/photos/[photoId]/route.ts    — delete photo
+  app/api/issues/[id]/reply-to-contractor/route.ts — reply to contractor
+  app/api/issues/[id]/resend-dispatch/route.ts     — resend dispatch
+  app/api/issues/[id]/reparse-replies/route.ts     — re-parse contractor replies
+  app/api/issues/[id]/select-contractor/route.ts   — select winning contractor
+
+API Routes — Jobs:
+  app/api/jobs/route.ts                            — list jobs
+  app/api/jobs/[id]/route.ts                       — get/cancel job
+  app/api/jobs/[id]/complete/route.ts              — complete job
+  app/api/jobs/[id]/schedule/route.ts              — schedule job
+  app/api/jobs/[id]/start/route.ts                 — start job
+
+API Routes — Contractors:
+  app/api/contractors/route.ts                     — list/create contractors
+  app/api/contractors/[id]/route.ts                — get/update/delete contractor
+
+API Routes — Properties:
+  app/api/properties/route.ts                      — list/create properties
+  app/api/properties/[id]/route.ts                 — get/update/delete property
+  app/api/properties/[id]/contractors/route.ts     — link contractors to property
+  app/api/properties/[id]/contractors/[contractorId]/route.ts — unlink contractor
+  app/api/properties/[id]/intake-link/route.ts     — create/manage intake links
+
+API Routes — Notifications:
+  app/api/notifications/route.ts                   — list/mark-read
+  app/api/notifications/[id]/route.ts              — single notification
+
+API Routes — Stripe:
+  app/api/stripe/checkout/route.ts                 — create checkout session
+  app/api/stripe/portal/route.ts                   — customer billing portal
+  app/api/webhooks/stripe/route.ts                 — stripe webhook
+
+API Routes — Other:
+  app/api/webhooks/twilio/status/route.ts           — delivery status callbacks
+  app/api/users/bootstrap/route.ts                  — Clerk user sync
+
+Pages — Issue Management:
+  app/(app)/dashboard/page.tsx                      — main dashboard
+  app/(app)/issues/[id]/page.tsx                    — issue detail
+  app/(app)/issues/new/page.tsx                     — create issue
+  app/(app)/issues/[id]/edit/page.tsx               — edit issue
+  app/(app)/issues/[id]/dispatch/page.tsx           — dispatch to contractors
+
+Pages — Properties:
+  app/(app)/properties/new/page.tsx                 — create property
+  app/(app)/properties/[id]/page.tsx                — property detail
+  app/(app)/properties/[id]/edit/page.tsx           — edit property
+
+Pages — Contractors:
+  app/(app)/contractors/page.tsx                    — contractor list
+  app/(app)/contractors/new/page.tsx                — create contractor
+  app/(app)/contractors/[id]/page.tsx               — contractor detail
+  app/(app)/contractors/[id]/edit/page.tsx          — edit contractor
+
+Pages — Other:
+  app/(app)/history/page.tsx                        — repair history
+  app/(app)/settings/page.tsx                       — user settings
+
+Lib (not audited):
+  lib/ai/classify-issue.ts                          — AI issue classification
+  lib/ai/analyze-photo.ts                           — AI photo analysis
+  lib/ai/parse-job-confirmation.ts                  — parse contractor job confirmations
+  lib/ai/client.ts                                  — AI client setup
+  lib/dispatch-helpers.ts                           — core dispatch business logic
+  lib/stripe.ts                                     — Stripe client
+  lib/env.ts                                        — environment config
+  lib/signup-alert.ts                               — signup notifications
+  lib/support-forward.ts                            — support forwarding
+  lib/supabase.ts                                   — Supabase client
+  lib/prisma.ts                                     — Prisma client
+  lib/auth.ts                                       — auth helpers
+  lib/utils.ts                                      — utility functions
+  lib/dashboard.ts                                  — dashboard query helpers
+
+Components (not audited):
+  components/photo-upload.tsx
+  components/contact-form.tsx
+  components/notifications-bell.tsx
+  components/paywall-modal.tsx
+  components/issue-summary-card.tsx
+  components/mobile-nav-toggle.tsx
+  components/local-time.tsx
+  components/layout-shell.tsx
+  components/public-layout.tsx
+  app/(app)/issues/[id]/photos-section.tsx
+
+Dashboard Components (not audited):
+  components/dashboard/overview-cards.tsx
+  components/dashboard/scheduled-today-list.tsx
+  components/dashboard/waiting-on-contractors-list.tsx
+  components/dashboard/recent-activity-list.tsx
+  components/dashboard/needs-attention-list.tsx
+
+Error Boundaries:
+  app/(app)/error.tsx
+  app/(app)/issues/[id]/error.tsx
+
+Config:
+  middleware.ts
+  app/robots.ts
+  app/sitemap.ts
+
+
+NOTE: I (Claude) audited all unreviewed API routes and key pages on
+March 31 and fixed bugs in: archive, dispatch, classify, photos/[photoId],
+jobs/schedule, jobs/start, properties/[id], intake-link, issues/new page,
+dispatch page, intake page, and history page.
+See claude-notes.txt for full details of what was fixed.

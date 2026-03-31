@@ -26,6 +26,20 @@ export async function POST(
       );
     }
 
+    // Also check actual jobs — status might have drifted
+    const activeJobCount = await prisma.job.count({
+      where: {
+        issueId: id,
+        status: { in: ['selected', 'scheduled', 'in_progress'] },
+      },
+    });
+    if (activeJobCount > 0) {
+      return NextResponse.json(
+        { error: 'Please complete or cancel all active jobs before archiving this issue.' },
+        { status: 400 }
+      );
+    }
+
     const updatedIssue = await prisma.$transaction(async (tx) => {
       // Close any open dispatches so late replies don't resurrect the issue
       await tx.dispatch.updateMany({
