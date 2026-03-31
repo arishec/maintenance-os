@@ -49,7 +49,7 @@ export default async function DashboardPage() {
             {isNewUser
               ? 'Welcome! Get set up in 3 quick steps.'
               : attentionItems.length > 0
-                ? `${attentionItems.length} item${attentionItems.length !== 1 ? 's' : ''} need${attentionItems.length === 1 ? 's' : ''} your attention`
+                ? `${attentionItems.length} item${attentionItems.length !== 1 ? 's' : ''} need${attentionItems.length !== 1 ? '' : 's'} your attention`
                 : scheduledToday.length > 0
                   ? `${scheduledToday.length} job${scheduledToday.length !== 1 ? 's' : ''} scheduled today`
                   : waitingItems.length > 0

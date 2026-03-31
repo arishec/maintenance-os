@@ -121,6 +121,20 @@ export async function DELETE(
       );
     }
 
+    // Block archiving if contractor has active jobs
+    const activeJobCount = await prisma.job.count({
+      where: {
+        contractorId: id,
+        status: { notIn: ['completed', 'canceled'] },
+      },
+    });
+    if (activeJobCount > 0) {
+      return NextResponse.json(
+        { error: `Cannot remove contractor with ${activeJobCount} active job${activeJobCount !== 1 ? 's' : ''}. Complete or cancel them first.` },
+        { status: 400 }
+      );
+    }
+
     const archived = await prisma.contractor.update({
       where: { id },
       data: { isArchived: true },

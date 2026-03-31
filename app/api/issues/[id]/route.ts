@@ -114,6 +114,25 @@ export async function PATCH(
       return NextResponse.json({ error: 'Issue not found.' }, { status: 404 });
     }
 
+    // Block arbitrary status changes via PATCH — only allow cancel from non-terminal states
+    if (body.status && body.status !== issue.status) {
+      const allowedPatchTransitions: Record<string, string[]> = {
+        new: ['canceled'],
+        classified: ['canceled'],
+        awaiting_dispatch: ['canceled'],
+        awaiting_quotes: ['canceled'],
+        quotes_received: ['canceled'],
+        active_job: ['canceled'],
+      };
+      const allowed = allowedPatchTransitions[issue.status] ?? [];
+      if (!allowed.includes(body.status)) {
+        return NextResponse.json(
+          { error: `Cannot change status from "${issue.status}" to "${body.status}" directly.` },
+          { status: 400 }
+        );
+      }
+    }
+
     const updatedIssue = await prisma.issue.update({
       where: { id },
       data: body,

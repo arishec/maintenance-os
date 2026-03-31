@@ -89,6 +89,20 @@ export async function DELETE(
       return NextResponse.json({ error: 'Property not found.' }, { status: 404 });
     }
 
+    // Block deletion if property has active issues
+    const activeIssueCount = await prisma.issue.count({
+      where: {
+        propertyId: id,
+        status: { notIn: ['completed', 'canceled', 'archived'] },
+      },
+    });
+    if (activeIssueCount > 0) {
+      return NextResponse.json(
+        { error: `Cannot delete property with ${activeIssueCount} active issue${activeIssueCount !== 1 ? 's' : ''}. Resolve or cancel them first.` },
+        { status: 400 }
+      );
+    }
+
     await logTimelineEvent({
       propertyId: id,
       actorType: 'user',

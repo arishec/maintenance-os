@@ -6,7 +6,9 @@
  * which would render in UTC (server timezone).
  */
 export function LocalTime({ date, format = 'datetime' }: { date: string | Date; format?: 'date' | 'time' | 'datetime' }) {
+  if (!date) return <>—</>;
   const d = new Date(date);
+  if (isNaN(d.getTime())) return <>—</>;
 
   if (format === 'date') {
     return <>{d.toLocaleDateString()}</>;

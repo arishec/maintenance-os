@@ -118,6 +118,9 @@ export function ManualQuoteButton({ issueId, existingContractors = [] }: ManualQ
                 disabled={isLoading || success}
               >
                 <option value="">Select contractor...</option>
+                {contractors.length === 0 && (
+                  <option value="" disabled>No contractors yet — add one first</option>
+                )}
                 {contractors.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}{c.companyName ? ` — ${c.companyName}` : ''}

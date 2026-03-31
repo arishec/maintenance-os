@@ -107,6 +107,9 @@ export function ReplyToContractorButton({
             {/* Channel selector */}
             <div className="flex items-center gap-3">
               <span className="text-sm text-muted-foreground">Send via:</span>
+              {!canEmail && !canSms && (
+                <span className="text-sm text-amber-600">No contact method available for this contractor</span>
+              )}
               {canEmail && (
                 <button
                   type="button"

@@ -178,7 +178,7 @@ export default async function PropertyDetailPage({
                       <p className="text-sm text-muted-foreground line-clamp-1">{issue.description}</p>
                       <div className="mt-2 flex gap-2">
                         <span className="text-xs rounded-full bg-muted px-2 py-1">
-                          {issue.status}
+                          {formatLabel(issue.status)}
                         </span>
                         {issue.urgency && (
                           <span className="text-xs rounded-full bg-muted px-2 py-1">

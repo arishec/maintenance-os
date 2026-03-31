@@ -19,6 +19,13 @@ export async function POST(
       return NextResponse.json({ error: 'Issue not found.' }, { status: 404 });
     }
 
+    if (issue.status === 'active_job') {
+      return NextResponse.json(
+        { error: 'Cannot archive an issue with an active job. Complete or cancel the job first.' },
+        { status: 400 }
+      );
+    }
+
     const updatedIssue = await prisma.issue.update({
       where: { id },
       data: { status: 'archived' },
