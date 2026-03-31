@@ -388,7 +388,16 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
         {issue.dispatches && issue.dispatches.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Contractor Contacts</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Contractor Contacts</CardTitle>
+                {issue.status !== 'completed' && issue.status !== 'canceled' && (
+                  <Link href={`/issues/${issue.id}/dispatch`}>
+                    <Button size="sm" variant="outline" className="text-xs">
+                      + Add More
+                    </Button>
+                  </Link>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">

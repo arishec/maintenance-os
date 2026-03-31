@@ -6,6 +6,8 @@ import { LayoutShell } from '@/components/layout-shell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { PaywallModal } from '@/components/paywall-modal';
 import { formatPhone } from '@/lib/utils';
@@ -60,6 +62,14 @@ export default function DispatchPage() {
   const [showPaywall, setShowPaywall] = useState(false);
   const [successCount, setSuccessCount] = useState<number | null>(null);
 
+  // Inline add contractor form
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addingContractor, setAddingContractor] = useState(false);
+  const [addError, setAddError] = useState('');
+  const [newContractor, setNewContractor] = useState({
+    name: '', trade: 'handyman', phone: '', email: '', companyName: '',
+  });
+
   useEffect(() => {
     Promise.all([
       fetch(`/api/issues/${issueId}`).then(r => r.json()),
@@ -105,6 +115,48 @@ export default function DispatchPage() {
 
   function setChannel(contractorId: string, channel: 'sms' | 'email') {
     setSelected(selected.map(s => s.contractorId === contractorId ? { ...s, channel } : s));
+  }
+
+  async function handleAddContractor() {
+    if (!newContractor.name.trim()) return;
+    if (!newContractor.phone.trim() && !newContractor.email.trim()) {
+      setAddError('Phone or email is required.');
+      return;
+    }
+    setAddingContractor(true);
+    setAddError('');
+
+    try {
+      const res = await fetch('/api/contractors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newContractor.name.trim(),
+          trade: newContractor.trade,
+          phone: newContractor.phone.trim() || undefined,
+          email: newContractor.email.trim() || undefined,
+          companyName: newContractor.companyName.trim() || undefined,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to add contractor');
+      }
+
+      const data = await res.json();
+      const created = data.contractor;
+      setContractors(prev => [...prev, created]);
+      // Auto-select the new contractor
+      const channel = created.phone ? 'sms' : 'email';
+      setSelected(prev => [...prev, { contractorId: created.id, channel: channel as 'sms' | 'email' }]);
+      setNewContractor({ name: '', trade: 'handyman', phone: '', email: '', companyName: '' });
+      setShowAddForm(false);
+    } catch (err) {
+      setAddError(err instanceof Error ? err.message : 'Failed to add contractor');
+    } finally {
+      setAddingContractor(false);
+    }
   }
 
   async function handleSend() {
@@ -208,8 +260,8 @@ export default function DispatchPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {filteredContractors.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No contractors found. Add one first.</p>
+            {filteredContractors.length === 0 && !showAddForm ? (
+              <p className="text-sm text-muted-foreground">No contractors found. Add one below.</p>
             ) : (
               <div className="space-y-3">
                 {filteredContractors.map(contractor => {
@@ -252,6 +304,86 @@ export default function DispatchPage() {
                   );
                 })}
               </div>
+            )}
+
+            {/* Inline Add Contractor */}
+            {showAddForm ? (
+              <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50/50 p-4 space-y-3">
+                <h4 className="text-sm font-semibold">Add a new contractor</h4>
+                {addError && <p className="text-sm text-red-600">{addError}</p>}
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Name *</label>
+                    <Input
+                      value={newContractor.name}
+                      onChange={e => setNewContractor(p => ({ ...p, name: e.target.value }))}
+                      placeholder="e.g. John Smith"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Company</label>
+                    <Input
+                      value={newContractor.companyName}
+                      onChange={e => setNewContractor(p => ({ ...p, companyName: e.target.value }))}
+                      placeholder="e.g. Smith Plumbing"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Trade *</label>
+                    <Select
+                      value={newContractor.trade}
+                      onChange={e => setNewContractor(p => ({ ...p, trade: e.target.value }))}
+                    >
+                      <option value="plumbing">Plumbing</option>
+                      <option value="electrical">Electrical</option>
+                      <option value="hvac">HVAC</option>
+                      <option value="roofing">Roofing</option>
+                      <option value="appliance_repair">Appliance Repair</option>
+                      <option value="handyman">Handyman</option>
+                      <option value="pest_control">Pest Control</option>
+                      <option value="landscaping">Landscaping</option>
+                      <option value="cleaning">Cleaning</option>
+                      <option value="restoration">Restoration</option>
+                      <option value="general_contractor">General Contractor</option>
+                      <option value="other">Other</option>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Phone</label>
+                    <Input
+                      type="tel"
+                      value={newContractor.phone}
+                      onChange={e => setNewContractor(p => ({ ...p, phone: e.target.value }))}
+                      placeholder="(555) 123-4567"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-medium mb-1">Email</label>
+                    <Input
+                      type="email"
+                      value={newContractor.email}
+                      onChange={e => setNewContractor(p => ({ ...p, email: e.target.value }))}
+                      placeholder="john@smithplumbing.com"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleAddContractor} disabled={addingContractor || !newContractor.name.trim()}>
+                    {addingContractor ? 'Adding...' : 'Add & Select'}
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => { setShowAddForm(false); setAddError(''); }}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowAddForm(true)}
+                className="mt-3 flex items-center gap-2 text-sm text-primary hover:underline"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+                Add a new contractor
+              </button>
             )}
           </CardContent>
         </Card>

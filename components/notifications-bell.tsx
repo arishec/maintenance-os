@@ -27,7 +27,7 @@ export function NotificationsBell({ dropDirection = 'up' }: { dropDirection?: 'u
 
   useEffect(() => {
     fetchUnreadCount();
-    intervalRef.current = setInterval(fetchUnreadCount, 60000);
+    intervalRef.current = setInterval(fetchUnreadCount, 15000);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, []);
 
