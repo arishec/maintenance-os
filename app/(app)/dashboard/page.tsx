@@ -2,6 +2,10 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { requireDbUserOrRedirect } from '@/lib/auth';
 import { LayoutShell } from '@/components/layout-shell';
+
+// Never cache the dashboard — it must always reflect the latest DB state
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 import { Card, CardContent } from '@/components/ui/card';
 import {
   getNeedsAttentionItems,

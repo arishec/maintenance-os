@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { Prisma, IssueStatus } from '@prisma/client';
 import { requireDbUser } from '@/lib/auth';
@@ -143,6 +144,9 @@ export async function PATCH(
         console.error('Notification failed:', e);
       }
     }
+
+    revalidatePath('/dashboard');
+    revalidatePath(`/issues/${job.issueId}`);
 
     return NextResponse.json({ job: updatedJob });
   } catch (error) {

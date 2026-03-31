@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -58,6 +59,9 @@ export async function POST(
         scheduledFor: scheduledDate.toISOString(),
       },
     });
+
+    revalidatePath('/dashboard');
+    revalidatePath(`/issues/${job.issueId}`);
 
     return NextResponse.json({ job: updatedJob }, { status: 200 });
   } catch (error) {

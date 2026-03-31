@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { requireApiUser, requireJobOwnership, apiError, apiNotFound, apiSuccess } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { logTimelineEvent } from '@/lib/timeline';
@@ -70,6 +71,10 @@ export async function POST(
       ...(completionNotes ? { completionNotes } : {}),
     },
   });
+
+  // Bust dashboard cache so status changes appear immediately
+  revalidatePath('/dashboard');
+  revalidatePath(`/issues/${job.issueId}`);
 
   return apiSuccess({ job: updatedJob });
 }

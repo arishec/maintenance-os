@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { requireApiUser, requireJobOwnership, apiError, apiNotFound, apiSuccess } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { logTimelineEvent } from '@/lib/timeline';
@@ -42,6 +43,9 @@ export async function POST(
     eventType: 'job_started',
     payload: { startedAt: now.toISOString() },
   });
+
+  revalidatePath('/dashboard');
+  revalidatePath(`/issues/${job.issueId}`);
 
   return apiSuccess({ job: updatedJob });
 }

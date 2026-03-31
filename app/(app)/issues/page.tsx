@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { Prisma, IssueCategory, Urgency } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { requireDbUserOrRedirect } from '@/lib/auth';
+
+export const dynamic = 'force-dynamic';
 import { LayoutShell } from '@/components/layout-shell';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';

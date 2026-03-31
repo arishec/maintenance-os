@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -235,6 +236,9 @@ export async function POST(
     } catch (courtesyErr) {
       console.error('[SELECT] Failed to fetch/notify non-selected contractors:', courtesyErr);
     }
+
+    revalidatePath('/dashboard');
+    revalidatePath(`/issues/${issueId}`);
 
     return NextResponse.json({ job }, { status: 201 });
   } catch (error) {

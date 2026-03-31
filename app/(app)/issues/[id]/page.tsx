@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { requireDbUser } from '@/lib/auth';
+
+export const dynamic = 'force-dynamic';
 import { supabaseAdmin } from '@/lib/supabase';
 import { LayoutShell } from '@/components/layout-shell';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
