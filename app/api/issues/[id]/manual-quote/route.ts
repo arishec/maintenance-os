@@ -52,8 +52,13 @@ export async function POST(
 
     // Find or create a dispatch record for this contractor+issue
     // (manual quotes still need a dispatch parent for the data model)
+    // Only reuse active dispatches; avoid attaching to closed/accepted/failed ones
     let dispatch = await prisma.dispatch.findFirst({
-      where: { issueId, contractorId: body.contractorId },
+      where: {
+        issueId,
+        contractorId: body.contractorId,
+        status: { in: ['sent', 'delivered', 'replied'] }
+      },
       orderBy: { createdAt: 'desc' },
     });
 

@@ -154,8 +154,11 @@ export async function PATCH(
       // Go back to quotes_received if there are other responses, otherwise awaiting_dispatch
       const otherResponses = await prisma.contractorResponse.count({
         where: {
-          dispatch: { issueId: job.issueId },
-          dispatchId: { not: undefined },
+          dispatch: {
+            issueId: job.issueId,
+            contractorId: { not: job.contractorId },
+            status: { notIn: ['closed', 'failed'] },
+          },
         },
       });
       const revertStatus: IssueStatus = otherResponses > 0

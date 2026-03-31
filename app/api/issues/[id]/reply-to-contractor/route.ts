@@ -65,7 +65,7 @@ export async function POST(
           return NextResponse.json({ error: 'Contractor has no email address.' }, { status: 400 });
         }
 
-        const replyTo = process.env.RESEND_FROM_EMAIL || undefined;
+        const replyTo = `replies+${activeDispatch.replyToken}@ifbids.com`;
         await sendRepairRequestEmail(
           contractor.email,
           `Re: ${issue.title || 'Maintenance request'}`,

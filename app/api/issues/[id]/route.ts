@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { logTimelineEvent } from '@/lib/timeline';
+import { sendRepairRequestEmail } from '@/lib/resend';
+import { sendRepairRequestSms } from '@/lib/twilio';
 import { safeErrorMessage } from '@/lib/utils';
 
 const updateIssueSchema = z.object({
@@ -157,10 +159,42 @@ export async function PATCH(
 
     // When canceling: close all open dispatches so late replies don't resurrect the issue
     if (body.status === 'canceled') {
+      // Fetch active jobs before canceling to notify contractors
+      const activeJobs = await prisma.job.findMany({
+        where: {
+          issueId: id,
+          status: { in: ['selected', 'scheduled', 'in_progress'] },
+        },
+        include: { contractor: true, issue: true },
+      });
+
+      // Send cancellation notifications to contractors with active jobs
+      for (const activeJob of activeJobs) {
+        try {
+          const issueTitle = activeJob.issue.title || 'a maintenance request';
+          const cancelMessage = `The property owner has canceled this maintenance request (${issueTitle}). No further action is needed on your end. We appreciate your time.`;
+
+          if (activeJob.contractor.email) {
+            await sendRepairRequestEmail(
+              activeJob.contractor.email,
+              `Canceled: ${issueTitle}`,
+              `<p>${cancelMessage}</p>`,
+            );
+            console.log(`[ISSUE CANCEL] Cancellation email sent to ${activeJob.contractor.email}`);
+          }
+          if (activeJob.contractor.phone) {
+            await sendRepairRequestSms(activeJob.contractor.phone, cancelMessage);
+            console.log(`[ISSUE CANCEL] Cancellation SMS sent to ${activeJob.contractor.phone}`);
+          }
+        } catch (notifyErr) {
+          console.error('[ISSUE CANCEL] Failed to notify contractor:', notifyErr);
+        }
+      }
+
       await prisma.dispatch.updateMany({
         where: {
           issueId: id,
-          status: { in: ['queued', 'sent', 'delivered', 'replied'] },
+          status: { in: ['queued', 'sent', 'delivered', 'replied', 'accepted'] },
         },
         data: { status: 'closed', closedReason: 'issue_canceled' } as any,
       });

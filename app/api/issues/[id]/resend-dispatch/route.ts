@@ -46,7 +46,8 @@ export async function POST(
     // Build message (reuse original outbound message)
     const message = dispatch.outboundMessage;
 
-    const smsMessage = `[Ref: ${replyToken}] ${message}`;
+    const smsBody = `[Ref: ${replyToken}] ${message}`;
+    const smsMessage = smsBody.length > 1500 ? smsBody.slice(0, 1497) + '...' : smsBody;
     const emailSubject = `Reminder: Repair request [Ref: ${replyToken}] — ${issue.title}`;
     const emailBody = `<div style="font-family: sans-serif; line-height: 1.6;"><p><strong>Reference: ${replyToken}</strong></p><p>This is a follow-up on a previous request.</p><hr style="border:none;border-top:1px solid #eee;margin:12px 0;">${message.replace(/\n/g, '<br>')}</div>`;
 

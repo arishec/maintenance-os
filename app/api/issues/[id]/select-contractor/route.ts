@@ -97,17 +97,17 @@ export async function POST(
         data: { status: 'active_job' },
       });
 
-      // Update dispatch for selected contractor → accepted
-      await tx.dispatch.updateMany({
-        where: { issueId, contractorId },
+      // Update only the winning dispatch to accepted
+      await tx.dispatch.update({
+        where: { id: selectedResponse.dispatchId },
         data: { status: 'accepted' },
       });
 
-      // Close all other open dispatches
+      // Close all other open dispatches (exclude the winning dispatch by ID)
       await tx.dispatch.updateMany({
         where: {
           issueId,
-          contractorId: { not: contractorId },
+          id: { not: selectedResponse.dispatchId },
           status: { in: ['sent', 'delivered', 'replied'] },
         },
         data: { status: 'closed', closedReason: 'not_selected' } as any,
