@@ -88,7 +88,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
-    const event = JSON.parse(rawBody);
+    let event;
+    try {
+      event = JSON.parse(rawBody);
+    } catch {
+      console.error('[EMAIL WEBHOOK] Invalid JSON in webhook payload');
+      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    }
 
     // Only process inbound email events
     if (event.type !== 'email.received') {
@@ -393,8 +399,8 @@ export async function POST(request: NextRequest) {
         console.error('[EMAIL WEBHOOK] Failed to create notification (job confirmation):', notifErr);
       }
 
-      // Send email to property owner
-      await sendOwnerNotificationEmail({
+      // Send email to property owner (truly non-blocking)
+      sendOwnerNotificationEmail({
         userId: issue.property.ownerUserId,
         issueId: issue.id,
         issueTitle: issue.title ?? 'Untitled issue',
@@ -404,7 +410,7 @@ export async function POST(request: NextRequest) {
         availability: confirmation.schedulingInfo || null,
         question: confirmation.followUpQuestion || null,
         notificationType: eventType,
-      });
+      }).catch((err) => console.error('[EMAIL WEBHOOK] Failed to send owner email (job confirmation):', err));
 
       revalidatePath('/dashboard');
       revalidatePath(`/issues/${issue.id}`);
@@ -548,8 +554,8 @@ export async function POST(request: NextRequest) {
     // Don't wait for all dispatches — user should see progress immediately
     // Cover both awaiting_dispatch and awaiting_quotes (edge cases where dispatch didn't update status)
     if (['awaiting_dispatch', 'awaiting_quotes', 'classified'].includes(issue.status)) {
-      await prisma.issue.update({
-        where: { id: issue.id },
+      await prisma.issue.updateMany({
+        where: { id: issue.id, status: { in: ['awaiting_dispatch', 'awaiting_quotes', 'classified'] } },
         data: { status: 'quotes_received' },
       });
       console.log(`[EMAIL WEBHOOK] Issue ${issue.id} advanced to quotes_received (was ${issue.status})`);
@@ -606,8 +612,8 @@ export async function POST(request: NextRequest) {
       quoteStr = `${parsedReply.estimateLow}–${parsedReply.estimateHigh}`;
     }
 
-    // Send email notification to property owner (non-blocking)
-    await sendOwnerNotificationEmail({
+    // Send email notification to property owner (truly non-blocking)
+    sendOwnerNotificationEmail({
       userId: issue.property.ownerUserId,
       issueId: issue.id,
       issueTitle: issue.title ?? 'Untitled issue',
@@ -616,7 +622,7 @@ export async function POST(request: NextRequest) {
       quote: quoteStr,
       availability: parsedReply?.availabilityText || null,
       question: parsedReply?.followUpQuestion || null,
-    });
+    }).catch((err) => console.error('[EMAIL WEBHOOK] Failed to send owner email (quote):', err));
 
     // Bust dashboard cache so the new quote appears immediately
     revalidatePath('/dashboard');
