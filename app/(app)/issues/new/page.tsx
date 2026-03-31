@@ -246,56 +246,76 @@ export default function NewIssuePage() {
     }
   }
 
-  // Show classification result
+  // Show result — feels like "the system prepared this perfectly"
   if (classification && issueId) {
     const urgencyColor =
       classification.urgency === 'emergency'
-        ? 'bg-red-100 text-red-800'
+        ? 'bg-red-100 text-red-800 border-red-200'
         : classification.urgency === 'high'
-          ? 'bg-orange-100 text-orange-800'
-          : 'bg-yellow-100 text-yellow-800';
+          ? 'bg-orange-100 text-orange-800 border-orange-200'
+          : classification.urgency === 'medium'
+            ? 'bg-yellow-100 text-yellow-800 border-yellow-200'
+            : 'bg-green-100 text-green-800 border-green-200';
 
     return (
       <LayoutShell>
         <div className="mx-auto max-w-2xl space-y-4">
+          {/* Success indicator */}
+          <div className="text-center pt-2">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+              <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+            </div>
+            <h1 className="text-xl font-semibold">Your issue is ready</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              We&apos;ve organized the details so you can send it to contractors
+            </p>
+          </div>
+
+          {/* Summary card */}
           <Card>
-            <CardHeader>
-              <CardTitle>Issue Classified</CardTitle>
-              <CardDescription>AI has analyzed your issue report</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="pt-6 space-y-4">
               <div>
-                <h3 className="font-semibold">{classification.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{classification.reasoningSummary}</p>
+                <h3 className="text-lg font-semibold">{classification.title}</h3>
+                <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">{classification.reasoningSummary}</p>
               </div>
-              <div className="grid gap-4 grid-cols-2">
+
+              <div className="grid gap-3 grid-cols-2 rounded-lg border border-border bg-muted/30 p-4">
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground">Category</label>
-                  <p className="mt-1 text-sm font-medium">{formatLabel(classification.category)}</p>
+                  <label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Type</label>
+                  <p className="mt-0.5 text-sm font-medium">{formatLabel(classification.category)}</p>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground">Urgency</label>
-                  <p className="mt-1">
-                    <Badge className={urgencyColor}>{classification.urgency.toUpperCase()}</Badge>
+                  <label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Priority</label>
+                  <p className="mt-0.5">
+                    <Badge className={urgencyColor}>{formatLabel(classification.urgency)}</Badge>
                   </p>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground">Timeframe</label>
-                  <p className="mt-1 text-sm font-medium">{formatLabel(classification.suggestedTimeframe)}</p>
+                  <label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Timeframe</label>
+                  <p className="mt-0.5 text-sm font-medium">{formatLabel(classification.suggestedTimeframe)}</p>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground">Trade</label>
-                  <p className="mt-1 text-sm font-medium">{formatLabel(classification.recommendedTrade)}</p>
+                  <label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Recommended trade</label>
+                  <p className="mt-0.5 text-sm font-medium">{formatLabel(classification.recommendedTrade)}</p>
                 </div>
               </div>
+
               {photoUploadError && (
                 <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                   {photoUploadError}
                 </div>
               )}
-              <Link href={`/issues/${issueId}`}>
-                <Button className="w-full mt-2">Continue to Issue</Button>
-              </Link>
+
+              <div className="flex flex-col gap-2 pt-2">
+                <Link href={`/issues/${issueId}/dispatch`}>
+                  <Button className="w-full">Send to contractors</Button>
+                </Link>
+                <Link href={`/issues/${issueId}`}>
+                  <Button variant="outline" className="w-full">Review issue first</Button>
+                </Link>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -303,7 +323,7 @@ export default function NewIssuePage() {
     );
   }
 
-  // Classifying spinner
+  // Processing spinner — outcome-focused language, AI stays invisible
   if (classifying && issueId) {
     return (
       <LayoutShell>
@@ -311,10 +331,10 @@ export default function NewIssuePage() {
           <Card>
             <CardContent className="py-12 text-center">
               <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-              <p className="font-medium">AI is analyzing your issue...</p>
+              <p className="font-medium">Understanding your issue and preparing it for contractors</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                {photos.length > 0 ? `${photos.length} photo${photos.length !== 1 ? 's' : ''} uploaded. ` : ''}
-                This usually takes a few seconds.
+                {photos.length > 0 ? `Reviewing ${photos.length} photo${photos.length !== 1 ? 's' : ''}. ` : ''}
+                Organizing your request...
               </p>
             </CardContent>
           </Card>
@@ -328,7 +348,7 @@ export default function NewIssuePage() {
       <Card className="mx-auto max-w-2xl">
         <CardHeader>
           <CardTitle>Report Issue</CardTitle>
-          <CardDescription>Describe the problem and we'll classify it for you</CardDescription>
+          <CardDescription>Describe the problem and we&apos;ll prepare it for your contractors</CardDescription>
         </CardHeader>
         <CardContent>
           {error && (
