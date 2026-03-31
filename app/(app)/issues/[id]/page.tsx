@@ -630,7 +630,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
           {issue.status !== 'completed' && issue.status !== 'canceled' && (
             <ManualQuoteButton issueId={issue.id} />
           )}
-          {(issue.status === 'classified' || issue.status === 'awaiting_dispatch') && (
+          {(['classified', 'awaiting_dispatch', 'awaiting_quotes', 'quotes_received'].includes(issue.status)) && (
             <Link href={`/issues/${issue.id}/dispatch`}>
               <Button size="sm">Contact Contractors</Button>
             </Link>
