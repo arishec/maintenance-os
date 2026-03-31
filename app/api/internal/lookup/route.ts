@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
-    return NextResponse.json({ error: message }, { status: 401 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -81,6 +81,11 @@ function buildIssueSummary(issue: {
   let selectedContractor: string | null = null;
   if (latestJob?.contractor) {
     selectedContractor = latestJob.contractor.name;
+  } else {
+    const respondingDispatch = issue.dispatches.find((d) => d.responses.length > 0);
+    if (respondingDispatch?.contractor) {
+      selectedContractor = respondingDispatch.contractor.name;
+    }
   }
 
   return {
