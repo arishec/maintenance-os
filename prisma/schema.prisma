@@ -238,6 +238,7 @@ model Dispatch {
   deliveredAt       DateTime?
   failedAt          DateTime?
   replyReceivedAt   DateTime?
+  closedReason      String?             // not_selected, expired, owner_canceled, late_reply
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   issue             Issue               @relation(fields: [issueId], references: [id], onDelete: Cascade)

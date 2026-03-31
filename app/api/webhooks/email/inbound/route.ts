@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { parseContractorReply } from '@/lib/ai/parse-contractor-reply';
 import { parseJobConfirmation } from '@/lib/ai/parse-job-confirmation';
 import { logTimelineEvent } from '@/lib/timeline';
-import { getReceivedEmail } from '@/lib/resend';
+import { getReceivedEmail, sendRepairRequestEmail } from '@/lib/resend';
 import { sendOwnerNotificationEmail } from '@/lib/notifications';
 import { forwardSupportEmail } from '@/lib/support-forward';
 
@@ -387,6 +387,55 @@ export async function POST(request: NextRequest) {
     }
 
     // ─── CASE B: Standard contractor quote reply ───
+
+    // Check if the job has already been awarded — late reply
+    const jobAlreadyAwarded = ['active_job', 'completed', 'canceled'].includes(issue.status);
+
+    if (jobAlreadyAwarded) {
+      // Still store the quote for records
+      await prisma.contractorResponse.create({
+        data: {
+          dispatchId: matchingDispatch.id,
+          providerInboundId: emailId,
+          rawMessage: text,
+          receivedAt: new Date(),
+        },
+      });
+
+      // Auto-reply to let them know
+      try {
+        if (contractor.email) {
+          await sendRepairRequestEmail(
+            contractor.email,
+            `Update: ${issue.title || 'Maintenance request'}`,
+            `<div style="font-family: sans-serif; font-size: 14px; line-height: 1.6;">
+              <p>Hi ${contractor.name},</p>
+              <p>Thanks for getting back to us about <strong>${issue.title || 'this maintenance request'}</strong>. This job has already been awarded to another contractor.</p>
+              <p>We appreciate your time and will keep you in mind for future work.</p>
+              <hr style="border: none; border-top: 1px solid #eee; margin: 16px 0;">
+              <p style="color: #888; font-size: 12px;">Sent via Maintenance OS</p>
+            </div>`
+          );
+          console.log('[EMAIL WEBHOOK] Late reply auto-response sent to:', contractor.name, contractor.email);
+        }
+      } catch (autoReplyErr) {
+        console.error('[EMAIL WEBHOOK] Failed to send late reply auto-response:', autoReplyErr);
+      }
+
+      // Log it in timeline
+      await logTimelineEvent({
+        propertyId: issue.propertyId,
+        issueId: issue.id,
+        actorType: 'contractor',
+        eventType: 'contractor_replied',
+        payload: {
+          contractorName: contractor.name,
+          note: 'Late reply — job already awarded',
+        },
+      });
+
+      return NextResponse.json({ success: true }, { status: 200 });
+    }
 
     // Create raw response record with provider ID for future dedup
     const contractorResponse = await prisma.contractorResponse.create({

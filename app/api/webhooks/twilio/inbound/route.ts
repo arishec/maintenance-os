@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { parseContractorReply } from '@/lib/ai/parse-contractor-reply';
 import { parseJobConfirmation } from '@/lib/ai/parse-job-confirmation';
 import { logTimelineEvent } from '@/lib/timeline';
-import { validateTwilioSignature } from '@/lib/twilio';
+import { validateTwilioSignature, sendRepairRequestSms } from '@/lib/twilio';
 import { sendOwnerNotificationEmail } from '@/lib/notifications';
 
 const REPLY_TOKEN_PATTERN = /MNT-[A-Z0-9]{6}/;
@@ -282,6 +282,47 @@ export async function POST(request: NextRequest) {
     }
 
     // ─── CASE B: Standard contractor quote reply ───
+
+    // Check if the job has already been awarded — late reply
+    const jobAlreadyAwarded = ['active_job', 'completed', 'canceled'].includes(issue.status);
+
+    if (jobAlreadyAwarded) {
+      // Still store the quote for records
+      await prisma.contractorResponse.create({
+        data: {
+          dispatchId: matchingDispatch.id,
+          providerInboundId: messageSid,
+          rawMessage: body,
+          receivedAt: new Date(),
+        },
+      });
+
+      // Auto-reply via SMS
+      try {
+        if (contractor.phone) {
+          await sendRepairRequestSms(
+            contractor.phone,
+            `Hi ${contractor.name}, thanks for your reply about "${issue.title || 'maintenance request'}". This job has already been awarded to another contractor. We appreciate your time and will keep you in mind for future work.`
+          );
+          console.log('[TWILIO WEBHOOK] Late reply auto-response sent to:', contractor.name);
+        }
+      } catch (autoReplyErr) {
+        console.error('[TWILIO WEBHOOK] Failed to send late reply auto-response:', autoReplyErr);
+      }
+
+      await logTimelineEvent({
+        propertyId: issue.propertyId,
+        issueId: issue.id,
+        actorType: 'contractor',
+        eventType: 'contractor_replied',
+        payload: {
+          contractorName: contractor.name,
+          note: 'Late reply — job already awarded',
+        },
+      });
+
+      return getTwiMLResponse();
+    }
 
     // Create raw response record with provider ID for future dedup
     const contractorResponse = await prisma.contractorResponse.create({

@@ -111,7 +111,7 @@ export async function POST(
           contractorId: { not: contractorId },
           status: { in: ['sent', 'delivered', 'replied'] },
         },
-        data: { status: 'closed' },
+        data: { status: 'closed', closedReason: 'not_selected' } as any,
       });
 
       return newJob;
@@ -192,6 +192,48 @@ export async function POST(
       }
     } catch (notifyErr) {
       console.error('[SELECT] CRITICAL — Failed to notify contractor of selection:', notifyErr);
+    }
+
+    // 9. Notify non-selected contractors who replied that the job has been awarded
+    try {
+      const otherDispatches = await prisma.dispatch.findMany({
+        where: {
+          issueId,
+          contractorId: { not: contractorId },
+          status: 'closed',
+          responses: { some: {} }, // only those who actually replied
+        },
+        include: { contractor: true },
+      });
+
+      for (const otherDispatch of otherDispatches) {
+        const otherContractor = otherDispatch.contractor;
+        const courtesySubject = `Update: ${issue.title || 'Maintenance request'}`;
+        const courtesyHtml = `<div style="font-family: sans-serif; font-size: 14px; line-height: 1.6;">
+            <p>Hi ${otherContractor.name},</p>
+            <p>Thanks for sending your quote for <strong>${issue.title || 'a maintenance request'}</strong>. The homeowner has decided to go with another contractor for this job.</p>
+            <p>We appreciate your time and will keep you in mind for future work.</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 16px 0;">
+            <p style="color: #888; font-size: 12px;">Sent via Maintenance OS</p>
+          </div>`;
+
+        try {
+          if (otherDispatch.channel === 'sms' && otherContractor.phone) {
+            await sendRepairRequestSms(
+              otherContractor.phone,
+              `Hi ${otherContractor.name}, thanks for your quote on "${issue.title || 'maintenance request'}". The homeowner went with another contractor for this job. We'll keep you in mind for future work.`
+            );
+            console.log('[SELECT] Courtesy SMS sent to:', otherContractor.name);
+          } else if (otherContractor.email) {
+            await sendRepairRequestEmail(otherContractor.email, courtesySubject, courtesyHtml);
+            console.log('[SELECT] Courtesy email sent to:', otherContractor.name, otherContractor.email);
+          }
+        } catch (courtesyErr) {
+          console.error('[SELECT] Failed to send courtesy notice to:', otherContractor.name, courtesyErr);
+        }
+      }
+    } catch (courtesyErr) {
+      console.error('[SELECT] Failed to fetch/notify non-selected contractors:', courtesyErr);
     }
 
     return NextResponse.json({ job }, { status: 201 });
