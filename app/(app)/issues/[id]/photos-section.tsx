@@ -17,7 +17,7 @@ import { PhotoUploadButton } from './photo-upload-button';
 
 interface Photo {
   id: string;
-  signedUrl: string;
+  signedUrl: string | null;
   aiDescription?: string | null;
 }
 
