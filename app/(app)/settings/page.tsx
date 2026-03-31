@@ -95,7 +95,7 @@ export default async function SettingsPage() {
                 <p className="text-sm font-medium">SMS dispatch</p>
                 <p className="text-xs text-muted-foreground">Send repair requests to contractors via text message</p>
               </div>
-              <div className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded">Active</div>
+              <div className="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded">Pending carrier approval</div>
             </div>
           </CardContent>
         </Card>
