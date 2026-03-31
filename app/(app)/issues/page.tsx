@@ -8,6 +8,7 @@ import { LayoutShell } from '@/components/layout-shell';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { LocalTime } from '@/components/local-time';
 import {
   ISSUE_STATUS_LABELS,
   VIEW_STATUS_MAP,
@@ -399,7 +400,7 @@ export default async function IssuesPage({
                                 : '—'}
                           </td>
                           <td className="p-3 sm:p-4 text-muted-foreground text-xs hidden md:table-cell">
-                            {new Date(issue.updatedAt).toLocaleDateString()}
+                            <LocalTime date={issue.updatedAt} format="date" />
                           </td>
                           <td className="p-3 sm:p-4">
                             <Link

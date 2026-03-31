@@ -5,6 +5,7 @@ import { requireDbUser } from '@/lib/auth';
 import { LayoutShell } from '@/components/layout-shell';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LocalTime } from '@/components/local-time';
 
 import {
   getCategoryLabel,
@@ -89,7 +90,7 @@ export default async function HistoryPage() {
                     <tbody>
                       {completedIssues.map((issue) => (
                         <tr key={issue.id} className="border-b border-border hover:bg-muted/30 transition-colors">
-                          <td className="p-4 text-muted-foreground text-xs">{issue.completedAt ? new Date(issue.completedAt).toLocaleDateString() : '—'}</td>
+                          <td className="p-4 text-muted-foreground text-xs">{issue.completedAt ? <LocalTime date={issue.completedAt} format="date" /> : '—'}</td>
                           <td className="p-4 text-muted-foreground">{issue.property.nickname || issue.property.addressLine1}</td>
                           <td className="p-4">
                             <Link href={`/issues/${issue.id}`} className="font-medium hover:underline">

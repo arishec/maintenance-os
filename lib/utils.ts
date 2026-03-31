@@ -30,3 +30,26 @@ export function escapeHtml(str: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
+
+/**
+ * Safely format error messages for API responses.
+ * In production, returns a generic message to prevent information leakage.
+ * In development, includes the real error message for debugging.
+ */
+export function safeErrorMessage(error: unknown): string {
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  if (isProduction) {
+    return 'Something went wrong. Please try again.';
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  return 'Something went wrong. Please try again.';
+}

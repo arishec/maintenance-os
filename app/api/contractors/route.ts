@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { safeErrorMessage } from '@/lib/utils';
 
 /** Validate and normalize phone number
  * - Strips non-digit characters (except leading +)
@@ -62,8 +63,7 @@ export async function GET() {
     });
     return NextResponse.json({ contractors });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
-    return NextResponse.json({ error: message }, { status: 401 });
+    return NextResponse.json({ error: safeErrorMessage(error) }, { status: 401 });
   }
 }
 
@@ -107,7 +107,6 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json({ contractor }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: safeErrorMessage(error) }, { status: 400 });
   }
 }

@@ -3,6 +3,7 @@ import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { supabaseAdmin } from '@/lib/supabase';
 import { analyzePhoto } from '@/lib/ai/analyze-photo';
+import { safeErrorMessage } from '@/lib/utils';
 
 export async function GET(
   request: NextRequest,
@@ -27,8 +28,7 @@ export async function GET(
 
     return NextResponse.json({ photos });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
-    return NextResponse.json({ error: message }, { status: 401 });
+    return NextResponse.json({ error: safeErrorMessage(error) }, { status: 401 });
   }
 }
 
@@ -130,6 +130,6 @@ export async function POST(
     return NextResponse.json({ photo }, { status: 201 });
   } catch (error) {
     console.error('[photos/POST] Error:', error);
-    return NextResponse.json({ error: 'We encountered an error uploading your photo. Please try again.' }, { status: 400 });
+    return NextResponse.json({ error: safeErrorMessage(error) }, { status: 400 });
   }
 }

@@ -105,7 +105,11 @@ function AttentionCard({ item, showProperty }: { item: AttentionItem; showProper
             {showProperty && item.propertyName && (
               <p className="text-xs text-muted-foreground">{item.propertyName}</p>
             )}
-            <p className="text-xs font-medium mt-1" style={{ color: item.urgency === 'high' ? '#dc2626' : item.urgency === 'medium' ? '#d97706' : '#2563eb' }}>
+            <p className={`text-xs font-medium mt-1 ${
+              item.urgency === 'high' ? 'text-red-600' :
+              item.urgency === 'medium' ? 'text-amber-600' :
+              'text-blue-600'
+            }`}>
               {item.reason}
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">{timePressure(item.timestamp)}</p>

@@ -3,6 +3,7 @@ import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { LayoutShell } from '@/components/layout-shell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LocalTime } from '@/components/local-time';
 
 export default async function SettingsPage() {
   let user;
@@ -47,7 +48,7 @@ export default async function SettingsPage() {
             )}
             <div>
               <label className="text-xs font-medium text-muted-foreground">Member since</label>
-              <p className="text-sm">{new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
+              <p className="text-sm"><LocalTime date={user.createdAt} format="date" /></p>
             </div>
           </CardContent>
         </Card>

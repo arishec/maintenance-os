@@ -3,6 +3,7 @@ import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { classifyIssue } from '@/lib/ai/classify-issue';
 import { logTimelineEvent } from '@/lib/timeline';
+import { safeErrorMessage } from '@/lib/utils';
 
 export async function POST(
   request: NextRequest,
@@ -92,7 +93,6 @@ export async function POST(
 
     return NextResponse.json({ issue: updatedIssue });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: safeErrorMessage(error) }, { status: 400 });
   }
 }

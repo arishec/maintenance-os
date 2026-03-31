@@ -67,6 +67,7 @@ export default function DispatchPage() {
   const [showAll, setShowAll] = useState(false);
   const [customMessage, setCustomMessage] = useState('');
   const [includePhotos, setIncludePhotos] = useState(true);
+  const [isLoadingData, setIsLoadingData] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPaywall, setShowPaywall] = useState(false);
@@ -88,8 +89,10 @@ export default function DispatchPage() {
     ]).then(([issueData, contractorData]) => {
       setIssue(issueData.issue);
       setContractors(contractorData.contractors ?? []);
+      setIsLoadingData(false);
     }).catch(() => {
       setError('Failed to load issue or contractors. Please refresh.');
+      setIsLoadingData(false);
     });
   }, [issueId]);
 
@@ -210,8 +213,23 @@ export default function DispatchPage() {
     }, 2000);
   }
 
+  if (isLoadingData) {
+    return (
+      <LayoutShell>
+        <div className="py-12 text-center">
+          <div className="flex justify-center mb-4">
+            <div className="animate-spin">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground">Loading issue and contractors...</p>
+        </div>
+      </LayoutShell>
+    );
+  }
+
   if (!issue) {
-    return <LayoutShell><div className="py-12 text-center text-sm text-muted-foreground">Loading...</div></LayoutShell>;
+    return <LayoutShell><div className="py-12 text-center text-sm text-muted-foreground">Issue not found</div></LayoutShell>;
   }
 
   if (successCount !== null) {

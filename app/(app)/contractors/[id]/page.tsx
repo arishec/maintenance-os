@@ -6,6 +6,7 @@ import { LayoutShell } from '@/components/layout-shell';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { LocalTime } from '@/components/local-time';
 import { ArchiveButton } from './archive-button';
 import { formatPhone } from '@/lib/utils';
 
@@ -148,7 +149,7 @@ export default async function ContractorDetailPage({
             <div>
               <p className="text-sm text-muted-foreground">Added</p>
               <p className="text-base font-medium mt-1">
-                {new Date(contractor.createdAt).toLocaleDateString()}
+                <LocalTime date={contractor.createdAt} format="date" />
               </p>
             </div>
           </CardContent>

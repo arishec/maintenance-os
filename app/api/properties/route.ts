@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { logTimelineEvent } from '@/lib/timeline';
+import { safeErrorMessage } from '@/lib/utils';
 
 const propertySchema = z.object({
   nickname: z.string().min(1).max(100).optional(),
@@ -23,8 +24,7 @@ export async function GET() {
     });
     return NextResponse.json({ properties });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
-    return NextResponse.json({ error: message }, { status: 401 });
+    return NextResponse.json({ error: safeErrorMessage(error) }, { status: 401 });
   }
 }
 
@@ -44,7 +44,6 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json({ property }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: safeErrorMessage(error) }, { status: 400 });
   }
 }

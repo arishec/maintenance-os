@@ -6,6 +6,7 @@ import { LayoutShell } from '@/components/layout-shell';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { LocalTime } from '@/components/local-time';
 import { formatPhone } from '@/lib/utils';
 
 function tradeLabel(trade: string): string {
@@ -113,7 +114,7 @@ export default async function ContractorsPage() {
                       )}
                       {lastUsedDate && (
                         <p className="text-xs text-muted-foreground/70">
-                          Last contacted {new Date(lastUsedDate).toLocaleDateString()}
+                          Last contacted <LocalTime date={lastUsedDate} format="date" />
                         </p>
                       )}
                       <div className="space-y-1 text-sm">

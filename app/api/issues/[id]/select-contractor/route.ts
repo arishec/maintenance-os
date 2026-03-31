@@ -7,7 +7,7 @@ import { logTimelineEvent } from '@/lib/timeline';
 import { createNotification } from '@/lib/notifications';
 import { sendRepairRequestEmail } from '@/lib/resend';
 import { sendRepairRequestSms } from '@/lib/twilio';
-import { escapeHtml } from '@/lib/utils';
+import { escapeHtml, safeErrorMessage } from '@/lib/utils';
 
 const selectContractorSchema = z.object({
   responseId: z.string().uuid(),
@@ -258,10 +258,10 @@ export async function POST(
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.errors[0]?.message || 'Please check your input and try again.' }, { status: 400 });
     }
-    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
+    const message = error instanceof Error ? error.message : '';
     if (message === 'A contractor has already been hired for this issue.') {
       return NextResponse.json({ error: 'A contractor has already been hired for this issue.' }, { status: 409 });
     }
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: safeErrorMessage(error) }, { status: 400 });
   }
 }

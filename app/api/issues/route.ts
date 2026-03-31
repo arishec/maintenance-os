@@ -6,6 +6,7 @@ import { classifyIssue } from '@/lib/ai/classify-issue';
 import { logTimelineEvent } from '@/lib/timeline';
 import { generateIssueReference } from '@/lib/tokens';
 import { issueCreateLimiter } from '@/lib/rate-limit';
+import { safeErrorMessage } from '@/lib/utils';
 
 const issueSchema = z.object({
   propertyId: z.string().uuid(),
@@ -35,8 +36,7 @@ export async function GET(request: NextRequest) {
     ]);
     return NextResponse.json({ issues, total, limit, offset });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
-    return NextResponse.json({ error: message }, { status: 401 });
+    return NextResponse.json({ error: safeErrorMessage(error) }, { status: 401 });
   }
 }
 
@@ -156,7 +156,6 @@ export async function POST(request: NextRequest) {
       const message = firstIssue?.message || 'Invalid input';
       return NextResponse.json({ error: message }, { status: 400 });
     }
-    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: safeErrorMessage(error) }, { status: 400 });
   }
 }

@@ -7,7 +7,7 @@ import { sendRepairRequestEmail } from '@/lib/resend';
 import { logTimelineEvent } from '@/lib/timeline';
 import { generateReplyToken } from '@/lib/tokens';
 import { dispatchLimiter } from '@/lib/rate-limit';
-import { escapeHtml } from '@/lib/utils';
+import { escapeHtml, safeErrorMessage } from '@/lib/utils';
 
 const dispatchSchema = z.object({
   contractors: z.array(
@@ -318,7 +318,6 @@ export async function POST(
 
     return NextResponse.json({ dispatches: dispatchRecords }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: safeErrorMessage(error) }, { status: 400 });
   }
 }

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Toast } from '@/components/ui/toast';
+import { LocalTime } from '@/components/local-time';
 import {
   JOB_STATUS_LABELS,
   JOB_STATUS_COLORS,
@@ -164,7 +165,7 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
               <span className="text-2xl">📅</span>
               <div>
                 <p className="text-sm font-semibold text-blue-900">
-                  Scheduled for {new Date(job.scheduledFor).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                  Scheduled for <LocalTime date={job.scheduledFor} format="date" />
                 </p>
                 <p className="text-xs text-blue-700 mt-0.5">
                   {job.contractorName} is expected to arrive on this date
@@ -211,13 +212,13 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
             {job.startedAt && (
               <div>
                 <label className="text-xs font-medium text-muted-foreground">Started</label>
-                <p className="text-sm">{new Date(job.startedAt).toLocaleDateString()}</p>
+                <p className="text-sm"><LocalTime date={job.startedAt} format="date" /></p>
               </div>
             )}
             {job.completedAt && (
               <div>
                 <label className="text-xs font-medium text-muted-foreground">Completed</label>
-                <p className="text-sm">{new Date(job.completedAt).toLocaleDateString()}</p>
+                <p className="text-sm"><LocalTime date={job.completedAt} format="date" /></p>
               </div>
             )}
           </div>
