@@ -27,8 +27,10 @@ function validateAndNormalizePhone(phone: string | null | undefined): string | u
   if (digits.length === 10) return `+1${digits}`;
   // Normalize to +XXXXXXXXXXX for 11-digit numbers starting with 1
   if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
-  // For international numbers or other formats, prepend + if not present
-  return hasLeadingPlus ? `+${digits}` : `+${digits}`;
+  // International numbers must have had a leading +
+  if (hasLeadingPlus) return `+${digits}`;
+  // Unrecognized format without leading +
+  throw new Error('Please enter a valid phone number.');
 }
 
 const contractorSchema = z.object({
