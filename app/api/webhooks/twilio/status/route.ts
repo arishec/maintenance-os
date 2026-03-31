@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error('Twilio status callback webhook error:', error);
+    console.error('[TWILIO STATUS] CRITICAL - status update failed:', error);
     return NextResponse.json({ success: true }, { status: 200 });
   }
 }

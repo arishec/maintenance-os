@@ -251,15 +251,19 @@ export async function POST(request: NextRequest) {
       });
 
       // Create notification
-      await prisma.notification.create({
-        data: {
-          userId: issue.property.ownerUserId,
-          type: eventType,
-          title: notifTitle,
-          body: notifBody,
-          issueId: issue.id,
-        },
-      });
+      try {
+        await prisma.notification.create({
+          data: {
+            userId: issue.property.ownerUserId,
+            type: eventType,
+            title: notifTitle,
+            body: notifBody,
+            issueId: issue.id,
+          },
+        });
+      } catch (notifErr) {
+        console.error('[TWILIO WEBHOOK] Failed to create notification (job confirmation):', notifErr);
+      }
 
       // Email the owner
       await sendOwnerNotificationEmail({
@@ -271,6 +275,7 @@ export async function POST(request: NextRequest) {
         quote: null,
         availability: confirmation.schedulingInfo || null,
         question: confirmation.followUpQuestion || null,
+        notificationType: eventType,
       });
 
       return getTwiMLResponse();
@@ -399,15 +404,19 @@ export async function POST(request: NextRequest) {
       notifBody += ` — they asked: "${parsedReply.followUpQuestion}"`;
     }
 
-    await prisma.notification.create({
-      data: {
-        userId: issue.property.ownerUserId,
-        type: 'contractor_replied',
-        title: 'New quote received',
-        body: notifBody,
-        issueId: issue.id,
-      },
-    });
+    try {
+      await prisma.notification.create({
+        data: {
+          userId: issue.property.ownerUserId,
+          type: 'contractor_replied',
+          title: 'New quote received',
+          body: notifBody,
+          issueId: issue.id,
+        },
+      });
+    } catch (notifErr) {
+      console.error('[TWILIO WEBHOOK] Failed to create notification (quote reply):', notifErr);
+    }
 
     // Build quote string for structured email
     let quoteStr: string | null = null;
@@ -431,7 +440,7 @@ export async function POST(request: NextRequest) {
 
     return getTwiMLResponse();
   } catch (error) {
-    console.error('Twilio inbound webhook error:', error);
+    console.error('[TWILIO WEBHOOK] CRITICAL - webhook processing failed, data may be lost:', error);
     return getTwiMLResponse();
   }
 }

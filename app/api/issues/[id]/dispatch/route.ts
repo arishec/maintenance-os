@@ -161,9 +161,13 @@ export async function POST(
       try {
         if (reqContractor.channel === 'sms') {
           const response = await sendRepairRequestSms(contractor.phone!, smsMessage);
-          providerMessageId = response.sid;
-          smsCount++;
-          sentSuccessfully = true;
+          if (response.sid) {
+            providerMessageId = response.sid;
+            smsCount++;
+            sentSuccessfully = true;
+          } else {
+            console.error('[DISPATCH] SMS send failed for contractor:', contractor.name, 'No message SID returned');
+          }
         } else if (reqContractor.channel === 'email') {
           const response = await sendRepairRequestEmail(
             contractor.email!,
@@ -175,6 +179,8 @@ export async function POST(
             providerMessageId = response.data.id;
             emailCount++;
             sentSuccessfully = true;
+          } else {
+            console.error('[DISPATCH] Email send failed for contractor:', contractor.name, response.error || 'No message ID returned');
           }
         }
       } catch (error) {

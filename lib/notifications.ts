@@ -33,6 +33,7 @@ export async function sendOwnerNotificationEmail(input: {
   quote?: string | null;
   availability?: string | null;
   question?: string | null;
+  notificationType?: string;
 }) {
   try {
     const user = await prisma.user.findUnique({
@@ -47,6 +48,21 @@ export async function sendOwnerNotificationEmail(input: {
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ifbids.com';
     const issueUrl = `${siteUrl}/issues/${input.issueId}`;
+
+    // Determine heading and subject based on notification type
+    let emailHeading = 'New quote received';
+    let emailSubject = `New quote for: ${input.issueTitle}`;
+
+    if (input.notificationType === 'contractor_confirmed') {
+      emailHeading = 'Contractor confirmed the job';
+      emailSubject = `Contractor confirmed: ${input.issueTitle}`;
+    } else if (input.notificationType === 'contractor_declined') {
+      emailHeading = 'Contractor declined the job';
+      emailSubject = `Contractor declined: ${input.issueTitle}`;
+    } else if (input.notificationType === 'contractor_replied') {
+      emailHeading = 'New quote received';
+      emailSubject = `New quote for: ${input.issueTitle}`;
+    }
 
     // Build structured email body if we have structured data, otherwise fall back to notifBody
     let bodyHtml: string;
@@ -66,7 +82,7 @@ export async function sendOwnerNotificationEmail(input: {
 
     const html = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto;">
-        <h2 style="color: #1a1a1a; font-size: 18px; margin-bottom: 12px;">New quote received</h2>
+        <h2 style="color: #1a1a1a; font-size: 18px; margin-bottom: 12px;">${emailHeading}</h2>
         ${bodyHtml}
         <div style="margin-top: 16px;">
           <a href="${issueUrl}" style="display: inline-block; background: #2563eb; color: #fff; padding: 10px 24px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 500;">
@@ -81,7 +97,7 @@ export async function sendOwnerNotificationEmail(input: {
 
     await sendRepairRequestEmail(
       user.email,
-      `New quote for: ${input.issueTitle}`,
+      emailSubject,
       html
     );
 

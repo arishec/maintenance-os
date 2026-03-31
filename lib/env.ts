@@ -15,6 +15,10 @@ const optional = [
   'RESEND_API_KEY',
   'RESEND_FROM_EMAIL',
   'RESEND_WEBHOOK_SECRET',
+  'STRIPE_SECRET_KEY',
+  'STRIPE_WEBHOOK_SECRET',
+  'STRIPE_PRO_PRICE_ID',
+  'NEXT_PUBLIC_SITE_URL',
 ] as const;
 
 export function validateEnv(): void {
@@ -26,6 +30,13 @@ export function validateEnv(): void {
     (key) => !process.env[key] || process.env[key] === 'REPLACE_ME'
   );
   if (missingOptional.length > 0) {
+    // Check for critical variables that will cause crashes
+    const criticalVars = missingOptional.filter(
+      (key) => key === 'RESEND_FROM_EMAIL' || key === 'TWILIO_PHONE_NUMBER'
+    );
+    if (criticalVars.length > 0) {
+      console.warn(`[CRITICAL] Missing critical environment variables - email/SMS sending WILL CRASH without this: ${criticalVars.join(', ')}`);
+    }
     console.warn(`Optional environment variables not set (some features will be disabled): ${missingOptional.join(', ')}`);
   }
 }

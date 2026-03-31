@@ -356,15 +356,19 @@ export async function POST(request: NextRequest) {
       });
 
       // Create notification for property owner
-      await prisma.notification.create({
-        data: {
-          userId: issue.property.ownerUserId,
-          type: eventType,
-          title: notifTitle,
-          body: notifBody,
-          issueId: issue.id,
-        },
-      });
+      try {
+        await prisma.notification.create({
+          data: {
+            userId: issue.property.ownerUserId,
+            type: eventType,
+            title: notifTitle,
+            body: notifBody,
+            issueId: issue.id,
+          },
+        });
+      } catch (notifErr) {
+        console.error('[EMAIL WEBHOOK] Failed to create notification (job confirmation):', notifErr);
+      }
 
       // Send email to property owner
       await sendOwnerNotificationEmail({
@@ -376,6 +380,7 @@ export async function POST(request: NextRequest) {
         quote: null,
         availability: confirmation.schedulingInfo || null,
         question: confirmation.followUpQuestion || null,
+        notificationType: eventType,
       });
 
       return NextResponse.json({ success: true }, { status: 200 });
@@ -502,15 +507,19 @@ export async function POST(request: NextRequest) {
       notifBody += ` — they asked: "${parsedReply.followUpQuestion}"`;
     }
 
-    await prisma.notification.create({
-      data: {
-        userId: issue.property.ownerUserId,
-        type: 'contractor_replied',
-        title: 'New quote received',
-        body: notifBody,
-        issueId: issue.id,
-      },
-    });
+    try {
+      await prisma.notification.create({
+        data: {
+          userId: issue.property.ownerUserId,
+          type: 'contractor_replied',
+          title: 'New quote received',
+          body: notifBody,
+          issueId: issue.id,
+        },
+      });
+    } catch (notifErr) {
+      console.error('[EMAIL WEBHOOK] Failed to create notification (quote reply):', notifErr);
+    }
 
     // Build quote string for structured email
     let quoteStr: string | null = null;
@@ -534,7 +543,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error('Email inbound webhook error:', error);
+    console.error('[EMAIL WEBHOOK] CRITICAL - webhook processing failed, data may be lost:', error);
     return NextResponse.json({ success: true }, { status: 200 });
   }
 }
