@@ -6,16 +6,17 @@ import { classifyIssue } from '@/lib/ai/classify-issue';
 import { logTimelineEvent } from '@/lib/timeline';
 import { createNotification } from '@/lib/notifications';
 import { generateIssueReference } from '@/lib/tokens';
+import { issueCreateLimiter } from '@/lib/rate-limit';
 
 function hashToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
 
 const submitIssueSchema = z.object({
-  reporterName: z.string().optional(),
-  reporterContact: z.string().optional(),
-  description: z.string().min(5),
-  locationInProperty: z.string().optional(),
+  reporterName: z.string().max(200).optional(),
+  reporterContact: z.string().max(200).optional(),
+  description: z.string().min(5).max(5000),
+  locationInProperty: z.string().max(200).optional(),
   urgencyHint: z.enum(['emergency', 'urgent', 'normal', 'not_sure']).optional(),
   signals: z.array(z.string()).optional(),
 });
@@ -61,6 +62,13 @@ export async function POST(
   { params }: { params: Promise<{ token: string }> }
 ) {
   try {
+    // Rate limit: 10 submissions per minute per IP
+    const ip = request.headers.get('x-forwarded-for') ?? 'unknown';
+    const { allowed } = issueCreateLimiter.check(ip);
+    if (!allowed) {
+      return NextResponse.json({ error: 'Too many submissions. Please wait a moment.' }, { status: 429 });
+    }
+
     const { token } = await params;
     const tokenHash = hashToken(token);
 

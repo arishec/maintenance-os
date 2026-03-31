@@ -7,6 +7,7 @@ import { sendRepairRequestEmail } from '@/lib/resend';
 import { logTimelineEvent } from '@/lib/timeline';
 import { generateReplyToken } from '@/lib/tokens';
 import { dispatchLimiter } from '@/lib/rate-limit';
+import { escapeHtml } from '@/lib/utils';
 
 const dispatchSchema = z.object({
   contractors: z.array(
@@ -177,7 +178,7 @@ export async function POST(
           `;
         }
       }
-      const emailBody = `<div style="font-family: sans-serif; line-height: 1.6;"><p><strong>Reference: ${replyToken}</strong></p>${baseMessage.replace(/\n/g, '<br>')}${photoHtml}<hr style="border:none;border-top:1px solid #eee;margin:16px 0;"><p style="color: #888; font-size: 12px;">Sent via Maintenance OS</p></div>`;
+      const emailBody = `<div style="font-family: sans-serif; line-height: 1.6;"><p><strong>Reference: ${replyToken}</strong></p>${escapeHtml(baseMessage).replace(/\n/g, '<br>')}${photoHtml}<hr style="border:none;border-top:1px solid #eee;margin:16px 0;"><p style="color: #888; font-size: 12px;">Sent via Maintenance OS</p></div>`;
 
       let sentSuccessfully = false;
       let providerMessageId: string | null = null;

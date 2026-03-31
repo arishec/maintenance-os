@@ -7,6 +7,7 @@ import { logTimelineEvent } from '@/lib/timeline';
 import { createNotification } from '@/lib/notifications';
 import { sendRepairRequestEmail } from '@/lib/resend';
 import { sendRepairRequestSms } from '@/lib/twilio';
+import { escapeHtml } from '@/lib/utils';
 
 const selectContractorSchema = z.object({
   responseId: z.string().uuid(),
@@ -59,28 +60,25 @@ export async function POST(
     const contractorId = selectedResponse.dispatch.contractorId;
     const contractor = selectedResponse.dispatch.contractor;
 
-    // 3. Guard: no existing active job (completed/canceled are fine — only block truly in-progress ones)
-    const existingActiveJob = await prisma.job.findFirst({
-      where: {
-        issueId,
-        status: { in: ['selected', 'scheduled', 'in_progress'] },
-      },
-    });
-
-    if (existingActiveJob) {
-      return NextResponse.json(
-        { error: 'CONTRACTOR_ALREADY_SELECTED' },
-        { status: 409 }
-      );
-    }
-
     // 4. Determine agreed price from response
     const agreedPrice = selectedResponse.flatEstimate
       || selectedResponse.estimateLow
       || null;
 
-    // 5. Perform all writes atomically via transaction
+    // 5. Perform all writes atomically via transaction (includes active job guard)
     const job = await prisma.$transaction(async (tx) => {
+      // 3. Guard: no existing active job — inside transaction to prevent race conditions
+      const existingActiveJob = await tx.job.findFirst({
+        where: {
+          issueId,
+          status: { in: ['selected', 'scheduled', 'in_progress'] },
+        },
+      });
+
+      if (existingActiveJob) {
+        throw new Error('CONTRACTOR_ALREADY_SELECTED');
+      }
+
       // Create job
       const newJob = await tx.job.create({
         data: {
@@ -132,6 +130,21 @@ export async function POST(
       },
     });
 
+    // 6b. Mark old quote notifications for this issue as read (prevent stale "new quote" badges)
+    try {
+      await prisma.notification.updateMany({
+        where: {
+          userId: user.id,
+          issueId,
+          type: { in: ['new_quote', 'quote_received', 'contractor_replied'] },
+          readAt: null,
+        },
+        data: { readAt: new Date() },
+      });
+    } catch (e) {
+      console.error('Failed to clear stale notifications:', e);
+    }
+
     // 7. Create notification for owner
     const priceStr = agreedPrice ? `$${Number(agreedPrice).toLocaleString()}` : '';
     await createNotification({
@@ -173,9 +186,9 @@ export async function POST(
           selectionSubject,
           `<div style="font-family: sans-serif; font-size: 14px; line-height: 1.6;">
             ${replyToken ? `<p><strong>Reference: ${replyToken}</strong></p>` : ''}
-            <p>Hi ${contractor.name},</p>
-            <p>You've been selected for a job: <strong>${issue.title || 'Maintenance request'}</strong>.</p>
-            <p><strong>Location:</strong> ${propertyAddress}</p>
+            <p>Hi ${escapeHtml(contractor.name)},</p>
+            <p>You've been selected for a job: <strong>${escapeHtml(issue.title || 'Maintenance request')}</strong>.</p>
+            <p><strong>Location:</strong> ${escapeHtml(propertyAddress)}</p>
             ${priceStr ? `<p><strong>Agreed quote:</strong> ${priceStr}</p>` : ''}
             <p>Reply to this email to confirm your availability or ask any questions.</p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 16px 0;">
@@ -246,6 +259,9 @@ export async function POST(
       return NextResponse.json({ error: error.errors[0]?.message || 'Invalid input' }, { status: 400 });
     }
     const message = error instanceof Error ? error.message : 'Unknown error';
+    if (message === 'CONTRACTOR_ALREADY_SELECTED') {
+      return NextResponse.json({ error: 'CONTRACTOR_ALREADY_SELECTED' }, { status: 409 });
+    }
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

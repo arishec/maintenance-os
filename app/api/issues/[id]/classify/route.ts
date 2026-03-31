@@ -21,6 +21,15 @@ export async function POST(
       return NextResponse.json({ error: 'Issue not found.' }, { status: 404 });
     }
 
+    // Block reclassification from regressing issues that are already in dispatch/job flow
+    const noReclassifyStatuses = ['active_job', 'completed', 'canceled', 'archived'];
+    if (noReclassifyStatuses.includes(issue.status)) {
+      return NextResponse.json(
+        { error: `Cannot reclassify an issue in "${issue.status}" status.` },
+        { status: 400 }
+      );
+    }
+
     // Gather AI photo descriptions if available
     const photoDescriptions = issue.photos
       .map((p) => p.aiDescription)

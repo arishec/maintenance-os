@@ -19,3 +19,14 @@ export function formatPhone(phone: string | null | undefined): string {
   }
   return phone; // Return as-is for non-US numbers
 }
+
+/**
+ * Escape HTML special characters to prevent XSS in email templates.
+ */
+export function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}

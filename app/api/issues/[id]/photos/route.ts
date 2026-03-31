@@ -48,12 +48,29 @@ export async function POST(
       return NextResponse.json({ error: 'Issue not found.' }, { status: 404 });
     }
 
+    // Check photo count limit
+    const existingPhotoCount = await prisma.issuePhoto.count({ where: { issueId: id } });
+    if (existingPhotoCount >= 10) {
+      return NextResponse.json(
+        { error: 'Maximum 10 photos per issue.' },
+        { status: 400 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
 
     if (!file) {
       return NextResponse.json(
         { error: 'No file provided.' },
+        { status: 400 }
+      );
+    }
+
+    // Check file size limit (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      return NextResponse.json(
+        { error: 'Photo must be under 10MB.' },
         { status: 400 }
       );
     }
