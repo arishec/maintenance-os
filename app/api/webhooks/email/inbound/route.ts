@@ -44,6 +44,14 @@ function validateResendWebhook(
     .update(signedContent)
     .digest('base64');
 
+  // Check timestamp tolerance FIRST (5 minutes) — reject stale requests early
+  const ts = parseInt(svixTimestamp, 10);
+  const now = Math.floor(Date.now() / 1000);
+  if (Math.abs(now - ts) > 300) {
+    console.error('Svix timestamp too old or too far in the future');
+    return false;
+  }
+
   // svix-signature header can contain multiple signatures separated by spaces
   // Each is prefixed with "v1,"
   const passedSignatures = svixSignature.split(' ');
@@ -61,14 +69,6 @@ function validateResendWebhook(
     } catch {
       // Length mismatch — continue to next signature
     }
-  }
-
-  // Also check for timestamp tolerance (5 minutes)
-  const ts = parseInt(svixTimestamp, 10);
-  const now = Math.floor(Date.now() / 1000);
-  if (Math.abs(now - ts) > 300) {
-    console.error('Svix timestamp too old or too far in the future');
-    return false;
   }
 
   return false;

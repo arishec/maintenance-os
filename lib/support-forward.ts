@@ -10,6 +10,15 @@ interface SupportEmailData {
   subject: string | null;
 }
 
+/** Escape HTML special characters to prevent injection */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 export async function forwardSupportEmail(data: SupportEmailData) {
   const key = process.env.RESEND_API_KEY;
   const fromAddress = process.env.RESEND_FROM_EMAIL;
@@ -35,12 +44,12 @@ export async function forwardSupportEmail(data: SupportEmailData) {
     html: `
       <div style="font-family: sans-serif; max-width: 600px;">
         <div style="background: #f3f4f6; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; color: #666;">
-          <strong>From:</strong> ${data.from}<br/>
-          <strong>To:</strong> ${toAddress}<br/>
-          <strong>Subject:</strong> ${data.subject || 'No subject'}
+          <strong>From:</strong> ${escapeHtml(data.from)}<br/>
+          <strong>To:</strong> ${escapeHtml(toAddress)}<br/>
+          <strong>Subject:</strong> ${escapeHtml(data.subject || 'No subject')}
         </div>
         <div style="white-space: pre-wrap; font-size: 14px; color: #333;">
-${bodyText}
+${escapeHtml(bodyText)}
         </div>
         <hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;" />
         <p style="color: #999; font-size: 11px;">
