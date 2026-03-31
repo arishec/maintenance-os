@@ -8,11 +8,11 @@ import { prisma } from '@/lib/prisma';
  * - Requires at least 10 digits after stripping
  * - Returns normalized format or throws
  */
-function validateAndNormalizePhone(phone: string | null | undefined): string | null {
-  if (!phone) return null;
+function validateAndNormalizePhone(phone: string | null | undefined): string | undefined {
+  if (!phone) return undefined;
 
   const trimmed = phone.trim();
-  if (!trimmed) return null;
+  if (!trimmed) return undefined;
 
   // Strip non-digits, but preserve leading + for international numbers
   const hasLeadingPlus = trimmed.startsWith('+');
@@ -115,7 +115,8 @@ export async function PATCH(
     // Validate and normalize contact info
     if (body.email) body.email = body.email.toLowerCase().trim();
     if (body.phone) {
-      body.phone = validateAndNormalizePhone(body.phone);
+      const normalized = validateAndNormalizePhone(body.phone);
+      if (normalized) body.phone = normalized;
     }
 
     const updated = await prisma.contractor.update({
