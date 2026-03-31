@@ -401,7 +401,16 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {issue.dispatches.map((dispatch) => {
+                {/* Deduplicate dispatches by contractor — show only the most recent per contractor */}
+                {Array.from(
+                  issue.dispatches.reduce((map, dispatch) => {
+                    const existing = map.get(dispatch.contractorId);
+                    if (!existing || new Date(dispatch.createdAt) > new Date(existing.createdAt)) {
+                      map.set(dispatch.contractorId, dispatch);
+                    }
+                    return map;
+                  }, new Map<string, typeof issue.dispatches[0]>()).values()
+                ).map((dispatch) => {
                   const dispatchLabel = getDispatchStatusLabel(dispatch.status);
                   const dispatchColor = getDispatchStatusColor(dispatch.status);
 

@@ -77,6 +77,29 @@ export async function POST(
       );
     }
 
+    // Check for duplicate dispatches — skip contractors already contacted for this issue
+    const existingDispatches = await prisma.dispatch.findMany({
+      where: {
+        issueId,
+        contractorId: { in: body.contractors.map(c => c.contractorId) },
+        status: { notIn: ['failed', 'expired'] },
+      },
+      select: { contractorId: true, contractor: { select: { name: true } } },
+    });
+    const alreadyContactedIds = new Set(existingDispatches.map(d => d.contractorId));
+    if (alreadyContactedIds.size > 0) {
+      const names = existingDispatches.map(d => d.contractor.name).join(', ');
+      console.warn(`[DISPATCH] Skipping already-contacted contractors: ${names}`);
+      // Filter them out instead of erroring — let the rest go through
+      body.contractors = body.contractors.filter(c => !alreadyContactedIds.has(c.contractorId));
+      if (body.contractors.length === 0) {
+        return NextResponse.json(
+          { error: `All selected contractors have already been contacted for this issue.` },
+          { status: 400 }
+        );
+      }
+    }
+
     // Validate each contractor has required contact method
     for (const reqContractor of body.contractors) {
       const contractor = contractors.find(c => c.id === reqContractor.contractorId);
