@@ -59,10 +59,50 @@ export default async function IssuesPage({
   const rawView = params.view;
   const currentView: IssueView =
     rawView && rawView in VIEW_STATUS_MAP ? (rawView as IssueView) : 'all';
-  const propertyFilter = params.property || undefined;
-  const urgencyFilter = params.urgency || undefined;
-  const categoryFilter = params.category || undefined;
   const searchFilter = params.search || undefined;
+
+  const properties = await prisma.property.findMany({
+    where: { ownerUserId: user.id },
+    select: { id: true, nickname: true, addressLine1: true },
+  });
+  const propertyIds = properties.map((p) => p.id);
+
+  // Early return: no properties yet
+  if (properties.length === 0) {
+    return (
+      <LayoutShell>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <h1 className="text-xl sm:text-2xl font-bold">Issues</h1>
+          </div>
+          <Card>
+            <CardContent className="py-12 text-center">
+              <h2 className="text-lg font-semibold">Add a property first</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                You need at least one property before you can report an issue.
+              </p>
+              <Link href="/properties/new">
+                <Button className="mt-4">Add your first property</Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </LayoutShell>
+    );
+  }
+
+  // Normalize and validate URL filter params to prevent "haunted" empty states
+  const validPropertyIds = new Set(propertyIds);
+  const propertyFilter =
+    params.property && validPropertyIds.has(params.property) ? params.property : undefined;
+
+  const validUrgencies = new Set(['emergency', 'high', 'medium', 'low']);
+  const urgencyFilter =
+    params.urgency && validUrgencies.has(params.urgency) ? params.urgency : undefined;
+
+  const validCategories = new Set(Object.values(IssueCategory) as string[]);
+  const categoryFilter =
+    params.category && validCategories.has(params.category) ? params.category : undefined;
 
   // Preserve current filters for building tab URLs
   const currentFilters: Record<string, string | undefined> = {
@@ -71,12 +111,6 @@ export default async function IssuesPage({
     category: categoryFilter,
     search: searchFilter,
   };
-
-  const properties = await prisma.property.findMany({
-    where: { ownerUserId: user.id },
-    select: { id: true, nickname: true, addressLine1: true },
-  });
-  const propertyIds = properties.map((p) => p.id);
 
   // Build Prisma where clause
   const statuses = VIEW_STATUS_MAP[currentView];
@@ -105,31 +139,44 @@ export default async function IssuesPage({
     ];
   }
 
-  const issues = await prisma.issue.findMany({
-    where,
-    include: {
-      property: true,
-      dispatches: {
-        include: { contractor: true, responses: true },
+  // Run all queries in parallel (all depend on propertyIds which we already have)
+  const [issues, viewCounts, usedUrgencies, usedCategories] = await Promise.all([
+    prisma.issue.findMany({
+      where,
+      include: {
+        property: true,
+        dispatches: {
+          include: { contractor: true, responses: true },
+        },
+        jobs: {
+          where: { status: { not: 'canceled' } },
+          include: { contractor: true },
+          take: 1,
+          orderBy: { createdAt: 'desc' },
+        },
       },
-      jobs: {
-        where: { status: { not: 'canceled' } },
-        include: { contractor: true },
-        take: 1,
-        orderBy: { createdAt: 'desc' },
-      },
-    },
-    orderBy: { updatedAt: 'desc' },
-  });
+      orderBy: { updatedAt: 'desc' },
+    }),
+    prisma.issue.groupBy({
+      by: ['status'],
+      where: { propertyId: { in: propertyIds } },
+      _count: true,
+    }),
+    prisma.issue.findMany({
+      where: { propertyId: { in: propertyIds }, urgency: { not: null } },
+      select: { urgency: true },
+      distinct: ['urgency'],
+    }),
+    prisma.issue.findMany({
+      where: { property: { ownerUserId: user.id }, category: { not: null } },
+      select: { category: true },
+      distinct: ['category'],
+    }),
+  ]);
 
-  const hasActiveFilters = propertyFilter || urgencyFilter || categoryFilter || searchFilter;
+  const hasActiveFilters = Boolean(propertyFilter || urgencyFilter || categoryFilter || searchFilter);
 
   // Only show view tabs that have issues (always show All and Open)
-  const viewCounts = await prisma.issue.groupBy({
-    by: ['status'],
-    where: { propertyId: { in: propertyIds } },
-    _count: true,
-  });
   const statusCountMap = new Map(viewCounts.map((v) => [v.status, v._count]));
   const alwaysShowViews = new Set(['all', 'open']);
   const viewsWithIssues = Object.entries(VIEW_STATUS_MAP).filter(([key, statuses]) => {
@@ -139,24 +186,11 @@ export default async function IssuesPage({
     return statuses.some((s) => (statusCountMap.get(s) ?? 0) > 0);
   }).map(([key]) => key);
 
-  // Only show urgency filters that exist in user's issues
-  const usedUrgencies = await prisma.issue.findMany({
-    where: { propertyId: { in: propertyIds }, urgency: { not: null } },
-    select: { urgency: true },
-    distinct: ['urgency'],
-  });
   const urgenciesWithIssues = new Set(usedUrgencies.map((u) => u.urgency as string));
-
-  // Only show category filters that actually exist in the user's issues
-  const usedCategories = await prisma.issue.findMany({
-    where: { property: { ownerUserId: user.id }, category: { not: null } },
-    select: { category: true },
-    distinct: ['category'],
-  });
   const categories = usedCategories
     .map((i) => i.category as string)
     .filter(Boolean)
-    .sort();
+    .sort((a, b) => getCategoryLabel(a).localeCompare(getCategoryLabel(b)));
 
   return (
     <LayoutShell>
