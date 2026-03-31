@@ -78,6 +78,7 @@ export default function NewIssuePage() {
   const [issueId, setIssueId] = useState<string | null>(null);
   const [classifying, setClassifying] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [photoUploadError, setPhotoUploadError] = useState('');
 
   // Inline photo state
   const [photos, setPhotos] = useState<SelectedPhoto[]>([]);
@@ -129,19 +130,30 @@ export default function NewIssuePage() {
     });
   };
 
-  async function uploadPhotos(createdIssueId: string) {
+  async function uploadPhotos(createdIssueId: string): Promise<{ success: number; failed: number }> {
+    let success = 0;
+    let failed = 0;
     for (const photo of photos) {
       try {
         const formData = new FormData();
         formData.append('file', photo.file);
-        await fetch(`/api/issues/${createdIssueId}/photos`, {
+        const res = await fetch(`/api/issues/${createdIssueId}/photos`, {
           method: 'POST',
           body: formData,
         });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          console.error('Photo upload failed:', data.error || res.statusText);
+          failed++;
+        } else {
+          success++;
+        }
       } catch (err) {
         console.error('Failed to upload photo:', err);
+        failed++;
       }
     }
+    return { success, failed };
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -192,9 +204,12 @@ export default function NewIssuePage() {
       const warning = responseData.warning;
       setIssueId(createdIssue.id);
 
-      // Upload photos in background if any were selected
+      // Upload photos if any were selected
       if (photos.length > 0) {
-        await uploadPhotos(createdIssue.id);
+        const { success, failed } = await uploadPhotos(createdIssue.id);
+        if (failed > 0) {
+          setPhotoUploadError(`${failed} photo${failed !== 1 ? 's' : ''} failed to upload. You can add them later on the issue page.`);
+        }
       }
 
       // If classification failed (warning returned), skip to issue detail
@@ -273,6 +288,11 @@ export default function NewIssuePage() {
                   <p className="mt-1 text-sm font-medium">{formatLabel(classification.recommendedTrade)}</p>
                 </div>
               </div>
+              {photoUploadError && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  {photoUploadError}
+                </div>
+              )}
               <Link href={`/issues/${issueId}`}>
                 <Button className="w-full mt-2">Continue to Issue</Button>
               </Link>

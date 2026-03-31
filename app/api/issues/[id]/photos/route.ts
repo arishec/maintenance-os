@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { after } from 'next/server';
 import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { supabaseAdmin } from '@/lib/supabase';
@@ -61,7 +60,9 @@ export async function POST(
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    const filePath = `${issue.id}/${Date.now()}-${file.name}`;
+    // Sanitize filename: replace spaces and special chars to avoid Supabase "Invalid key" errors
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const filePath = `${issue.id}/${Date.now()}-${safeName}`;
 
     const { error: uploadError } = await supabaseAdmin.storage
       .from('issue-photos')
@@ -89,28 +90,30 @@ export async function POST(
       },
     });
 
-    // Run AI vision analysis after response using next/server after()
-    // This keeps the serverless function alive to complete the work
-    // without blocking the upload response
+    // Run AI vision analysis — await it so it completes in serverless
+    // but don't let it block the response if it takes too long
     if (fileUrl) {
       const photoId = photo.id;
-      after(async () => {
-        try {
-          const description = await analyzePhoto(fileUrl);
-          await prisma.issuePhoto.update({
-            where: { id: photoId },
-            data: { aiDescription: description },
-          });
-          console.log(`[analyzePhoto] Photo ${photoId}: ${description.substring(0, 80)}...`);
-        } catch (err) {
-          console.error(`[analyzePhoto] Failed for photo ${photoId}:`, err);
-        }
-      });
+      try {
+        const description = await Promise.race([
+          analyzePhoto(fileUrl),
+          new Promise<string>((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000)),
+        ]);
+        await prisma.issuePhoto.update({
+          where: { id: photoId },
+          data: { aiDescription: description },
+        });
+        console.log(`[analyzePhoto] Photo ${photoId}: ${description.substring(0, 80)}...`);
+      } catch (err) {
+        console.error(`[analyzePhoto] Failed for photo ${photoId}:`, err);
+        // Photo is still saved — AI description just won't be available yet
+      }
     }
 
     return NextResponse.json({ photo }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[photos/POST] Error:', message, error);
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

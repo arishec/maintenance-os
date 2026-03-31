@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { prisma } from '@/lib/prisma';
 import { parseContractorReply } from '@/lib/ai/parse-contractor-reply';
+import { parseJobConfirmation } from '@/lib/ai/parse-job-confirmation';
 import { logTimelineEvent } from '@/lib/timeline';
 import { getReceivedEmail } from '@/lib/resend';
 import { sendOwnerNotificationEmail } from '@/lib/notifications';
@@ -230,6 +231,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { issue, contractor } = matchingDispatch;
+    const isJobConfirmation = matchingDispatch.status === 'accepted';
 
     // Idempotency check by content
     const existingResponse = await prisma.contractorResponse.findFirst({
@@ -242,6 +244,144 @@ export async function POST(request: NextRequest) {
     if (existingResponse) {
       return NextResponse.json({ success: true }, { status: 200 });
     }
+
+    // ─── CASE A: Contractor replied to "you've been selected" email ───
+    // This is a job confirmation/decline, NOT a new quote. Use AI to parse intent.
+    if (isJobConfirmation) {
+      // Store the message as a ContractorMessage
+      await prisma.contractorMessage.create({
+        data: {
+          issueId: issue.id,
+          contractorId: contractor.id,
+          direction: 'inbound',
+          channel: 'email',
+          messageBody: text,
+          sendStatus: 'delivered',
+        },
+      });
+
+      // Parse the reply with AI to determine if confirmed, declined, or question
+      let confirmation: Awaited<ReturnType<typeof parseJobConfirmation>>;
+      try {
+        confirmation = await parseJobConfirmation(text);
+      } catch (err) {
+        console.error('Failed to parse job confirmation:', err);
+        confirmation = { status: 'unclear', summary: 'Contractor replied but parsing failed.' };
+      }
+
+      // Find the active job for this issue and contractor
+      const activeJob = await prisma.job.findFirst({
+        where: {
+          issueId: issue.id,
+          contractorId: contractor.id,
+          status: { not: 'canceled' },
+        },
+      });
+
+      // Update job based on contractor's response
+      if (activeJob) {
+        if (confirmation.status === 'confirmed') {
+          await prisma.job.update({
+            where: { id: activeJob.id },
+            data: {
+              status: 'scheduled',
+              notes: activeJob.notes
+                ? `${activeJob.notes}\n\nContractor confirmed: ${confirmation.summary}${confirmation.schedulingInfo ? ` (${confirmation.schedulingInfo})` : ''}`
+                : `Contractor confirmed: ${confirmation.summary}${confirmation.schedulingInfo ? ` (${confirmation.schedulingInfo})` : ''}`,
+            },
+          });
+        } else if (confirmation.status === 'declined') {
+          await prisma.job.update({
+            where: { id: activeJob.id },
+            data: {
+              status: 'canceled',
+              notes: activeJob.notes
+                ? `${activeJob.notes}\n\nContractor declined: ${confirmation.declineReason || confirmation.summary}`
+                : `Contractor declined: ${confirmation.declineReason || confirmation.summary}`,
+            },
+          });
+          // Revert issue status so owner can pick another contractor
+          await prisma.issue.update({
+            where: { id: issue.id },
+            data: { status: 'quotes_received' },
+          });
+        } else {
+          // question or unclear — keep current status but add notes
+          await prisma.job.update({
+            where: { id: activeJob.id },
+            data: {
+              notes: activeJob.notes
+                ? `${activeJob.notes}\n\nContractor replied: ${confirmation.summary}`
+                : `Contractor replied: ${confirmation.summary}`,
+            },
+          });
+        }
+      }
+
+      // Determine notification type and message based on status
+      const eventType = confirmation.status === 'confirmed'
+        ? 'contractor_confirmed'
+        : confirmation.status === 'declined'
+          ? 'contractor_declined'
+          : 'contractor_replied';
+
+      const notifTitle = confirmation.status === 'confirmed'
+        ? 'Contractor confirmed'
+        : confirmation.status === 'declined'
+          ? 'Contractor declined'
+          : 'Contractor replied';
+
+      const notifBody = confirmation.status === 'confirmed'
+        ? `${contractor.name} confirmed the job for ${issue.title || 'your maintenance request'}.${confirmation.schedulingInfo ? ` Available: ${confirmation.schedulingInfo}` : ''}`
+        : confirmation.status === 'declined'
+          ? `${contractor.name} can't do the job for ${issue.title || 'your maintenance request'}.${confirmation.declineReason ? ` Reason: ${confirmation.declineReason}` : ''} You can select another contractor.`
+          : `${contractor.name} replied about ${issue.title || 'your maintenance request'}: "${text.substring(0, 100)}${text.length > 100 ? '...' : ''}"`;
+
+      // Log timeline event
+      await logTimelineEvent({
+        propertyId: issue.propertyId,
+        issueId: issue.id,
+        jobId: activeJob?.id,
+        actorType: 'contractor',
+        actorLabel: contractor.name,
+        eventType,
+        payload: {
+          contractorName: contractor.name,
+          channel: 'email',
+          confirmationStatus: confirmation.status,
+          summary: confirmation.summary,
+          schedulingInfo: confirmation.schedulingInfo,
+          declineReason: confirmation.declineReason,
+        },
+      });
+
+      // Create notification for property owner
+      await prisma.notification.create({
+        data: {
+          userId: issue.property.ownerUserId,
+          type: eventType,
+          title: notifTitle,
+          body: notifBody,
+          issueId: issue.id,
+        },
+      });
+
+      // Send email to property owner
+      await sendOwnerNotificationEmail({
+        userId: issue.property.ownerUserId,
+        issueId: issue.id,
+        issueTitle: issue.title ?? 'Untitled issue',
+        notifBody,
+        contractorName: contractor.name,
+        quote: null,
+        availability: confirmation.schedulingInfo || null,
+        question: confirmation.followUpQuestion || null,
+      });
+
+      return NextResponse.json({ success: true }, { status: 200 });
+    }
+
+    // ─── CASE B: Standard contractor quote reply ───
 
     // Create raw response record with provider ID for future dedup
     const contractorResponse = await prisma.contractorResponse.create({

@@ -108,7 +108,7 @@ export const JOB_STATUS_COLORS: Record<string, string> = {
 };
 
 export const JOB_STATUS_MICROCOPY: Record<string, string> = {
-  selected: 'Contractor hired — confirm scheduling next',
+  selected: 'Contractor notified — waiting for their confirmation',
   scheduled: 'Work has been scheduled',
   in_progress: 'Work is currently underway',
   completed: 'Work finished',

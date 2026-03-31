@@ -16,6 +16,7 @@ import { RawMessageToggle } from './raw-message-toggle';
 import { ReplyToContractorButton } from './reply-to-contractor-button';
 import { ManualQuoteButton } from './manual-quote-button';
 import { ResendDispatchButton } from './resend-dispatch-button';
+import { LocalTime } from '@/components/local-time';
 
 import {
   ISSUE_STATUS_LABELS,
@@ -44,6 +45,10 @@ function formatTimelineEvent(eventType: string, payload: Record<string, unknown>
       return `You replied to ${p.contractorName || 'contractor'} via ${p.channel === 'sms' ? 'SMS' : 'Email'}`;
     case 'contractor_selected':
       return `Selected ${p.contractorName || 'contractor'} for the job`;
+    case 'contractor_confirmed':
+      return `${p.contractorName || 'Contractor'} confirmed the job${p.schedulingInfo ? ` — ${p.schedulingInfo}` : ''}`;
+    case 'contractor_declined':
+      return `${p.contractorName || 'Contractor'} declined the job${p.declineReason ? ` — ${p.declineReason}` : ''}`;
     case 'job_scheduled':
       return 'Job scheduled';
     case 'job_started':
@@ -182,15 +187,23 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
         {issue.status === 'quotes_received' && hasResponses && (() => {
           const totalResponses = allResponses.length;
           return (
-            <div className="rounded-lg border border-green-200 bg-green-50 p-4 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-green-800">
-                  You have {totalResponses} contractor response{totalResponses !== 1 ? 's' : ''} ready to review
-                </p>
-                <p className="text-xs text-green-700 mt-0.5">Review the quotes below and select a contractor to get started.</p>
+            <div className="rounded-lg border-2 border-green-300 bg-green-50 p-4 flex items-center justify-between shadow-sm">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 mt-0.5">
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-green-800">
+                    {totalResponses} contractor quote{totalResponses !== 1 ? 's' : ''} received
+                  </p>
+                  <p className="text-xs text-green-700 mt-0.5">Review the quotes below and select a contractor to get started.</p>
+                </div>
               </div>
-              <a href="#quotes" className="text-sm font-medium text-green-700 hover:text-green-900 hover:underline flex-shrink-0">
-                View quotes
+              <a href="#quotes" className="text-sm font-medium text-green-700 hover:text-green-900 hover:underline flex-shrink-0 ml-4">
+                View quotes ↓
               </a>
             </div>
           );
@@ -214,7 +227,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
             <p className="text-sm font-semibold text-green-800">This repair is complete</p>
             {issue.completedAt && (
               <p className="text-xs text-green-700 mt-0.5">
-                Completed on {new Date(issue.completedAt).toLocaleDateString()}
+                Completed on <LocalTime date={issue.completedAt} format="date" />
               </p>
             )}
           </div>
@@ -466,8 +479,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
                         </Badge>
                         {response.receivedAt && (
                           <span className="text-xs text-muted-foreground">
-                            {new Date(response.receivedAt).toLocaleDateString()} at{' '}
-                            {new Date(response.receivedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                            <LocalTime date={response.receivedAt} />
                           </span>
                         )}
                       </div>
@@ -494,7 +506,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
                       <div className="flex items-center gap-2 text-sm">
                         <span className="font-medium text-muted-foreground">Available:</span>
                         <span>
-                          {response.availabilityText || new Date(response.availabilityDate!).toLocaleDateString()}
+                          {response.availabilityText || <LocalTime date={response.availabilityDate!} format="date" />}
                         </span>
                       </div>
                     )}
@@ -520,8 +532,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
                               <p className="text-sm font-medium text-blue-800">Your reply:</p>
                               <p className="text-sm text-blue-900 mt-1">{reply.messageBody}</p>
                               <p className="text-xs text-blue-600 mt-2">
-                                Sent via {reply.channel === 'sms' ? 'SMS' : 'Email'} · {new Date(reply.createdAt).toLocaleDateString()} at{' '}
-                                {new Date(reply.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                                Sent via {reply.channel === 'sms' ? 'SMS' : 'Email'} · <LocalTime date={reply.createdAt} />
                               </p>
                             </div>
                           );
@@ -614,8 +625,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
                       <div className="min-w-0 flex-1">
                         <p className="text-foreground">{formatTimelineEvent(event.eventType, payload)}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          {new Date(event.createdAt).toLocaleDateString()} at{' '}
-                          {new Date(event.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                          <LocalTime date={event.createdAt} />
                         </p>
                       </div>
                     </div>

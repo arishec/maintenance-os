@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Bell, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -8,11 +9,14 @@ interface Notification {
   id: string;
   title: string;
   body: string;
+  issueId: string | null;
+  type: string;
   createdAt: string;
   readAt: string | null;
 }
 
 export function NotificationsBell({ dropDirection = 'up' }: { dropDirection?: 'up' | 'down' } = {}) {
+  const router = useRouter();
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -76,19 +80,27 @@ export function NotificationsBell({ dropDirection = 'up' }: { dropDirection?: 'u
     }
   };
 
-  const handleMarkAsRead = async (notificationId: string) => {
+  const handleNotificationClick = async (notification: Notification) => {
+    // Mark as read
     try {
-      await fetch(`/api/notifications/${notificationId}`, {
+      await fetch(`/api/notifications/${notification.id}`, {
         method: 'PATCH',
       });
 
       setNotifications(notifications.map((n) =>
-        n.id === notificationId ? { ...n, readAt: new Date().toISOString() } : n
+        n.id === notification.id ? { ...n, readAt: new Date().toISOString() } : n
       ));
 
       fetchUnreadCount();
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
+    }
+
+    // Navigate to the issue if there's an issueId
+    setIsOpen(false);
+    if (notification.issueId) {
+      router.push(`/issues/${notification.issueId}`);
+      router.refresh();
     }
   };
 
@@ -159,26 +171,48 @@ export function NotificationsBell({ dropDirection = 'up' }: { dropDirection?: 'u
               notifications.map((notification) => (
                 <button
                   key={notification.id}
-                  onClick={() => handleMarkAsRead(notification.id)}
+                  onClick={() => handleNotificationClick(notification)}
                   className={`w-full px-4 py-3 text-left border-b border-border hover:bg-muted transition-colors ${
                     !notification.readAt ? 'bg-blue-50' : ''
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm break-words">
-                        {notification.title}
+                      <div className="flex items-center gap-2">
+                        {notification.type === 'contractor_replied' && !notification.readAt && (
+                          <span className="inline-flex items-center rounded-full bg-green-100 px-1.5 py-0.5 text-[10px] font-semibold text-green-700 flex-shrink-0">
+                            NEW QUOTE
+                          </span>
+                        )}
+                        {notification.type === 'contractor_confirmed' && !notification.readAt && (
+                          <span className="inline-flex items-center rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700 flex-shrink-0">
+                            CONFIRMED
+                          </span>
+                        )}
+                        {notification.type === 'contractor_declined' && !notification.readAt && (
+                          <span className="inline-flex items-center rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold text-red-700 flex-shrink-0">
+                            DECLINED
+                          </span>
+                        )}
+                        <span className="font-medium text-sm break-words">
+                          {notification.title}
+                        </span>
                       </div>
                       <div className="text-xs text-muted-foreground mt-1 break-words">
                         {notification.body}
                       </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {new Date(notification.createdAt).toLocaleDateString(undefined, {
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(notification.createdAt).toLocaleDateString(undefined, {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                        {notification.issueId && (
+                          <span className="text-xs text-blue-600">View issue →</span>
+                        )}
                       </div>
                     </div>
                     {!notification.readAt && (

@@ -321,7 +321,7 @@ export default async function IssuesPage({
                           : 'border-l-transparent';
 
                       return (
-                        <tr key={issue.id} className={`border-b border-l-[3px] border-border hover:bg-muted/30 transition-colors ${urgencyBorder}`}>
+                        <tr key={issue.id} className={`border-b border-l-[3px] border-border hover:bg-muted/30 transition-colors ${urgencyBorder} ${issue.status === 'quotes_received' ? 'bg-green-50/50' : ''}`}>
                           <td className="p-0 w-0"></td>
                           <td className="p-3 sm:p-4">
                             <Link href={`/issues/${issue.id}`} className="font-medium hover:underline">
@@ -341,9 +341,17 @@ export default async function IssuesPage({
                           </td>
                           <td className="p-3 sm:p-4">
                             <div>
-                              <Badge className={getIssueStatusColor(issue.status)}>
-                                {derivedStatus}
-                              </Badge>
+                              <div className="flex items-center gap-1.5">
+                                <Badge className={getIssueStatusColor(issue.status)}>
+                                  {derivedStatus}
+                                </Badge>
+                                {issue.status === 'quotes_received' && totalReplies > 0 && (
+                                  <span className="relative flex h-2.5 w-2.5">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                                  </span>
+                                )}
+                              </div>
                               {statusSub && (
                                 <p className="text-xs text-muted-foreground mt-1">{statusSub}</p>
                               )}
