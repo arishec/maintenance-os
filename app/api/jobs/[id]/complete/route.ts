@@ -30,9 +30,10 @@ export async function POST(
     if (body.actualCost != null && body.actualCost !== '') {
       const costStr = String(body.actualCost).trim();
       // Reject values that aren't purely numeric (parseFloat("100abc") silently returns 100)
-      if (/^\d+(\.\d+)?$/.test(costStr)) {
-        actualCost = parseFloat(costStr);
+      if (!/^\d+(\.\d+)?$/.test(costStr)) {
+        return apiError('Please enter a valid cost (numbers only, e.g. 250 or 250.50).', 400);
       }
+      actualCost = parseFloat(costStr);
     }
     if (body.completionNotes && typeof body.completionNotes === 'string') {
       completionNotes = body.completionNotes.trim() || null;
