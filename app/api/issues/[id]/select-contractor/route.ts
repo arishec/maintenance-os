@@ -161,12 +161,13 @@ export async function POST(
         : undefined;
 
       if (dispatch.channel === 'sms' && contractor.phone) {
-        await sendRepairRequestSms(contractor.phone, confirmationMsg);
+        const smsResult = await sendRepairRequestSms(contractor.phone, confirmationMsg);
+        console.log('[SELECT] SMS sent to contractor:', contractor.name, 'SID:', smsResult?.sid || 'none');
       } else if (contractor.email) {
         const selectionSubject = replyToken
           ? `You've been selected [Ref: ${replyToken}] — ${issue.title || 'Maintenance request'}`
           : `You've been selected: ${issue.title || 'Maintenance request'}`;
-        await sendRepairRequestEmail(
+        const emailResult = await sendRepairRequestEmail(
           contractor.email,
           selectionSubject,
           `<div style="font-family: sans-serif; font-size: 14px; line-height: 1.6;">
@@ -181,10 +182,16 @@ export async function POST(
           </div>`,
           tokenizedReplyTo
         );
+        if (emailResult.error) {
+          console.error('[SELECT] Email FAILED to contractor:', contractor.name, contractor.email, emailResult.error);
+        } else {
+          console.log('[SELECT] Email sent to contractor:', contractor.name, contractor.email, 'ID:', emailResult.data?.id);
+        }
+      } else {
+        console.warn('[SELECT] No contact method for contractor:', contractor.name, '— no phone or email');
       }
     } catch (notifyErr) {
-      // Don't fail the selection if contractor notification fails
-      console.error('Failed to notify contractor of selection:', notifyErr);
+      console.error('[SELECT] CRITICAL — Failed to notify contractor of selection:', notifyErr);
     }
 
     return NextResponse.json({ job }, { status: 201 });
