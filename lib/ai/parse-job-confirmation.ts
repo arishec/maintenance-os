@@ -1,4 +1,4 @@
-import { getAnthropicClient } from '@/lib/anthropic';
+import { getAnthropicClient } from '@/lib/ai/client';
 
 export interface JobConfirmationResult {
   status: 'confirmed' | 'declined' | 'question' | 'unclear';
