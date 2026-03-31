@@ -343,6 +343,28 @@ export default function NewIssuePage() {
     );
   }
 
+  // Guard: need at least one property before reporting an issue
+  if (!propertiesLoading && properties.length === 0) {
+    return (
+      <LayoutShell>
+        <Card className="mx-auto max-w-2xl">
+          <CardContent className="py-12 text-center">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100">
+              <svg className="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+              </svg>
+            </div>
+            <h2 className="text-lg font-semibold">Add a property first</h2>
+            <p className="mt-1 text-sm text-muted-foreground">You need at least one property before you can report an issue</p>
+            <Link href="/properties/new">
+              <Button className="mt-4">Add your first property</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </LayoutShell>
+    );
+  }
+
   return (
     <LayoutShell>
       <Card className="mx-auto max-w-2xl">
