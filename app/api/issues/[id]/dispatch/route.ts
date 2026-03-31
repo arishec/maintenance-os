@@ -249,15 +249,11 @@ export async function POST(
     );
 
     if (successfulDispatches.length > 0) {
-      // Only advance to awaiting_quotes if we haven't already received quotes
-      // Don't regress from quotes_received or later statuses
-      const preQuoteStatuses = ['classified', 'awaiting_dispatch', 'awaiting_quotes'];
-      if (preQuoteStatuses.includes(issue.status)) {
-        await prisma.issue.update({
-          where: { id: issueId },
-          data: { status: 'awaiting_quotes' },
-        });
-      }
+      // Race-safe: only advance to awaiting_quotes if status hasn't moved past
+      await prisma.issue.updateMany({
+        where: { id: issueId, status: { in: ['classified', 'awaiting_dispatch', 'awaiting_quotes'] as any } },
+        data: { status: 'awaiting_quotes' },
+      });
     } else {
       // All dispatches failed — keep current status so user can retry
       console.error(`All ${dispatchRecords.length} dispatches failed for issue ${issueId}`);

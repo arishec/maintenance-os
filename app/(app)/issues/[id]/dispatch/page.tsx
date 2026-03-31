@@ -137,6 +137,10 @@ export default function DispatchPage() {
       setAddError('Phone or email is required.');
       return;
     }
+    if (newContractor.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newContractor.email.trim())) {
+      setAddError('Please enter a valid email address.');
+      return;
+    }
     setAddingContractor(true);
     setAddError('');
 
@@ -183,34 +187,35 @@ export default function DispatchPage() {
     setLoading(true);
     setError('');
 
-    const res = await fetch(`/api/issues/${issueId}/dispatch`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contractors: selected,
-        includePhotos,
-        customMessage: customMessage || undefined,
-      }),
-    });
+    try {
+      const res = await fetch(`/api/issues/${issueId}/dispatch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contractors: selected,
+          includePhotos,
+          customMessage: customMessage || undefined,
+        }),
+      });
 
-    if (!res.ok) {
-      const data = await res.json();
-      if (data.error === 'PAYWALL_REQUIRED') {
-        setShowPaywall(true);
+      if (!res.ok) {
+        let msg = 'Failed to send requests.';
+        try { const data = await res.json(); if (data.error === 'PAYWALL_REQUIRED') { setShowPaywall(true); setLoading(false); return; } msg = data.error || msg; } catch { /* non-JSON */ }
+        setError(msg);
         setLoading(false);
         return;
       }
-      setError(data.error || 'Failed to send requests.');
-      setLoading(false);
-      return;
-    }
 
-    setSuccessCount(selected.length);
-    setLoading(false);
-    setTimeout(() => {
-      router.push(`/issues/${issueId}`);
-      router.refresh();
-    }, 2000);
+      setSuccessCount(selected.length);
+      setLoading(false);
+      setTimeout(() => {
+        router.push(`/issues/${issueId}`);
+        router.refresh();
+      }, 2000);
+    } catch {
+      setError('Network error — please check your connection and try again.');
+      setLoading(false);
+    }
   }
 
   if (isLoadingData) {

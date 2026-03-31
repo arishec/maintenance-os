@@ -26,42 +26,46 @@ export async function POST(
       );
     }
 
-    // Close any open dispatches so late replies don't resurrect the issue
-    await prisma.dispatch.updateMany({
-      where: {
-        issueId: id,
-        status: { in: ['queued', 'sent', 'delivered', 'replied'] },
-      },
-      data: { status: 'closed', closedReason: 'issue_archived' } as any,
-    });
-
-    const updatedIssue = await prisma.issue.update({
-      where: { id },
-      data: { status: 'archived' },
-      include: {
-        property: true,
-        photos: true,
-        dispatches: {
-          include: {
-            contractor: true,
-            responses: true,
-          },
+    const updatedIssue = await prisma.$transaction(async (tx) => {
+      // Close any open dispatches so late replies don't resurrect the issue
+      await tx.dispatch.updateMany({
+        where: {
+          issueId: id,
+          status: { in: ['queued', 'sent', 'delivered', 'replied'] },
         },
-        jobs: {
-          include: {
-            contractor: true,
-            selectedResponse: true,
-          },
-        },
-        usageMetrics: true,
-      },
-    });
+        data: { status: 'closed', closedReason: 'issue_archived' } as any,
+      });
 
-    await logTimelineEvent({
-      propertyId: updatedIssue.propertyId,
-      issueId: updatedIssue.id,
-      actorType: 'user',
-      eventType: 'issue_archived',
+      const issue = await tx.issue.update({
+        where: { id },
+        data: { status: 'archived' },
+        include: {
+          property: true,
+          photos: true,
+          dispatches: {
+            include: {
+              contractor: true,
+              responses: true,
+            },
+          },
+          jobs: {
+            include: {
+              contractor: true,
+              selectedResponse: true,
+            },
+          },
+          usageMetrics: true,
+        },
+      });
+
+      await logTimelineEvent({
+        propertyId: issue.propertyId,
+        issueId: issue.id,
+        actorType: 'user',
+        eventType: 'issue_archived',
+      }, tx);
+
+      return issue;
     });
 
     return NextResponse.json({ issue: updatedIssue });

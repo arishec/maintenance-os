@@ -42,8 +42,9 @@ export async function POST(
       photoDescriptions,
     });
 
-    const updatedIssue = await prisma.issue.update({
-      where: { id },
+    // Race-safe: only classify if status hasn't moved past classifiable states
+    const raceCheck = await prisma.issue.updateMany({
+      where: { id, status: { in: ['new', 'classified', 'awaiting_dispatch'] as any } },
       data: {
         title: classification.title,
         category: classification.category,
@@ -53,13 +54,25 @@ export async function POST(
         recommendedTrade: classification.recommendedTrade,
         aiConfidence: classification.confidenceScore,
         status: 'classified',
-        usageMetrics: {
-          upsert: {
-            create: { aiRequestCount: 1 },
-            update: { aiRequestCount: { increment: 1 } },
-          },
-        },
       },
+    });
+
+    if (raceCheck.count === 0) {
+      return NextResponse.json(
+        { error: 'This issue has already moved past classification.' },
+        { status: 409 }
+      );
+    }
+
+    // Update usage metrics separately (updateMany can't do nested upserts)
+    await prisma.usageMetricsIssueCost.upsert({
+      where: { issueId: id },
+      create: { issueId: id, aiRequestCount: 1 },
+      update: { aiRequestCount: { increment: 1 } },
+    });
+
+    const updatedIssue = await prisma.issue.findUniqueOrThrow({
+      where: { id },
       include: {
         property: true,
         photos: true,

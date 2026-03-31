@@ -24,24 +24,28 @@ export async function POST(
 
   const now = new Date();
 
-  const updatedJob = await prisma.job.update({
-    where: { id },
-    data: { status: 'in_progress', startedAt: now },
-    include: { contractor: true, selectedResponse: true },
-  });
+  const updatedJob = await prisma.$transaction(async (tx) => {
+    const updated = await tx.job.update({
+      where: { id },
+      data: { status: 'in_progress', startedAt: now },
+      include: { contractor: true, selectedResponse: true },
+    });
 
-  await prisma.issue.update({
-    where: { id: job.issueId },
-    data: { status: 'active_job' },
-  });
+    await tx.issue.update({
+      where: { id: job.issueId },
+      data: { status: 'active_job' },
+    });
 
-  await logTimelineEvent({
-    propertyId: job.issue.propertyId,
-    issueId: job.issueId,
-    jobId: id,
-    actorType: 'user',
-    eventType: 'job_started',
-    payload: { startedAt: now.toISOString() },
+    await logTimelineEvent({
+      propertyId: job.issue.propertyId,
+      issueId: job.issueId,
+      jobId: id,
+      actorType: 'user',
+      eventType: 'job_started',
+      payload: { startedAt: now.toISOString() },
+    }, tx);
+
+    return updated;
   });
 
   revalidatePath('/dashboard');

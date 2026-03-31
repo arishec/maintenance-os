@@ -55,7 +55,7 @@ export async function PATCH(
 
     const body = updatePropertySchema.parse(await request.json());
     const updated = await prisma.property.update({
-      where: { id },
+      where: { id, ownerUserId: user.id },
       data: body,
     });
 
@@ -111,7 +111,7 @@ export async function DELETE(
     });
 
     await prisma.property.delete({
-      where: { id },
+      where: { id, ownerUserId: user.id },
     });
 
     return NextResponse.json({ success: true });

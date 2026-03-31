@@ -27,36 +27,39 @@ export async function POST(
       return NextResponse.json({ error: 'Property not found.' }, { status: 404 });
     }
 
-    // Deactivate existing active link if it exists
-    await prisma.propertyIntakeLink.updateMany({
-      where: { propertyId: id, isActive: true },
-      data: {
-        isActive: false,
-        rotatedAt: new Date(),
-      },
-    });
-
     // Generate new token and hash it
     const token = generateToken();
     const tokenHash = hashToken(token);
 
-    // Store the hashed token
-    const intakeLink = await prisma.propertyIntakeLink.create({
-      data: {
-        propertyId: id,
-        tokenHash,
-      },
-    });
+    const intakeLink = await prisma.$transaction(async (tx) => {
+      // Deactivate existing active link if it exists
+      await tx.propertyIntakeLink.updateMany({
+        where: { propertyId: id, isActive: true },
+        data: {
+          isActive: false,
+          rotatedAt: new Date(),
+        },
+      });
 
-    // Log timeline event
-    await logTimelineEvent({
-      propertyId: id,
-      actorType: 'user',
-      actorLabel: user.email,
-      eventType: 'intake_link_created',
-      payload: {
-        linkId: intakeLink.id,
-      },
+      // Store the hashed token
+      const link = await tx.propertyIntakeLink.create({
+        data: {
+          propertyId: id,
+          tokenHash,
+        },
+      });
+
+      await logTimelineEvent({
+        propertyId: id,
+        actorType: 'user',
+        actorLabel: user.email,
+        eventType: 'intake_link_created',
+        payload: {
+          linkId: link.id,
+        },
+      }, tx);
+
+      return link;
     });
 
     // Return the raw token (not the hash)

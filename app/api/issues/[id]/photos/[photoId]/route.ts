@@ -27,20 +27,19 @@ export async function DELETE(
       return NextResponse.json({ error: 'Photo not found.' }, { status: 404 });
     }
 
-    const { error: deleteError } = await supabaseAdmin.storage
-      .from('issue-photos')
-      .remove([photo.filePath]);
-
-    if (deleteError) {
-      return NextResponse.json(
-        { error: 'We couldn\'t delete the photo. Please try again.' },
-        { status: 400 }
-      );
-    }
-
+    // Delete DB record first — if storage delete fails, we just have an orphaned file
+    // (better than an orphaned DB record pointing to nothing)
     await prisma.issuePhoto.delete({
       where: { id: photoId },
     });
+
+    // Fire-and-forget storage cleanup
+    supabaseAdmin.storage
+      .from('issue-photos')
+      .remove([photo.filePath])
+      .then(({ error: deleteError }) => {
+        if (deleteError) console.error(`[PHOTO] Storage cleanup failed for ${photo.filePath}:`, deleteError);
+      });
 
     return NextResponse.json({ success: true });
   } catch (error) {

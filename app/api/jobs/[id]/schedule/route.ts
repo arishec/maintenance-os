@@ -39,35 +39,36 @@ export async function POST(
 
     const scheduledDate = new Date(body.scheduledFor);
 
-    // Update job
-    const updatedJob = await prisma.job.update({
-      where: { id },
-      data: {
-        status: 'scheduled',
-        scheduledFor: scheduledDate,
-      },
-      include: {
-        contractor: true,
-        selectedResponse: true,
-      },
-    });
+    const updatedJob = await prisma.$transaction(async (tx) => {
+      const updated = await tx.job.update({
+        where: { id },
+        data: {
+          status: 'scheduled',
+          scheduledFor: scheduledDate,
+        },
+        include: {
+          contractor: true,
+          selectedResponse: true,
+        },
+      });
 
-    // Update issue
-    await prisma.issue.update({
-      where: { id: job.issueId },
-      data: { status: 'active_job' },
-    });
+      await tx.issue.update({
+        where: { id: job.issueId },
+        data: { status: 'active_job' },
+      });
 
-    // Log timeline event
-    await logTimelineEvent({
-      propertyId: job.issue.propertyId,
-      issueId: job.issueId,
-      jobId: id,
-      actorType: 'user',
-      eventType: 'job_scheduled',
-      payload: {
-        scheduledFor: scheduledDate.toISOString(),
-      },
+      await logTimelineEvent({
+        propertyId: job.issue.propertyId,
+        issueId: job.issueId,
+        jobId: id,
+        actorType: 'user',
+        eventType: 'job_scheduled',
+        payload: {
+          scheduledFor: scheduledDate.toISOString(),
+        },
+      }, tx);
+
+      return updated;
     });
 
     revalidatePath('/dashboard');

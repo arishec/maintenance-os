@@ -190,9 +190,26 @@ export default function NewIssuePage() {
       }
     });
 
+    const propertyId = (form.get('propertyId') as string)?.trim();
+    const description = (form.get('description') as string)?.trim();
+
+    if (!propertyId) {
+      setError('Please select a property.');
+      setLoading(false);
+      setClassifying(false);
+      return;
+    }
+
+    if (!description) {
+      setError('Please describe the issue.');
+      setLoading(false);
+      setClassifying(false);
+      return;
+    }
+
     const body = {
-      propertyId: form.get('propertyId') as string,
-      description: form.get('description') as string,
+      propertyId,
+      description,
       locationInProperty: form.get('locationInProperty') as string,
       signals,
     };

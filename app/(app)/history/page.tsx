@@ -39,7 +39,7 @@ export default async function HistoryPage() {
   const completedIssues = await prisma.issue.findMany({
     where: { propertyId: { in: propertyIds }, status: { in: ['completed', 'canceled'] } },
     include: { property: true, jobs: { include: { contractor: true } } },
-    orderBy: { completedAt: 'desc' },
+    orderBy: [{ completedAt: 'desc' }, { createdAt: 'desc' }],
   });
 
   return (
