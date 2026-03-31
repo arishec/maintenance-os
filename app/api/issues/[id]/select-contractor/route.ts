@@ -59,11 +59,11 @@ export async function POST(
     const contractorId = selectedResponse.dispatch.contractorId;
     const contractor = selectedResponse.dispatch.contractor;
 
-    // 3. Guard: no existing active job
+    // 3. Guard: no existing active job (completed/canceled are fine — only block truly in-progress ones)
     const existingActiveJob = await prisma.job.findFirst({
       where: {
         issueId,
-        status: { notIn: ['canceled'] },
+        status: { in: ['selected', 'scheduled', 'in_progress'] },
       },
     });
 

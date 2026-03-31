@@ -188,6 +188,7 @@ export async function POST(request: NextRequest) {
         where: {
           channel: 'email',
           status: { in: ['sent', 'delivered', 'accepted'] },
+          contractor: { email: normalizedIncomingEmail },
         },
         include: {
           contractor: true,
@@ -196,10 +197,11 @@ export async function POST(request: NextRequest) {
         orderBy: { createdAt: 'desc' },
       });
 
-      const emailCandidates = candidateDispatches.filter((dispatch) => {
-        if (!dispatch.contractor.email) return false;
-        return dispatch.contractor.email.toLowerCase() === normalizedIncomingEmail;
-      });
+      // Group by owner to detect cross-tenant ambiguity
+      const ownerIds = new Set(candidateDispatches.map(d => d.issue.property.ownerUserId));
+      const emailCandidates = ownerIds.size <= 1
+        ? candidateDispatches
+        : []; // Multiple owners — treat as ambiguous, don't guess
 
       if (emailCandidates.length === 1) {
         matchingDispatch = emailCandidates[0];
