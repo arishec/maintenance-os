@@ -41,7 +41,10 @@ export default function IntakePage() {
 
   useEffect(() => {
     fetch(`/api/intake/${token}`)
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error('Invalid response');
+        return r.json();
+      })
       .then(data => {
         setValid(data.valid);
         if (data.propertyNickname) setPropertyName(data.propertyNickname);
@@ -51,40 +54,48 @@ export default function IntakePage() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (loading) return; // prevent double-submit
     setLoading(true);
     setError('');
 
     const form = new FormData(e.currentTarget);
+    const trim = (key: string) => (form.get(key) as string)?.trim() || undefined;
     const body = {
-      reporterName: form.get('reporterName') as string || undefined,
-      reporterContact: form.get('reporterContact') as string || undefined,
-      description: form.get('description') as string,
-      locationInProperty: form.get('locationInProperty') as string || undefined,
-      urgencyHint: form.get('urgencyHint') as string || undefined,
+      reporterName: trim('reporterName'),
+      reporterContact: trim('reporterContact'),
+      description: (form.get('description') as string)?.trim(),
+      locationInProperty: trim('locationInProperty'),
+      urgencyHint: trim('urgencyHint'),
     };
 
-    const res = await fetch(`/api/intake/${token}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
+    try {
+      const res = await fetch(`/api/intake/${token}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
 
-    if (!res.ok) {
+      if (!res.ok) {
+        let msg = 'Failed to submit issue. Please try again.';
+        try { const data = await res.json(); msg = data.error || msg; } catch { /* non-JSON error */ }
+        setError(msg);
+        setLoading(false);
+        return;
+      }
+
       const data = await res.json();
-      setError(data.error || 'Failed to submit issue.');
+      setClassification({
+        title: data.issue.title,
+        category: data.issue.category,
+        urgency: data.issue.urgency,
+        reasoningSummary: data.issue.reasoningSummary,
+      });
+      setSubmitted(true);
+    } catch {
+      setError('Network error — please check your connection and try again.');
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const data = await res.json();
-    setClassification({
-      title: data.issue.title,
-      category: data.issue.category,
-      urgency: data.issue.urgency,
-      reasoningSummary: data.issue.reasoningSummary,
-    });
-    setSubmitted(true);
-    setLoading(false);
   }
 
   if (valid === null) {
@@ -145,15 +156,15 @@ export default function IntakePage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="mb-1.5 block text-sm font-medium">Your Name</label>
-              <Input name="reporterName" placeholder="Optional" />
+              <Input name="reporterName" placeholder="Optional" maxLength={200} />
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium">Your Contact</label>
-              <Input name="reporterContact" placeholder="Phone or email (optional)" />
+              <Input name="reporterContact" placeholder="Phone or email (optional)" maxLength={200} />
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium">What's the issue? *</label>
-              <Textarea name="description" required placeholder="Describe the problem..." rows={4} />
+              <Textarea name="description" required placeholder="Describe the problem..." rows={4} maxLength={5000} />
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium">Where in the property?</label>
