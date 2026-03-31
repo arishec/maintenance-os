@@ -4,6 +4,7 @@ export interface JobConfirmationResult {
   status: 'confirmed' | 'declined' | 'question' | 'unclear';
   summary: string; // 1-sentence human-readable summary
   schedulingInfo?: string; // e.g. "Tuesday at 2pm"
+  scheduledDate?: string; // ISO 8601 date string, e.g. "2026-03-31"
   declineReason?: string; // why they're declining
   followUpQuestion?: string; // question they asked
 }
@@ -14,10 +15,12 @@ export interface JobConfirmationResult {
  */
 export async function parseJobConfirmation(rawReply: string): Promise<JobConfirmationResult> {
   const anthropic = getAnthropicClient();
+  const todayStr = new Date().toISOString().split('T')[0]; // e.g. "2026-03-30"
+  const dayOfWeek = new Date().toLocaleDateString('en-US', { weekday: 'long' }); // e.g. "Monday"
 
   const response = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 300,
+    max_tokens: 400,
     temperature: 0,
     messages: [
       {
@@ -26,10 +29,13 @@ export async function parseJobConfirmation(rawReply: string): Promise<JobConfirm
 
 "${rawReply}"
 
+Today is ${dayOfWeek}, ${todayStr}.
+
 Analyze their reply and return JSON with these fields:
 - status: "confirmed" if they accept/agree/will do the job, "declined" if they refuse/can't do it, "question" if they're asking a question before committing, "unclear" if you can't tell
 - summary: One plain sentence describing what the contractor said
-- schedulingInfo: If they mention when they can come (e.g. "Tuesday at 2pm"), include it. Otherwise omit.
+- schedulingInfo: If they mention when they can come (e.g. "Tuesday at 2pm"), include the human-readable text. Otherwise omit.
+- scheduledDate: If they mention a specific day or date (e.g. "Monday", "next Tuesday", "March 31"), convert it to an ISO date string like "2026-03-31" based on today's date. If they say a day of the week, pick the NEXT occurrence of that day. If no date/day is mentioned, omit this field.
 - declineReason: If they declined, briefly explain why. Otherwise omit.
 - followUpQuestion: If they asked a question, include it. Otherwise omit.
 
@@ -47,10 +53,20 @@ Return ONLY valid JSON, no markdown.`,
     // Strip markdown code blocks if present
     const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
     const parsed = JSON.parse(cleaned);
+    // Validate scheduledDate is a real date if provided
+    let scheduledDate: string | undefined;
+    if (parsed.scheduledDate) {
+      const d = new Date(parsed.scheduledDate);
+      if (!isNaN(d.getTime())) {
+        scheduledDate = d.toISOString().split('T')[0]; // normalize to YYYY-MM-DD
+      }
+    }
+
     return {
       status: ['confirmed', 'declined', 'question', 'unclear'].includes(parsed.status) ? parsed.status : 'unclear',
       summary: parsed.summary || 'Contractor replied to job selection.',
       schedulingInfo: parsed.schedulingInfo || undefined,
+      scheduledDate,
       declineReason: parsed.declineReason || undefined,
       followUpQuestion: parsed.followUpQuestion || undefined,
     };

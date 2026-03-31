@@ -321,7 +321,13 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
   // 8. Unread notifications — surface what the user hasn't seen
   const unreadNotifications = await prisma.notification.findMany({
     where: { userId, readAt: null },
-    select: { id: true, title: true, issueId: true, createdAt: true },
+    select: {
+      id: true,
+      title: true,
+      issueId: true,
+      createdAt: true,
+      issue: { select: { title: true, propertyId: true } },
+    },
     orderBy: { createdAt: 'desc' },
     take: 5,
   });
@@ -331,9 +337,9 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
     if (items.some((i) => i.issueId === notif.issueId)) continue;
     items.push({
       issueId: notif.issueId,
-      issueTitle: notif.title,
-      propertyName: '',
-      reason: 'New notification',
+      issueTitle: notif.issue?.title ?? 'Untitled issue',
+      propertyName: notif.issue?.propertyId ? (propertyMap.get(notif.issue.propertyId) ?? '') : '',
+      reason: notif.title, // e.g. "Contractor confirmed the job"
       actionLabel: 'View',
       actionHref: `/issues/${notif.issueId}`,
       urgency: 'medium',
@@ -482,6 +488,7 @@ export async function getRecentActivityItems(userId: string): Promise<ActivityIt
           'contractor_selected',
           'job_completed',
           'job_scheduled',
+          'job_canceled',
           'dispatch_sent',
           'issue_created',
         ],
@@ -505,6 +512,7 @@ export async function getRecentActivityItems(userId: string): Promise<ActivityIt
     owner_reply_sent: 'You replied to contractor',
     contractor_selected: 'Contractor selected',
     job_completed: 'Job completed',
+    job_canceled: 'Job canceled',
     job_scheduled: 'Job scheduled',
     dispatch_sent: 'Contractor contacted',
     issue_created: 'Issue reported',

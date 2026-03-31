@@ -35,6 +35,8 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [actualCost, setActualCost] = useState('');
   const [completionNotes, setCompletionNotes] = useState('');
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
 
   const handleStatusChange = async (nextStatus: string, extra?: { scheduledFor?: string }) => {
     setIsLoading(nextStatus);
@@ -94,9 +96,27 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
     }
   };
 
-  const handleCancel = async () => {
-    if (!confirm('Are you sure you want to cancel this job?')) return;
-    await handleStatusChange('canceled');
+  const handleCancelConfirm = async () => {
+    setShowCancelModal(false);
+    setIsLoading('canceled');
+    setError(null);
+    try {
+      const res = await fetch(`/api/jobs/${job.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'canceled', cancelReason: cancelReason || undefined }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to cancel job');
+      }
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setIsLoading(null);
+      setCancelReason('');
+    }
   };
 
   const microcopy = JOB_STATUS_MICROCOPY[job.status] || '';
@@ -118,6 +138,37 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Scheduled date — prominent banner when set */}
+          {job.scheduledFor && job.status !== 'completed' && job.status !== 'canceled' && (
+            <div className="flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+              <span className="text-2xl">📅</span>
+              <div>
+                <p className="text-sm font-semibold text-blue-900">
+                  Scheduled for {new Date(job.scheduledFor).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                </p>
+                <p className="text-xs text-blue-700 mt-0.5">
+                  {job.contractorName} is expected to arrive on this date
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* No date set — prompt to set one */}
+          {!job.scheduledFor && job.status === 'scheduled' && (
+            <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+              <span className="text-2xl">⚠️</span>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-amber-900">No date set yet</p>
+                <p className="text-xs text-amber-700 mt-0.5">
+                  Set a specific date so you can track when {job.contractorName} is arriving
+                </p>
+              </div>
+              <Button size="sm" onClick={() => setShowScheduleModal(true)}>
+                Set Date
+              </Button>
+            </div>
+          )}
+
           {/* Job details */}
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
@@ -135,12 +186,6 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
               <div>
                 <label className="text-xs font-medium text-muted-foreground">Actual Cost</label>
                 <p className="text-sm font-medium">${Number(job.actualCost).toLocaleString()}</p>
-              </div>
-            )}
-            {job.scheduledFor && (
-              <div>
-                <label className="text-xs font-medium text-muted-foreground">Scheduled For</label>
-                <p className="text-sm">{new Date(job.scheduledFor).toLocaleDateString()}</p>
               </div>
             )}
             {job.startedAt && (
@@ -213,7 +258,7 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
                 size="sm"
                 variant="outline"
                 className="text-red-600 hover:text-red-700"
-                onClick={handleCancel}
+                onClick={() => setShowCancelModal(true)}
                 disabled={isLoading !== null}
               >
                 Cancel Job
@@ -234,7 +279,7 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
                 size="sm"
                 variant="outline"
                 className="text-red-600 hover:text-red-700"
-                onClick={handleCancel}
+                onClick={() => setShowCancelModal(true)}
                 disabled={isLoading !== null}
               >
                 Cancel Job
@@ -255,7 +300,7 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
                 size="sm"
                 variant="outline"
                 className="text-red-600 hover:text-red-700"
-                onClick={handleCancel}
+                onClick={() => setShowCancelModal(true)}
                 disabled={isLoading !== null}
               >
                 Cancel Job
@@ -308,6 +353,46 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
               </Button>
               <Button onClick={handleCompleteConfirm}>
                 Save and Complete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Job Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setShowCancelModal(false)}
+          />
+          <div className="relative z-10 w-full max-w-sm mx-4 rounded-xl bg-white p-6 shadow-xl space-y-4">
+            <h3 className="text-lg font-semibold">Cancel this job?</h3>
+            <p className="text-sm text-muted-foreground">
+              {job.contractorName} will be notified the job has been canceled. The issue will reopen so you can dispatch to someone else.
+            </p>
+            <div>
+              <label className="block text-sm font-medium mb-1">Reason (optional)</label>
+              <textarea
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="e.g. Found a cheaper option, no longer needed"
+                rows={2}
+                className="w-full rounded-lg border border-border p-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+              />
+            </div>
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => { setShowCancelModal(false); setCancelReason(''); }}
+              >
+                Keep Job
+              </Button>
+              <Button
+                className="bg-red-600 hover:bg-red-700 text-white"
+                onClick={handleCancelConfirm}
+              >
+                Cancel Job
               </Button>
             </div>
           </div>

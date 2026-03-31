@@ -6,12 +6,15 @@ import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { logTimelineEvent } from '@/lib/timeline';
 import { createNotification } from '@/lib/notifications';
+import { sendRepairRequestEmail } from '@/lib/resend';
+import { sendRepairRequestSms } from '@/lib/twilio';
 import { JOB_VALID_TRANSITIONS } from '@/lib/status';
 
 const updateJobSchema = z.object({
   scheduledFor: z.string().datetime().optional(),
   notes: z.string().optional(),
   status: z.enum(['selected', 'scheduled', 'in_progress', 'completed', 'canceled']).optional(),
+  cancelReason: z.string().optional(),
 });
 
 export async function GET(
@@ -142,6 +145,71 @@ export async function PATCH(
         });
       } catch (e) {
         console.error('Notification failed:', e);
+      }
+    }
+
+    // When a job is canceled, notify the contractor and revert the issue
+    if (body.status === 'canceled') {
+      // Revert issue status so the owner can re-dispatch or pick another contractor
+      // Go back to quotes_received if there are other responses, otherwise awaiting_dispatch
+      const otherResponses = await prisma.contractorResponse.count({
+        where: {
+          dispatch: { issueId: job.issueId },
+          dispatchId: { not: undefined },
+        },
+      });
+      const revertStatus: IssueStatus = otherResponses > 0
+        ? 'quotes_received' as IssueStatus
+        : 'awaiting_dispatch' as IssueStatus;
+
+      await prisma.issue.update({
+        where: { id: job.issueId },
+        data: { status: revertStatus },
+      });
+      console.log(`[JOB CANCEL] Issue ${job.issueId} reverted to ${revertStatus}`);
+
+      // Close the dispatch with reason
+      try {
+        await prisma.dispatch.updateMany({
+          where: { issueId: job.issueId, contractorId: job.contractor.id, status: { notIn: ['closed', 'failed'] } },
+          data: { status: 'closed', closedReason: 'owner_canceled' } as any,
+        });
+      } catch (e) {
+        console.error('Dispatch close on cancel failed:', e);
+      }
+
+      // Notify the contractor the job was canceled
+      const issueTitle = job.issue.title || 'a maintenance request';
+      const cancelMessage = `The homeowner has canceled the job for "${issueTitle}". No further action is needed on your end. We appreciate your time and will reach out if future work comes up.`;
+      try {
+        if (job.contractor.email) {
+          await sendRepairRequestEmail(
+            job.contractor.email,
+            `Job canceled: ${issueTitle}`,
+            `<p>${cancelMessage}</p>`,
+          );
+          console.log(`[JOB CANCEL] Cancellation email sent to ${job.contractor.email}`);
+        }
+        if (job.contractor.phone) {
+          await sendRepairRequestSms(job.contractor.phone, cancelMessage);
+          console.log(`[JOB CANCEL] Cancellation SMS sent to ${job.contractor.phone}`);
+        }
+      } catch (e) {
+        console.error('[JOB CANCEL] Failed to notify contractor:', e);
+      }
+
+      // Log specific timeline event
+      try {
+        await logTimelineEvent({
+          propertyId: job.issue.propertyId,
+          issueId: job.issueId,
+          jobId: id,
+          actorType: 'user',
+          eventType: 'job_canceled',
+          payload: { reason: body.cancelReason || 'No reason provided' },
+        });
+      } catch (e) {
+        console.error('Cancel timeline event failed:', e);
       }
     }
 

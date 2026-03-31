@@ -177,15 +177,22 @@ export async function POST(request: NextRequest) {
       // Update job based on contractor's response
       if (activeJob) {
         if (confirmation.status === 'confirmed') {
+          // If AI extracted a scheduled date, convert to Date object
+          const scheduledFor = confirmation.scheduledDate
+            ? new Date(confirmation.scheduledDate + 'T09:00:00')
+            : null;
+
           await prisma.job.update({
             where: { id: activeJob.id },
             data: {
               status: 'scheduled',
+              ...(scheduledFor ? { scheduledFor } : {}),
               notes: activeJob.notes
                 ? `${activeJob.notes}\n\nContractor confirmed: ${confirmation.summary}${confirmation.schedulingInfo ? ` (${confirmation.schedulingInfo})` : ''}`
                 : `Contractor confirmed: ${confirmation.summary}${confirmation.schedulingInfo ? ` (${confirmation.schedulingInfo})` : ''}`,
             },
           });
+          console.log(`[TWILIO WEBHOOK] Job ${activeJob.id} confirmed${scheduledFor ? ` — scheduled for ${scheduledFor.toISOString()}` : ' — no date extracted'}`);
         } else if (confirmation.status === 'declined') {
           await prisma.job.update({
             where: { id: activeJob.id },
