@@ -123,11 +123,16 @@ export default async function IssuesPage({
 
   const hasActiveFilters = propertyFilter || urgencyFilter || categoryFilter || searchFilter;
 
-  // Categories that exist in the user's issues for the dropdown
-  const categories = [
-    'plumbing', 'electrical', 'hvac', 'roofing', 'appliance',
-    'structural', 'pest', 'cleaning', 'exterior', 'general_handyman',
-  ];
+  // Only show category filters that actually exist in the user's issues
+  const usedCategories = await prisma.issue.findMany({
+    where: { property: { ownerUserId: user.id }, category: { not: null } },
+    select: { category: true },
+    distinct: ['category'],
+  });
+  const categories = usedCategories
+    .map((i) => i.category as string)
+    .filter(Boolean)
+    .sort();
 
   return (
     <LayoutShell>
@@ -164,7 +169,7 @@ export default async function IssuesPage({
         </div>
 
         {/* Filter bar */}
-        <div className="flex overflow-x-auto items-center gap-2 no-scrollbar pb-1">
+        <div className="flex flex-wrap items-center gap-2 pb-1">
           {/* Property filter */}
           {properties.length > 1 && (
             <div className="flex items-center gap-1">
