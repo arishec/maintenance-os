@@ -186,9 +186,13 @@ export async function POST(request: NextRequest) {
       if (activeJob) {
         if (confirmation.status === 'confirmed') {
           // If AI extracted a scheduled date, convert to Date object
-          const scheduledFor = confirmation.scheduledDate
-            ? new Date(confirmation.scheduledDate + 'T09:00:00')
-            : null;
+          let scheduledFor: Date | null = null;
+          if (confirmation.scheduledDate) {
+            const parsed = Date.parse(confirmation.scheduledDate + 'T09:00:00');
+            if (!Number.isNaN(parsed)) {
+              scheduledFor = new Date(parsed);
+            }
+          }
 
           await prisma.job.update({
             where: { id: activeJob.id },
@@ -435,8 +439,8 @@ export async function POST(request: NextRequest) {
     // Advance issue to 'quotes_received' on first valid reply
     // Cover both awaiting_dispatch and awaiting_quotes (edge cases where dispatch didn't update status)
     if (['awaiting_dispatch', 'awaiting_quotes', 'classified'].includes(issue.status)) {
-      await prisma.issue.update({
-        where: { id: issue.id },
+      await prisma.issue.updateMany({
+        where: { id: issue.id, status: { in: ['awaiting_dispatch', 'awaiting_quotes', 'classified'] } },
         data: { status: 'quotes_received' },
       });
       console.log(`[TWILIO WEBHOOK] Issue ${issue.id} advanced to quotes_received (was ${issue.status})`);
@@ -493,8 +497,8 @@ export async function POST(request: NextRequest) {
       quoteStr = `${parsedReply.estimateLow}–${parsedReply.estimateHigh}`;
     }
 
-    // Send email notification to property owner (non-blocking)
-    await sendOwnerNotificationEmail({
+    // Send email notification to property owner (truly non-blocking)
+    sendOwnerNotificationEmail({
       userId: issue.property.ownerUserId,
       issueId: issue.id,
       issueTitle: issue.title ?? 'Untitled issue',
@@ -503,7 +507,7 @@ export async function POST(request: NextRequest) {
       quote: quoteStr,
       availability: parsedReply?.availabilityText || null,
       question: parsedReply?.followUpQuestion || null,
-    });
+    }).catch((err) => console.error('[TWILIO WEBHOOK] Failed to send owner email:', err));
 
     revalidatePath('/dashboard');
     revalidatePath(`/issues/${issue.id}`);
