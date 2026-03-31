@@ -139,7 +139,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
 
   const displayStatus = ISSUE_STATUS_LABELS[issue.status] || issue.status;
   const isActiveJob = ACTIVE_JOB_STATUSES.includes(issue.status);
-  const activeJob = issue.jobs?.find((j) => j.status !== 'canceled');
+  const activeJob = issue.jobs?.find((j) => j.status !== 'canceled') ?? null;
   const hasResponses = issue.dispatches?.some((d) => d.responses?.length > 0);
 
   // Flatten and sort responses by lowest price
@@ -220,6 +220,17 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
               {activeJob.selectedEstimate
                 ? `Agreed price: $${Number(activeJob.selectedEstimate).toLocaleString()}`
                 : 'Track scheduling and progress below.'}
+            </p>
+          </div>
+        )}
+
+        {isActiveJob && !activeJob && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+            <p className="text-sm font-semibold text-amber-800">
+              All jobs for this issue have been canceled
+            </p>
+            <p className="text-xs text-amber-700 mt-0.5">
+              You can dispatch to new contractors or add a manual quote to continue.
             </p>
           </div>
         )}

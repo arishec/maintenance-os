@@ -24,6 +24,7 @@ export function NotificationsBell({ dropDirection = 'up' }: { dropDirection?: 'u
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const failCountRef = useRef(0);
 
   useEffect(() => {
     fetchUnreadCount();
@@ -51,15 +52,27 @@ export function NotificationsBell({ dropDirection = 'up' }: { dropDirection?: 'u
     try {
       const response = await fetch('/api/notifications?countOnly=true');
       if (!response.ok) {
-        // Not authenticated or server error — stop polling to avoid log spam
-        if (intervalRef.current) clearInterval(intervalRef.current);
+        // 401/403 = not authenticated — stop polling (user logged out)
+        if (response.status === 401 || response.status === 403) {
+          if (intervalRef.current) clearInterval(intervalRef.current);
+          return;
+        }
+        // Transient error (500, 404, etc.) — tolerate up to 5 consecutive failures
+        failCountRef.current++;
+        if (failCountRef.current >= 5 && intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
         return;
       }
+      failCountRef.current = 0; // Reset on success
       const data = await response.json();
       setUnreadCount(data.count ?? 0);
     } catch {
-      // Network error — stop polling
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      // Network error — tolerate up to 5 consecutive failures before stopping
+      failCountRef.current++;
+      if (failCountRef.current >= 5 && intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
     }
   };
 

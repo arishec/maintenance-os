@@ -69,7 +69,7 @@ export default async function HistoryPage() {
                     <th className="text-left p-4 font-medium">Issue</th>
                     <th className="text-left p-4 font-medium">Category</th>
                     <th className="text-left p-4 font-medium">Contractor</th>
-                    <th className="text-left p-4 font-medium">Estimate</th>
+                    <th className="text-left p-4 font-medium">Cost</th>
                     <th className="text-left p-4 font-medium">Status</th>
                   </tr>
                 </thead>

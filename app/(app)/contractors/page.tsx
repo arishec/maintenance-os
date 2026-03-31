@@ -27,6 +27,7 @@ export default async function ContractorsPage() {
         select: { id: true, status: true, completedAt: true },
       },
       dispatches: {
+        where: { status: { notIn: ['failed', 'expired'] } },
         select: {
           id: true,
           createdAt: true,

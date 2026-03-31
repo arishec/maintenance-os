@@ -14,7 +14,8 @@ export async function createNotification(input: {
 }
 
 /** Format a number as currency with commas, e.g. 3000 → "3,000" */
-function fmtPrice(amount: number | string): string {
+function fmtPrice(amount: number | string | null | undefined): string {
+  if (amount == null) return '—';
   const num = typeof amount === 'string' ? parseFloat(amount) : amount;
   if (isNaN(num)) return String(amount);
   return num.toLocaleString('en-US');

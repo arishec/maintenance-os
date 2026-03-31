@@ -308,11 +308,17 @@ export async function POST(request: NextRequest) {
                 : `Contractor declined: ${confirmation.declineReason || confirmation.summary}`,
             },
           });
-          // Revert issue status so owner can pick another contractor
+          // Revert issue — check if there are other quotes to review
+          const otherResponseCount = await prisma.contractorResponse.count({
+            where: {
+              dispatch: { issueId: issue.id, contractorId: { not: contractor.id } },
+            },
+          });
           await prisma.issue.update({
             where: { id: issue.id },
-            data: { status: 'quotes_received' },
+            data: { status: otherResponseCount > 0 ? 'quotes_received' : 'awaiting_dispatch' },
           });
+          console.log(`[EMAIL WEBHOOK] Contractor declined — issue reverted to ${otherResponseCount > 0 ? 'quotes_received' : 'awaiting_dispatch'}`);
         } else {
           // question or unclear — keep current status but add notes
           await prisma.job.update({

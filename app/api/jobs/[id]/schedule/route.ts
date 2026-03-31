@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { logTimelineEvent } from '@/lib/timeline';
+import { JOB_VALID_TRANSITIONS } from '@/lib/status';
 
 const scheduleJobSchema = z.object({
   scheduledFor: z.string().datetime(),
@@ -25,6 +26,15 @@ export async function POST(
 
     if (!job || job.issue.property.ownerUserId !== user.id) {
       return NextResponse.json({ error: 'Not found.' }, { status: 404 });
+    }
+
+    // Enforce valid transitions — only selected/scheduled can move to scheduled
+    const allowed = JOB_VALID_TRANSITIONS[job.status] || [];
+    if (!allowed.includes('scheduled') && job.status !== 'scheduled') {
+      return NextResponse.json(
+        { error: `Cannot schedule a job with status "${job.status}"` },
+        { status: 400 }
+      );
     }
 
     const scheduledDate = new Date(body.scheduledFor);

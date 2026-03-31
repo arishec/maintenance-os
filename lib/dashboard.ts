@@ -118,11 +118,14 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
   });
 
   for (const issue of issuesWithQuestions) {
+    // Only show one question per issue (the most recent unanswered one)
+    if (items.some((i) => i.issueId === issue.id)) continue;
+
+    let latestQuestion: { name: string; createdAt: Date } | null = null;
     for (const dispatch of issue.dispatches) {
       const question = dispatch.responses[0];
       if (!question) continue;
 
-      // Check if there's already an outbound reply after this question
       const replyAfterQuestion = await prisma.contractorMessage.findFirst({
         where: {
           issueId: issue.id,
@@ -133,15 +136,21 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
       });
       if (replyAfterQuestion) continue;
 
+      if (!latestQuestion || question.createdAt > latestQuestion.createdAt) {
+        latestQuestion = { name: dispatch.contractor.name, createdAt: question.createdAt };
+      }
+    }
+
+    if (latestQuestion) {
       items.push({
         issueId: issue.id,
         issueTitle: issue.title ?? 'Untitled issue',
         propertyName: propertyMap.get(issue.propertyId) ?? '',
-        reason: `${dispatch.contractor.name} asked a question — waiting on your reply`,
+        reason: `${latestQuestion.name} asked a question — waiting on your reply`,
         actionLabel: 'Reply now',
         actionHref: `/issues/${issue.id}`,
         urgency: 'high',
-        timestamp: question.createdAt,
+        timestamp: latestQuestion.createdAt,
       });
     }
   }
@@ -160,6 +169,7 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
     },
   });
   for (const job of unscheduledJobs) {
+    if (items.some((i) => i.issueId === job.issueId)) continue;
     items.push({
       issueId: job.issueId,
       issueTitle: job.issue.title ?? 'Untitled issue',
@@ -189,6 +199,7 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
     },
   });
   for (const dispatch of staleDispatches) {
+    if (items.some((i) => i.issueId === dispatch.issueId)) continue;
     const daysSince = Math.floor((Date.now() - dispatch.createdAt.getTime()) / (1000 * 60 * 60 * 24));
     items.push({
       issueId: dispatch.issueId,
@@ -217,6 +228,7 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
     },
   });
   for (const job of scheduledNeedsDate) {
+    if (items.some((i) => i.issueId === job.issueId)) continue;
     items.push({
       issueId: job.issueId,
       issueTitle: job.issue.title ?? 'Untitled issue',
@@ -244,6 +256,7 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
     },
   });
   for (const job of activeJobs) {
+    if (items.some((i) => i.issueId === job.issueId)) continue;
     const hoursSinceStart = Math.floor((Date.now() - (job.startedAt ?? job.createdAt).getTime()) / (1000 * 60 * 60));
     const daysSinceStart = Math.floor(hoursSinceStart / 24);
     const timeLabel = daysSinceStart > 0 ? `In progress ${daysSinceStart} day${daysSinceStart !== 1 ? 's' : ''}` : `In progress ${hoursSinceStart}h`;
@@ -277,6 +290,7 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
     },
   });
   for (const job of scheduledWithDate) {
+    if (items.some((i) => i.issueId === job.issueId)) continue;
     const isToday = job.scheduledFor! >= startOfDay && job.scheduledFor! < endOfDay;
     const isFuture = job.scheduledFor! >= endOfDay;
     const dateStr = job.scheduledFor!.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -446,6 +460,16 @@ export async function getWaitingOnContractorsItems(userId: string): Promise<Wait
           responses: { none: {} },
         },
       },
+      // Exclude issues that ALSO have stale dispatches (shown in attention list instead)
+      NOT: {
+        dispatches: {
+          some: {
+            status: { in: ['sent', 'delivered'] },
+            createdAt: { lt: staleThreshold },
+            responses: { none: {} },
+          },
+        },
+      },
     },
     select: {
       id: true,
@@ -565,11 +589,8 @@ export async function getOverviewCounts(userId: string): Promise<OverviewCounts>
     prisma.issue.count({
       where: { propertyId: { in: propertyIds }, status: 'quotes_received' },
     }),
-    prisma.job.count({
-      where: {
-        issue: { propertyId: { in: propertyIds } },
-        status: { in: ['selected', 'scheduled', 'in_progress'] },
-      },
+    prisma.issue.count({
+      where: { propertyId: { in: propertyIds }, status: 'active_job' },
     }),
     prisma.issue.count({
       where: { propertyId: { in: propertyIds }, status: 'completed', completedAt: { gte: startOfMonth } },

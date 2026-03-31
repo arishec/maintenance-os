@@ -159,7 +159,9 @@ export async function POST(
       });
 
       // Build channel-specific messages with embedded reply token
-      const smsMessage = `[Ref: ${replyToken}] ${messageWithPhotos}`;
+      // SMS: use base message without photo URLs to avoid exceeding SMS segment limits (~1600 chars max)
+      const smsBody = `[Ref: ${replyToken}] ${baseMessage}`;
+      const smsMessage = smsBody.length > 1500 ? smsBody.slice(0, 1497) + '...' : smsBody;
       const emailSubject = `Repair request [Ref: ${replyToken}] — ${issue.title}`;
 
       // Build HTML email with embedded photo images + AI descriptions
@@ -246,10 +248,15 @@ export async function POST(
     );
 
     if (successfulDispatches.length > 0) {
-      await prisma.issue.update({
-        where: { id: issueId },
-        data: { status: 'awaiting_quotes' },
-      });
+      // Only advance to awaiting_quotes if we haven't already received quotes
+      // Don't regress from quotes_received or later statuses
+      const preQuoteStatuses = ['classified', 'awaiting_dispatch', 'awaiting_quotes'];
+      if (preQuoteStatuses.includes(issue.status)) {
+        await prisma.issue.update({
+          where: { id: issueId },
+          data: { status: 'awaiting_quotes' },
+        });
+      }
     } else {
       // All dispatches failed — keep current status so user can retry
       console.error(`All ${dispatchRecords.length} dispatches failed for issue ${issueId}`);
