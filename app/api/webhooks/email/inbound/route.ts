@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { prisma } from '@/lib/prisma';
 import { parseContractorReply } from '@/lib/ai/parse-contractor-reply';
@@ -390,6 +391,9 @@ export async function POST(request: NextRequest) {
         notificationType: eventType,
       });
 
+      revalidatePath('/dashboard');
+      revalidatePath(`/issues/${issue.id}`);
+
       return NextResponse.json({ success: true }, { status: 200 });
     }
 
@@ -527,11 +531,13 @@ export async function POST(request: NextRequest) {
 
     // Advance issue to 'quotes_received' on first valid reply
     // Don't wait for all dispatches — user should see progress immediately
-    if (issue.status === 'awaiting_quotes') {
+    // Cover both awaiting_dispatch and awaiting_quotes (edge cases where dispatch didn't update status)
+    if (['awaiting_dispatch', 'awaiting_quotes', 'classified'].includes(issue.status)) {
       await prisma.issue.update({
         where: { id: issue.id },
         data: { status: 'quotes_received' },
       });
+      console.log(`[EMAIL WEBHOOK] Issue ${issue.id} advanced to quotes_received (was ${issue.status})`);
     }
 
     // Log timeline event
@@ -596,6 +602,10 @@ export async function POST(request: NextRequest) {
       availability: parsedReply?.availabilityText || null,
       question: parsedReply?.followUpQuestion || null,
     });
+
+    // Bust dashboard cache so the new quote appears immediately
+    revalidatePath('/dashboard');
+    revalidatePath(`/issues/${issue.id}`);
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
