@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import type { AttentionItem } from '@/lib/dashboard';
 import { AlertTriangle, MessageSquare, Calendar, Clock, DollarSign, CheckCircle2 } from 'lucide-react';
