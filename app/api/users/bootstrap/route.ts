@@ -6,7 +6,7 @@ export async function POST() {
     const user = await requireDbUser();
     return NextResponse.json({ user });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 401 });
   }
 }

@@ -85,7 +85,7 @@ export async function POST(
   } catch (error) {
     console.error('Error reparsing replies:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal error' },
+      { error: 'We encountered an error. Please try again.' },
       { status: 500 }
     );
   }

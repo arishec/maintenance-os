@@ -22,7 +22,7 @@ export async function POST() {
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     console.error('Stripe portal error:', message);
     return NextResponse.json({ error: message }, { status: 500 });
   }

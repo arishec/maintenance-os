@@ -13,6 +13,14 @@ import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 function formatLabel(value: string): string {
   const special: Record<string, string> = {
@@ -82,6 +90,8 @@ export default function NewIssuePage() {
 
   // Inline photo state
   const [photos, setPhotos] = useState<SelectedPhoto[]>([]);
+  const [photoToDelete, setPhotoToDelete] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
@@ -122,12 +132,21 @@ export default function NewIssuePage() {
     };
   }, []);
 
-  const removePhoto = (id: string) => {
-    setPhotos((prev) => {
-      const photo = prev.find((p) => p.id === id);
-      if (photo) URL.revokeObjectURL(photo.preview);
-      return prev.filter((p) => p.id !== id);
-    });
+  const handleDeletePhotoClick = (id: string) => {
+    setPhotoToDelete(id);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDeletePhoto = () => {
+    if (photoToDelete) {
+      setPhotos((prev) => {
+        const photo = prev.find((p) => p.id === photoToDelete);
+        if (photo) URL.revokeObjectURL(photo.preview);
+        return prev.filter((p) => p.id !== photoToDelete);
+      });
+    }
+    setShowDeleteDialog(false);
+    setPhotoToDelete(null);
   };
 
   async function uploadPhotos(createdIssueId: string): Promise<{ success: number; failed: number }> {
@@ -467,8 +486,8 @@ export default function NewIssuePage() {
                       </div>
                       <button
                         type="button"
-                        onClick={() => removePhoto(photo.id)}
-                        className="absolute -right-1.5 -top-1.5 rounded-full bg-red-500 p-0.5 text-white shadow-sm"
+                        onClick={() => handleDeletePhotoClick(photo.id)}
+                        className="absolute -right-1.5 -top-1.5 rounded-full bg-red-500 p-0.5 text-white shadow-sm hover:bg-red-600"
                       >
                         <X className="h-3.5 w-3.5" />
                       </button>
@@ -515,6 +534,20 @@ export default function NewIssuePage() {
           </form>
         </CardContent>
       </Card>
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogTitle>Delete photo?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to delete this photo? This action cannot be undone.
+          </AlertDialogDescription>
+          <div className="flex gap-2 justify-end">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeletePhoto} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
       <PaywallModal
         isOpen={showPaywall}
         onClose={() => setShowPaywall(false)}

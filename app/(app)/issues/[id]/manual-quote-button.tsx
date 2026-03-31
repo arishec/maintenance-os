@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { Toast } from '@/components/ui/toast';
 
 interface Contractor {
   id: string;
@@ -69,7 +70,7 @@ export function ManualQuoteButton({ issueId, existingContractors = [] }: ManualQ
         setIsOpen(false);
         resetForm();
         router.refresh();
-      }, 1200);
+      }, 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -168,7 +169,7 @@ export function ManualQuoteButton({ issueId, existingContractors = [] }: ManualQ
             </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}
-            {success && <p className="text-sm text-green-600">Quote added!</p>}
+            {success && <p className="text-sm text-green-600">Quote added successfully!</p>}
 
             <div className="flex gap-3 justify-end">
               <Button
@@ -188,6 +189,8 @@ export function ManualQuoteButton({ issueId, existingContractors = [] }: ManualQ
           </div>
         </div>
       )}
+
+      {success && <Toast message="Quote added successfully!" type="success" />}
     </>
   );
 }

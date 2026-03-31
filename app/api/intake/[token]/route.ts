@@ -52,7 +52,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -182,7 +182,7 @@ export async function POST(
       { status: 201 }
     );
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { isDispatchStale, formatStaleAge } from '@/lib/dispatch-helpers';
-import { PhotoUploadButton } from './photo-upload-button';
+import { PhotosSection } from './photos-section';
 import { SelectContractorButton } from './select-contractor-button';
 import { ClassifyButton } from './classify-button';
 import { JobLifecyclePanel } from './job-lifecycle-panel';
@@ -337,38 +337,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
         )}
 
         {/* Photos Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Photos</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {photosWithUrls.length > 0 && (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {photosWithUrls.map((photo) => (
-                  <div key={photo.id} className="space-y-1">
-                    <div className="relative h-32 sm:h-48 w-full overflow-hidden rounded-xl bg-muted">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={photo.signedUrl || ''}
-                        alt="Issue photo"
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    {photo.aiDescription && (
-                      <p className="text-xs text-muted-foreground leading-snug px-1">
-                        <span className="font-medium text-foreground">AI:</span> {photo.aiDescription}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-            {photosWithUrls.length === 0 && (
-              <p className="text-sm text-muted-foreground">No photos yet. Add some to help document the issue.</p>
-            )}
-            <PhotoUploadButton issueId={issue.id} />
-          </CardContent>
-        </Card>
+        <PhotosSection issueId={issue.id} photos={photosWithUrls} />
 
         {/* Dispatches Section */}
         {/* Stale dispatch nudge banners */}

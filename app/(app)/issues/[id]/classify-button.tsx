@@ -3,11 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { Toast } from '@/components/ui/toast';
 
 export function ClassifyButton({ issueId }: { issueId: string }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   async function handleClassify() {
     setLoading(true);
@@ -25,7 +27,11 @@ export function ClassifyButton({ issueId }: { issueId: string }) {
         return;
       }
 
-      router.refresh();
+      setToastMessage('Issue classified successfully!');
+      setTimeout(() => {
+        setToastMessage(null);
+        router.refresh();
+      }, 2000);
     } catch {
       setError('Classification failed. Check your API key.');
     } finally {
@@ -41,6 +47,7 @@ export function ClassifyButton({ issueId }: { issueId: string }) {
       {error && (
         <p className="mt-2 text-sm text-red-600">{error}</p>
       )}
+      {toastMessage && <Toast message={toastMessage} type="success" />}
     </div>
   );
 }

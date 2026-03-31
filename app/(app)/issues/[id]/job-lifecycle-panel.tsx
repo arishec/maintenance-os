@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Toast } from '@/components/ui/toast';
 import {
   JOB_STATUS_LABELS,
   JOB_STATUS_COLORS,
@@ -37,6 +38,7 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
   const [completionNotes, setCompletionNotes] = useState('');
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const handleStatusChange = async (nextStatus: string, extra?: { scheduledFor?: string }) => {
     setIsLoading(nextStatus);
@@ -54,7 +56,17 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
         throw new Error(data.error || 'Failed to update job');
       }
 
-      router.refresh();
+      // Show success toast based on status
+      let message = 'Job updated successfully';
+      if (nextStatus === 'scheduled') message = 'Job scheduled successfully';
+      else if (nextStatus === 'in_progress') message = 'Job marked as in progress';
+      else if (nextStatus === 'canceled') message = 'Job canceled';
+
+      setToastMessage(message);
+      setTimeout(() => {
+        setToastMessage(null);
+        router.refresh();
+      }, 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -88,7 +100,11 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
         const data = await res.json();
         throw new Error(data.error || 'Failed to complete job');
       }
-      router.refresh();
+      setToastMessage('Job completed successfully!');
+      setTimeout(() => {
+        setToastMessage(null);
+        router.refresh();
+      }, 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -110,7 +126,11 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
         const data = await res.json();
         throw new Error(data.error || 'Failed to cancel job');
       }
-      router.refresh();
+      setToastMessage('Job canceled. You can dispatch to another contractor.');
+      setTimeout(() => {
+        setToastMessage(null);
+        router.refresh();
+      }, 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -435,6 +455,8 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
           </div>
         </div>
       )}
+
+      {toastMessage && <Toast message={toastMessage} type="success" />}
     </>
   );
 }

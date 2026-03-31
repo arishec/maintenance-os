@@ -58,7 +58,7 @@ export async function POST(
     const validStatuses = ['classified', 'awaiting_dispatch', 'awaiting_quotes', 'quotes_received'];
     if (!validStatuses.includes(issue.status)) {
       return NextResponse.json(
-        { error: `Issue must be in one of these statuses: ${validStatuses.join(', ')}` },
+        { error: 'This issue isn\'t ready to send to contractors right now.' },
         { status: 400 }
       );
     }
@@ -318,7 +318,7 @@ export async function POST(
 
     return NextResponse.json({ dispatches: dispatchRecords }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

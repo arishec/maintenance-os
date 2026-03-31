@@ -3,9 +3,36 @@ import { z } from 'zod';
 import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
+/** Validate and normalize phone number
+ * - Strips non-digit characters (except leading +)
+ * - Requires at least 10 digits after stripping
+ * - Returns normalized format or throws
+ */
+function validateAndNormalizePhone(phone: string | null | undefined): string | null {
+  if (!phone) return null;
+
+  const trimmed = phone.trim();
+  if (!trimmed) return null;
+
+  // Strip non-digits, but preserve leading + for international numbers
+  const hasLeadingPlus = trimmed.startsWith('+');
+  const digits = trimmed.replace(/\D/g, '');
+
+  if (digits.length < 10) {
+    throw new Error('Please enter a valid phone number.');
+  }
+
+  // Normalize to +1XXXXXXXXXX for 10-digit US numbers
+  if (digits.length === 10) return `+1${digits}`;
+  // Normalize to +XXXXXXXXXXX for 11-digit numbers starting with 1
+  if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
+  // For international numbers or other formats, prepend + if not present
+  return hasLeadingPlus ? `+${digits}` : `+${digits}`;
+}
+
 const updateContractorSchema = z.object({
-  name: z.string().min(1).optional(),
-  companyName: z.string().optional(),
+  name: z.string().min(1).max(200).optional(),
+  companyName: z.string().max(200).optional(),
   trade: z.enum([
     'plumbing',
     'electrical',
@@ -20,9 +47,9 @@ const updateContractorSchema = z.object({
     'general_contractor',
     'other',
   ]).optional(),
-  phone: z.string().optional(),
-  email: z.string().email().optional(),
-  notes: z.string().optional(),
+  phone: z.string().max(30).optional(),
+  email: z.string().email().max(254).optional(),
+  notes: z.string().max(2000).optional(),
   isPreferred: z.boolean().optional(),
 });
 
@@ -53,7 +80,7 @@ export async function GET(
 
     return NextResponse.json({ contractor });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }
@@ -84,6 +111,13 @@ export async function PATCH(
     }
 
     const body = updateContractorSchema.parse(await request.json());
+
+    // Validate and normalize contact info
+    if (body.email) body.email = body.email.toLowerCase().trim();
+    if (body.phone) {
+      body.phone = validateAndNormalizePhone(body.phone);
+    }
+
     const updated = await prisma.contractor.update({
       where: { id },
       data: body,
@@ -91,7 +125,7 @@ export async function PATCH(
 
     return NextResponse.json({ contractor: updated });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }
@@ -130,7 +164,7 @@ export async function DELETE(
     });
     if (activeJobCount > 0) {
       return NextResponse.json(
-        { error: `Cannot remove contractor with ${activeJobCount} active job${activeJobCount !== 1 ? 's' : ''}. Complete or cancel them first.` },
+        { error: `Please complete or cancel ${activeJobCount === 1 ? 'the active job' : 'all active jobs'} before removing this contractor.` },
         { status: 400 }
       );
     }
@@ -142,7 +176,7 @@ export async function DELETE(
 
     return NextResponse.json({ contractor: archived });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

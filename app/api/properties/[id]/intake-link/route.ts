@@ -69,7 +69,7 @@ export async function POST(
       { status: 201 }
     );
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }
@@ -98,7 +98,7 @@ export async function GET(
       createdAt: activeLink?.createdAt,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 401 });
   }
 }
@@ -142,7 +142,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

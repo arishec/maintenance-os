@@ -32,7 +32,7 @@ export async function POST(
     const allowed = JOB_VALID_TRANSITIONS[job.status] || [];
     if (!allowed.includes('scheduled') && job.status !== 'scheduled') {
       return NextResponse.json(
-        { error: `Cannot schedule a job with status "${job.status}"` },
+        { error: 'This job can\'t be scheduled right now.' },
         { status: 400 }
       );
     }
@@ -75,7 +75,7 @@ export async function POST(
 
     return NextResponse.json({ job: updatedJob }, { status: 200 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

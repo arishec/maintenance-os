@@ -5,12 +5,12 @@ import { prisma } from '@/lib/prisma';
 import { logTimelineEvent } from '@/lib/timeline';
 
 const updatePropertySchema = z.object({
-  nickname: z.string().min(1).optional(),
-  addressLine1: z.string().min(1).optional(),
-  addressLine2: z.string().optional(),
-  city: z.string().min(1).optional(),
-  state: z.string().min(1).optional(),
-  postalCode: z.string().min(1).optional(),
+  nickname: z.string().min(1).max(100).optional(),
+  addressLine1: z.string().min(1).max(200).optional(),
+  addressLine2: z.string().max(200).optional(),
+  city: z.string().min(1).max(100).optional(),
+  state: z.string().min(1).max(50).optional(),
+  postalCode: z.string().min(1).max(20).optional(),
   propertyType: z.enum(['single_family', 'condo', 'apartment', 'townhouse', 'duplex', 'other']).optional(),
 });
 
@@ -33,7 +33,7 @@ export async function GET(
 
     return NextResponse.json({ property });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 401 });
   }
 }
@@ -69,7 +69,7 @@ export async function PATCH(
 
     return NextResponse.json({ property: updated });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }
@@ -98,7 +98,7 @@ export async function DELETE(
     });
     if (activeIssueCount > 0) {
       return NextResponse.json(
-        { error: `Cannot delete property with ${activeIssueCount} active issue${activeIssueCount !== 1 ? 's' : ''}. Resolve or cancel them first.` },
+        { error: `Please complete or cancel ${activeIssueCount === 1 ? 'the active issue' : 'all active issues'} before deleting this property.` },
         { status: 400 }
       );
     }
@@ -117,7 +117,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

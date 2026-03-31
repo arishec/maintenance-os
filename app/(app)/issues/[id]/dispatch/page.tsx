@@ -11,6 +11,16 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { PaywallModal } from '@/components/paywall-modal';
 import { formatPhone } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog';
 
 function formatLabel(value: string): string {
   const special: Record<string, string> = {
@@ -61,6 +71,7 @@ export default function DispatchPage() {
   const [error, setError] = useState('');
   const [showPaywall, setShowPaywall] = useState(false);
   const [successCount, setSuccessCount] = useState<number | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   // Inline add contractor form
   const [showAddForm, setShowAddForm] = useState(false);
@@ -159,8 +170,13 @@ export default function DispatchPage() {
     }
   }
 
-  async function handleSend() {
+  function handleSendClick() {
     if (selected.length === 0) return;
+    setShowConfirmDialog(true);
+  }
+
+  async function handleSendConfirmed() {
+    setShowConfirmDialog(false);
     setLoading(true);
     setError('');
 
@@ -410,11 +426,27 @@ export default function DispatchPage() {
         {/* Send Button */}
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">{selected.length} contractor{selected.length !== 1 ? 's' : ''} selected</div>
-          <Button onClick={handleSend} disabled={selected.length === 0 || loading}>
+          <Button onClick={handleSendClick} disabled={selected.length === 0 || loading}>
             {loading ? 'Sending...' : `Send Request${selected.length !== 1 ? 's' : ''}`}
           </Button>
         </div>
       </div>
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Dispatch</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to contact {selected.length} contractor{selected.length !== 1 ? 's' : ''}? They&apos;ll receive {selected.some(s => s.channel === 'sms') ? 'an email or SMS' : 'an email'} with the issue details.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSendConfirmed}>
+              Send Request{selected.length !== 1 ? 's' : ''}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <PaywallModal
         isOpen={showPaywall}
         onClose={() => setShowPaywall(false)}

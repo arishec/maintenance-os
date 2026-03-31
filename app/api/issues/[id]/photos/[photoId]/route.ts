@@ -33,7 +33,7 @@ export async function DELETE(
 
     if (deleteError) {
       return NextResponse.json(
-        { error: `Failed to delete file from storage: ${deleteError.message}` },
+        { error: 'We couldn\'t delete the photo. Please try again.' },
         { status: 400 }
       );
     }
@@ -44,7 +44,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

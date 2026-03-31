@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { Toast } from '@/components/ui/toast';
 
 interface SelectContractorButtonProps {
   issueId: string;
@@ -128,11 +129,7 @@ export function SelectContractorButton({
       )}
 
       {/* Success toast */}
-      {showToast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-green-700 text-white px-6 py-3 rounded-xl shadow-lg text-sm font-medium animate-in fade-in slide-in-from-bottom-4">
-          {contractorName} selected. Job started.
-        </div>
-      )}
+      {showToast && <Toast message={`${contractorName} selected. Job started.`} type="success" />}
     </>
   );
 }

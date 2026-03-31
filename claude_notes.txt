@@ -102,3 +102,178 @@
 - Edit page is client component but loads data from server API
 - Intake link API uses direct database query on server (faster than HTTP fetch)
 - Button component now supports required destructive and ghost variants
+
+---
+
+# Job Action Success Notifications - Session Summary (Mar 31, 2026)
+
+## Completed Tasks
+
+### 1. Created Reusable Toast Component
+- New file: `/components/ui/toast.tsx`
+- Provides standardized success/error/info notifications
+- Features:
+  - Fixed positioning (bottom center)
+  - Color-coded by type (green for success, red for error, blue for info)
+  - Icon indicators (✓, ✕, ℹ)
+  - Smooth fade-in and slide animations
+  - Accepts custom duration prop
+  - Clean, accessible styling with Tailwind
+
+### 2. Updated Job Lifecycle Panel
+- File: `app/(app)/issues/[id]/job-lifecycle-panel.tsx`
+- Added success toasts for:
+  - Job scheduled: "Job scheduled successfully"
+  - Job marked in progress: "Job marked as in progress"
+  - Job completed: "Job completed successfully!"
+  - Job canceled: "Job canceled. You can dispatch to another contractor."
+- Toast messages appear for 2 seconds before router refresh
+- Prevents premature page navigation while showing feedback
+
+### 3. Updated Contractor Selection Button
+- File: `app/(app)/issues/[id]/select-contractor-button.tsx`
+- Replaced inline toast HTML with Toast component
+- Message: "{contractorName} selected. Job started."
+- Toast duration: 2 seconds
+
+### 4. Updated AI Classification Button
+- File: `app/(app)/issues/[id]/classify-button.tsx`
+- Added success toast: "Issue classified successfully!"
+- Toast appears after successful API call
+- 2-second delay before page refresh
+
+### 5. Updated Manual Quote Addition
+- File: `app/(app)/issues/[id]/manual-quote-button.tsx`
+- Added success toast: "Quote added successfully!"
+- Updated timeout from 1200ms to 2000ms for better UX consistency
+- Toast displays inside modal while form still shows success message
+
+### 6. Updated Resend Dispatch Button
+- File: `app/(app)/issues/[id]/resend-dispatch-button.tsx`
+- Replaced simple text feedback with Toast component
+- Success: "Request resent to {contractorName}"
+- Error: "Failed to resend request"
+- Button remains disabled for 2 seconds after success
+
+## Design Patterns
+
+1. **Consistent Toast Timing**: All successful actions show toast for 2 seconds
+2. **Clear Feedback**: Action-specific messages explain what happened
+3. **Post-Action Refresh**: Page refreshes after toast display ensures UI stays in sync
+4. **Modal Interaction**: In manual-quote, both modal message and floating toast confirm success
+
+## Files Created
+
+1. `/components/ui/toast.tsx` - Reusable toast component (29 lines)
+
+## Files Modified
+
+1. `app/(app)/issues/[id]/job-lifecycle-panel.tsx` - Added toasts for all job status changes
+2. `app/(app)/issues/[id]/select-contractor-button.tsx` - Updated to use Toast component
+3. `app/(app)/issues/[id]/classify-button.tsx` - Added success toast
+4. `app/(app)/issues/[id]/manual-quote-button.tsx` - Added success toast and better timing
+5. `app/(app)/issues/[id]/resend-dispatch-button.tsx` - Added success/error toasts
+
+## Key Improvements
+
+✓ Clear success feedback after all major job actions
+✓ Consistent visual design across toasts
+✓ Users no longer left wondering if action succeeded
+✓ Better user experience with predictable timing
+✓ Toasts prevent premature navigation
+✓ Reusable component reduces code duplication
+✓ Easy to extend with new toast types (warning, info) if needed
+
+---
+
+# Photo Deletion Confirmation Dialog - Session Summary (2026-03-31)
+
+## Task
+Add confirmation dialogs before deleting photos from issues. Previously, clicking the delete (X) button on photos removed them instantly with no confirmation.
+
+## Changes Made
+
+### 1. Updated `app/(app)/issues/new/page.tsx`
+- **File Type**: Client component ('use client')
+- **Changes**:
+  - Imported AlertDialog components from `@/components/ui/alert-dialog`
+  - Added state: `photoToDelete` and `showDeleteDialog` to track deletion flow
+  - Replaced `removePhoto()` function with:
+    - `handleDeletePhotoClick(id)` - Opens confirmation dialog
+    - `confirmDeletePhoto()` - Executes deletion after confirmation
+  - Updated photo preview button onClick to call `handleDeletePhotoClick(photo.id)`
+  - Added AlertDialog component at end of return statement with:
+    - Title: "Delete photo?"
+    - Description: "Are you sure you want to delete this photo? This action cannot be undone."
+    - Cancel and Delete action buttons
+
+### 2. Created `app/(app)/issues/[id]/photos-section.tsx`
+- **New File**: Client component for managing photos in issue detail view
+- **Purpose**: Moved photo display and deletion logic from server component to client component
+- **Features**:
+  - Displays existing photos from issue
+  - Shows AI description for each photo if available
+  - Delete button (X icon) on each photo with hover styling
+  - Confirmation dialog before deletion with API call to DELETE `/api/issues/{id}/photos/{photoId}`
+  - Loading state during deletion
+  - Router refresh after successful deletion
+  - Error handling with user-friendly alert messages
+
+### 3. Updated `app/(app)/issues/[id]/page.tsx`
+- **File Type**: Server component (remains unchanged type)
+- **Changes**:
+  - Removed import of `PhotoUploadButton` (still used by PhotosSection)
+  - Added import of new `PhotosSection` component
+  - Replaced inline Photos section with `<PhotosSection issueId={issue.id} photos={photosWithUrls} />`
+  - Offloads all client-side photo management to PhotosSection component
+
+## Implementation Details
+
+### Issue New Page (Temporary Photos)
+- Photos selected but not yet uploaded are deleted locally without API call
+- Preview URL is revoked from browser memory
+- Dialog feedback prevents accidental deletion
+
+### Issue Detail Page (Saved Photos)
+- Calls DELETE API endpoint for persistent deletion
+- Updates local state after successful deletion
+- Calls `router.refresh()` to stay in sync
+- Shows loading state during deletion
+- Provides error feedback if deletion fails
+
+### Confirmation Dialog Pattern
+Used shadcn AlertDialog component (consistent with existing property delete pattern):
+```
+- Modal overlay prevents dismissal by clicking background
+- Cancel button to abort
+- Delete button (red) to confirm
+- Clear messaging about action consequence
+```
+
+## Files Created
+1. `/app/(app)/issues/[id]/photos-section.tsx` (96 lines)
+
+## Files Modified
+1. `/app/(app)/issues/new/page.tsx` - Added confirmation dialog for preview photo deletion
+2. `/app/(app)/issues/[id]/page.tsx` - Extracted photos to client component
+
+## Design Decisions
+
+1. **Separate Component for Issue Detail**: PhotosSection is a client component because it needs:
+   - State management for deletion flow
+   - API calls to delete saved photos
+   - Router refresh after mutations
+   
+2. **Consistent Pattern**: Both locations use same AlertDialog pattern as property deletion
+
+3. **No Undo**: Photos are permanently deleted (matches API behavior)
+
+4. **Loading State**: Delete button shows "Deleting..." and disabled state during operation
+
+5. **Graceful Error Handling**: API errors shown as alerts with descriptive messages
+
+## Testing Notes
+- Issue new page: Click X on preview photos -> Dialog appears -> Cancel/Delete works
+- Issue detail page: Click X on saved photos -> Dialog appears -> Confirms before API call
+- Router refreshes after successful deletion to update photo grid
+- Errors from API are clearly communicated to user

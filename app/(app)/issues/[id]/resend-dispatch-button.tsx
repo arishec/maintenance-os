@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { Toast } from '@/components/ui/toast';
 
 interface ResendDispatchButtonProps {
   issueId: string;
@@ -42,24 +43,20 @@ export function ResendDispatchButton({ issueId, dispatchId, contractorName }: Re
     }
   };
 
-  if (status === 'success') {
-    return <span className="text-xs text-green-600">Resent!</span>;
-  }
-
-  if (status === 'error') {
-    return <span className="text-xs text-red-600">Failed</span>;
-  }
-
   return (
-    <Button
-      size="sm"
-      variant="ghost"
-      className="text-xs h-7 px-2"
-      onClick={handleResend}
-      disabled={isLoading}
-      title={`Resend to ${contractorName}`}
-    >
-      {isLoading ? 'Sending...' : 'Resend'}
-    </Button>
+    <>
+      <Button
+        size="sm"
+        variant="ghost"
+        className="text-xs h-7 px-2"
+        onClick={handleResend}
+        disabled={isLoading || status === 'success'}
+        title={`Resend to ${contractorName}`}
+      >
+        {isLoading ? 'Sending...' : status === 'success' ? 'Resent!' : 'Resend'}
+      </Button>
+      {status === 'success' && <Toast message={`Request resent to ${contractorName}`} type="success" />}
+      {status === 'error' && <Toast message="Failed to resend request" type="error" />}
+    </>
   );
 }

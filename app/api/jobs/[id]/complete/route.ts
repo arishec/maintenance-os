@@ -19,7 +19,7 @@ export async function POST(
   // Enforce valid transitions
   const allowed = JOB_VALID_TRANSITIONS[job.status] || [];
   if (!allowed.includes('completed')) {
-    return apiError(`Cannot complete a job with status "${job.status}"`, 400);
+    return apiError('This job can\'t be completed right now.', 400);
   }
 
   // Parse optional cost/notes from body

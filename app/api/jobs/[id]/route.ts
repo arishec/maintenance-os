@@ -43,7 +43,7 @@ export async function GET(
 
     return NextResponse.json({ job });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }
@@ -78,7 +78,7 @@ export async function PATCH(
       const allowed = JOB_VALID_TRANSITIONS[job.status] || [];
       if (!allowed.includes(body.status)) {
         return NextResponse.json(
-          { error: `Cannot transition from "${job.status}" to "${body.status}".` },
+          { error: 'This action isn\'t available right now.' },
           { status: 400 }
         );
       }
@@ -218,7 +218,7 @@ export async function PATCH(
 
     return NextResponse.json({ job: updatedJob });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

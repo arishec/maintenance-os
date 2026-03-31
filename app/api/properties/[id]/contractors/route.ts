@@ -40,7 +40,7 @@ export async function GET(
 
     return NextResponse.json({ contractors: propertyContractors });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }
@@ -100,7 +100,7 @@ export async function POST(
 
     return NextResponse.json({ propertyContractor: link }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     const status = message.includes('Unique constraint failed') ? 409 : 400;
     return NextResponse.json({ error: message }, { status });
   }

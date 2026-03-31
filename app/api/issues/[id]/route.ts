@@ -92,7 +92,7 @@ export async function GET(
 
     return NextResponse.json({ issue });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 401 });
   }
 }
@@ -127,7 +127,7 @@ export async function PATCH(
       const allowed = allowedPatchTransitions[issue.status] ?? [];
       if (!allowed.includes(body.status)) {
         return NextResponse.json(
-          { error: `Cannot change status from "${issue.status}" to "${body.status}" directly.` },
+          { error: 'This action isn\'t available right now.' },
           { status: 400 }
         );
       }
@@ -184,7 +184,7 @@ export async function PATCH(
 
     return NextResponse.json({ issue: updatedIssue });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

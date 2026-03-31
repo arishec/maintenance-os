@@ -21,7 +21,7 @@ export async function POST(
 
     if (issue.status === 'active_job') {
       return NextResponse.json(
-        { error: 'Cannot archive an issue with an active job. Complete or cancel the job first.' },
+        { error: 'Please complete or cancel the active job before archiving this issue.' },
         { status: 400 }
       );
     }
@@ -66,7 +66,7 @@ export async function POST(
 
     return NextResponse.json({ issue: updatedIssue });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

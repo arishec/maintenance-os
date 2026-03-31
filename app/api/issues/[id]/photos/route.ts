@@ -27,7 +27,7 @@ export async function GET(
 
     return NextResponse.json({ photos });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 401 });
   }
 }
@@ -52,7 +52,7 @@ export async function POST(
     const existingPhotoCount = await prisma.issuePhoto.count({ where: { issueId: id } });
     if (existingPhotoCount >= 10) {
       return NextResponse.json(
-        { error: 'Maximum 10 photos per issue.' },
+        { error: 'You can upload up to 10 photos per issue.' },
         { status: 400 }
       );
     }
@@ -62,7 +62,7 @@ export async function POST(
 
     if (!file) {
       return NextResponse.json(
-        { error: 'No file provided.' },
+        { error: 'Please select a photo to upload.' },
         { status: 400 }
       );
     }
@@ -70,7 +70,7 @@ export async function POST(
     // Check file size limit (10MB)
     if (file.size > 10 * 1024 * 1024) {
       return NextResponse.json(
-        { error: 'Photo must be under 10MB.' },
+        { error: 'Please choose a photo smaller than 10MB.' },
         { status: 400 }
       );
     }
@@ -87,7 +87,7 @@ export async function POST(
 
     if (uploadError) {
       return NextResponse.json(
-        { error: `Upload failed: ${uploadError.message}` },
+        { error: 'We couldn\'t upload your photo. Please try again.' },
         { status: 400 }
       );
     }
@@ -129,8 +129,7 @@ export async function POST(
 
     return NextResponse.json({ photo }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    console.error('[photos/POST] Error:', message, error);
-    return NextResponse.json({ error: message }, { status: 400 });
+    console.error('[photos/POST] Error:', error);
+    return NextResponse.json({ error: 'We encountered an error uploading your photo. Please try again.' }, { status: 400 });
   }
 }

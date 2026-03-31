@@ -19,7 +19,7 @@ export async function POST(
   // Enforce valid transitions
   const allowed = JOB_VALID_TRANSITIONS[job.status] || [];
   if (!allowed.includes('in_progress')) {
-    return apiError(`Cannot start a job with status "${job.status}"`, 400);
+    return apiError('This job can\'t be started right now.', 400);
   }
 
   const now = new Date();

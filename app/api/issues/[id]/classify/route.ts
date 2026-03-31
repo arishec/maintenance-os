@@ -25,7 +25,7 @@ export async function POST(
     const noReclassifyStatuses = ['active_job', 'completed', 'canceled', 'archived'];
     if (noReclassifyStatuses.includes(issue.status)) {
       return NextResponse.json(
-        { error: `Cannot reclassify an issue in "${issue.status}" status.` },
+        { error: 'This issue can\'t be reclassified at this stage.' },
         { status: 400 }
       );
     }
@@ -92,7 +92,7 @@ export async function POST(
 
     return NextResponse.json({ issue: updatedIssue });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

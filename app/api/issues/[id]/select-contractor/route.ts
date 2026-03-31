@@ -34,7 +34,7 @@ export async function POST(
 
     if (issue.status !== 'quotes_received') {
       return NextResponse.json(
-        { error: 'Issue must be in quotes_received status to select a contractor.' },
+        { error: 'You can only select a contractor after receiving quotes.' },
         { status: 400 }
       );
     }
@@ -76,7 +76,7 @@ export async function POST(
       });
 
       if (existingActiveJob) {
-        throw new Error('CONTRACTOR_ALREADY_SELECTED');
+        throw new Error('A contractor has already been hired for this issue.');
       }
 
       // Create job
@@ -256,11 +256,11 @@ export async function POST(
     return NextResponse.json({ job }, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors[0]?.message || 'Invalid input' }, { status: 400 });
+      return NextResponse.json({ error: error.errors[0]?.message || 'Please check your input and try again.' }, { status: 400 });
     }
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    if (message === 'CONTRACTOR_ALREADY_SELECTED') {
-      return NextResponse.json({ error: 'CONTRACTOR_ALREADY_SELECTED' }, { status: 409 });
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
+    if (message === 'A contractor has already been hired for this issue.') {
+      return NextResponse.json({ error: 'A contractor has already been hired for this issue.' }, { status: 409 });
     }
     return NextResponse.json({ error: message }, { status: 400 });
   }

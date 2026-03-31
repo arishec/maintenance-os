@@ -5,12 +5,12 @@ import { prisma } from '@/lib/prisma';
 import { logTimelineEvent } from '@/lib/timeline';
 
 const propertySchema = z.object({
-  nickname: z.string().min(1).optional(),
-  addressLine1: z.string().min(1),
-  addressLine2: z.string().optional(),
-  city: z.string().min(1),
-  state: z.string().min(1),
-  postalCode: z.string().min(1),
+  nickname: z.string().min(1).max(100).optional(),
+  addressLine1: z.string().min(1).max(200),
+  addressLine2: z.string().max(200).optional(),
+  city: z.string().min(1).max(100),
+  state: z.string().min(1).max(50),
+  postalCode: z.string().min(1).max(20),
   propertyType: z.enum(['single_family', 'condo', 'apartment', 'townhouse', 'duplex', 'other']),
 });
 
@@ -23,7 +23,7 @@ export async function GET() {
     });
     return NextResponse.json({ properties });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 401 });
   }
 }
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json({ property }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }
