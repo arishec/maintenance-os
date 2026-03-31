@@ -63,6 +63,7 @@ export function LayoutShell({ children }: { children: ReactNode }) {
             </nav>
           </div>
           <div className="flex items-center gap-3">
+            <NotificationsBell dropDirection="down" />
             <UserButton afterSignOutUrl="/" />
           </div>
         </div>
@@ -159,10 +160,6 @@ export function LayoutShell({ children }: { children: ReactNode }) {
               ))}
             </div>
 
-            <div className="mt-4 border-t border-border pt-4 px-2 flex items-center justify-between gap-2">
-              <NotificationsBell />
-              <UserButton afterSignOutUrl="/" />
-            </div>
           </div>
         </div>
       )}
@@ -199,10 +196,6 @@ export function LayoutShell({ children }: { children: ReactNode }) {
               );
             })}
           </nav>
-          <div className="mt-4 border-t border-border pt-4 px-2 flex items-center justify-between gap-2">
-            <NotificationsBell />
-            <UserButton afterSignOutUrl="/" />
-          </div>
         </aside>
 
         <main className="min-w-0">{children}</main>
