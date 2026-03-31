@@ -202,6 +202,33 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
     });
   }
 
+  // 4b. Scheduled jobs without a date — contractor confirmed but no date set yet
+  const scheduledNeedsDate = await prisma.job.findMany({
+    where: {
+      issue: { propertyId: { in: propertyIds } },
+      status: 'scheduled',
+      scheduledFor: null,
+    },
+    select: {
+      issueId: true,
+      updatedAt: true,
+      contractor: { select: { name: true } },
+      issue: { select: { title: true, propertyId: true } },
+    },
+  });
+  for (const job of scheduledNeedsDate) {
+    items.push({
+      issueId: job.issueId,
+      issueTitle: job.issue.title ?? 'Untitled issue',
+      propertyName: propertyMap.get(job.issue.propertyId) ?? '',
+      reason: `${job.contractor.name} confirmed — set a date to lock in the schedule`,
+      actionLabel: 'Set date',
+      actionHref: `/issues/${job.issueId}`,
+      urgency: 'high',
+      timestamp: job.updatedAt,
+    });
+  }
+
   // 5. Active jobs in progress — user should monitor / confirm completion
   const activeJobs = await prisma.job.findMany({
     where: {
@@ -232,15 +259,15 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
     });
   }
 
-  // 6. Scheduled jobs happening today — user should be aware
+  // 6. Scheduled jobs with a date — today or upcoming
   const now = new Date();
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
-  const scheduledToday = await prisma.job.findMany({
+  const scheduledWithDate = await prisma.job.findMany({
     where: {
       issue: { propertyId: { in: propertyIds } },
       status: 'scheduled',
-      scheduledFor: { gte: startOfDay, lt: endOfDay },
+      scheduledFor: { not: null },
     },
     select: {
       issueId: true,
@@ -249,15 +276,20 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
       issue: { select: { title: true, propertyId: true } },
     },
   });
-  for (const job of scheduledToday) {
+  for (const job of scheduledWithDate) {
+    const isToday = job.scheduledFor! >= startOfDay && job.scheduledFor! < endOfDay;
+    const isFuture = job.scheduledFor! >= endOfDay;
+    const dateStr = job.scheduledFor!.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     items.push({
       issueId: job.issueId,
       issueTitle: job.issue.title ?? 'Untitled issue',
       propertyName: propertyMap.get(job.issue.propertyId) ?? '',
-      reason: `${job.contractor.name} arriving today — be available or confirm access`,
-      actionLabel: 'View details',
+      reason: isToday
+        ? `${job.contractor.name} arriving today — be available or confirm access`
+        : `${job.contractor.name} scheduled for ${dateStr} — track upcoming work`,
+      actionLabel: isToday ? 'View details' : 'View job',
       actionHref: `/issues/${job.issueId}`,
-      urgency: 'medium',
+      urgency: isToday ? 'high' : 'medium',
       timestamp: job.scheduledFor ?? now,
     });
   }
@@ -444,6 +476,8 @@ export async function getRecentActivityItems(userId: string): Promise<ActivityIt
       eventType: {
         in: [
           'contractor_replied',
+          'contractor_confirmed',
+          'contractor_declined',
           'owner_reply_sent',
           'contractor_selected',
           'job_completed',
@@ -466,6 +500,8 @@ export async function getRecentActivityItems(userId: string): Promise<ActivityIt
 
   const eventDescriptions: Record<string, string> = {
     contractor_replied: 'Contractor replied',
+    contractor_confirmed: 'Contractor confirmed the job',
+    contractor_declined: 'Contractor declined the job',
     owner_reply_sent: 'You replied to contractor',
     contractor_selected: 'Contractor selected',
     job_completed: 'Job completed',
