@@ -43,6 +43,7 @@ export default async function ContractorDetailPage({
   }
 
   const completedJobs = contractor.jobs.filter((job) => job.status === 'completed').length;
+  const activeJobs = contractor.jobs.filter((job) => ['selected', 'scheduled', 'in_progress'].includes(job.status)).length;
   const dispatchCount = contractor.dispatches.length;
 
   return (
@@ -120,20 +121,26 @@ export default async function ContractorDetailPage({
             <CardTitle>Activity</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {dispatchCount === 0 && completedJobs === 0 ? (
+            {dispatchCount === 0 && completedJobs === 0 && activeJobs === 0 ? (
               <p className="text-sm text-muted-foreground">No activity yet — dispatch an issue to this contractor to get started.</p>
             ) : (
               <>
-                {dispatchCount > 0 && (
+                {activeJobs > 0 && (
                   <div>
-                    <p className="text-sm text-muted-foreground">Dispatches Sent</p>
-                    <p className="text-2xl font-bold mt-1">{dispatchCount}</p>
+                    <p className="text-sm text-muted-foreground">Active Jobs</p>
+                    <p className="text-2xl font-bold mt-1 text-blue-600">{activeJobs}</p>
                   </div>
                 )}
                 {completedJobs > 0 && (
                   <div>
                     <p className="text-sm text-muted-foreground">Jobs Completed</p>
                     <p className="text-2xl font-bold mt-1">{completedJobs}</p>
+                  </div>
+                )}
+                {dispatchCount > 0 && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Dispatches Sent</p>
+                    <p className="text-2xl font-bold mt-1">{dispatchCount}</p>
                   </div>
                 )}
               </>
