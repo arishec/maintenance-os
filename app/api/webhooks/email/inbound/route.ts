@@ -234,6 +234,13 @@ export async function POST(request: NextRequest) {
     }
 
     const { issue, contractor } = matchingDispatch;
+
+    // Guard: reject replies to canceled/archived issues — don't resurrect them
+    if (['canceled', 'archived'].includes(issue.status)) {
+      console.warn(`[WEBHOOK] Ignoring late reply from ${from} — issue ${issue.id} is ${issue.status}`);
+      return NextResponse.json({ success: true }, { status: 200 });
+    }
+
     const isJobConfirmation = matchingDispatch.status === 'accepted';
 
     // Idempotency check by content

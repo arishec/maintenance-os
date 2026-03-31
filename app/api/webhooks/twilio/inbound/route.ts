@@ -129,6 +129,13 @@ export async function POST(request: NextRequest) {
     }
 
     const { issue, contractor } = matchingDispatch;
+
+    // Guard: reject replies to canceled/archived issues — don't resurrect them
+    if (['canceled', 'archived'].includes(issue.status)) {
+      console.warn(`[TWILIO WEBHOOK] Ignoring late reply from ${from} — issue ${issue.id} is ${issue.status}`);
+      return getTwiMLResponse();
+    }
+
     const isJobConfirmation = matchingDispatch.status === 'accepted';
 
     // Fallback idempotency: check by dispatch + raw message text

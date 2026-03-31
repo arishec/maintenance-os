@@ -26,6 +26,15 @@ export async function POST(
       );
     }
 
+    // Close any open dispatches so late replies don't resurrect the issue
+    await prisma.dispatch.updateMany({
+      where: {
+        issueId: id,
+        status: { in: ['queued', 'sent', 'delivered', 'replied'] },
+      },
+      data: { status: 'closed', closedReason: 'issue_archived' } as any,
+    });
+
     const updatedIssue = await prisma.issue.update({
       where: { id },
       data: { status: 'archived' },

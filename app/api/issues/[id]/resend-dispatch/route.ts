@@ -82,8 +82,13 @@ export async function POST(
     }
 
     if (sentSuccessfully) {
-      // Create a NEW dispatch row for the resend — preserves the original token
-      // so late replies to the first message still match correctly.
+      // Close the old dispatch so the old reply token won't create duplicate responses
+      await prisma.dispatch.update({
+        where: { id: dispatch.id },
+        data: { status: 'closed', closedReason: 'resent' } as any,
+      });
+
+      // Create a NEW dispatch row for the resend with fresh token
       const newDispatch = await prisma.dispatch.create({
         data: {
           issueId,

@@ -155,6 +155,25 @@ export async function PATCH(
       },
     });
 
+    // When canceling: close all open dispatches so late replies don't resurrect the issue
+    if (body.status === 'canceled') {
+      await prisma.dispatch.updateMany({
+        where: {
+          issueId: id,
+          status: { in: ['queued', 'sent', 'delivered', 'replied'] },
+        },
+        data: { status: 'closed', closedReason: 'issue_canceled' } as any,
+      });
+      // Also cancel any active jobs
+      await prisma.job.updateMany({
+        where: {
+          issueId: id,
+          status: { in: ['selected', 'scheduled', 'in_progress'] },
+        },
+        data: { status: 'canceled' },
+      });
+    }
+
     await logTimelineEvent({
       propertyId: updatedIssue.propertyId,
       issueId: updatedIssue.id,

@@ -603,17 +603,19 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
                         {isSelected && (
                           <Badge className="bg-green-100 text-green-800">You selected this contractor</Badge>
                         )}
-                        <ReplyToContractorButton
-                          issueId={issue.id}
-                          contractorId={dispatch.contractorId}
-                          contractorResponseId={response.id}
-                          contractorName={dispatch.contractor.name}
-                          contractorEmail={dispatch.contractor.email}
-                          contractorPhone={dispatch.contractor.phone}
-                          dispatchChannel={dispatch.channel}
-                          issueTitle={issue.title || 'Maintenance request'}
-                          hasExistingReply={!!(response.outboundMessages && response.outboundMessages.length > 0)}
-                        />
+                        {!['canceled', 'completed', 'archived'].includes(issue.status) && (
+                          <ReplyToContractorButton
+                            issueId={issue.id}
+                            contractorId={dispatch.contractorId}
+                            contractorResponseId={response.id}
+                            contractorName={dispatch.contractor.name}
+                            contractorEmail={dispatch.contractor.email}
+                            contractorPhone={dispatch.contractor.phone}
+                            dispatchChannel={dispatch.channel}
+                            issueTitle={issue.title || 'Maintenance request'}
+                            hasExistingReply={!!(response.outboundMessages && response.outboundMessages.length > 0)}
+                          />
+                        )}
                       </div>
                     )}
                   </div>
