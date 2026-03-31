@@ -123,6 +123,29 @@ export default async function IssuesPage({
 
   const hasActiveFilters = propertyFilter || urgencyFilter || categoryFilter || searchFilter;
 
+  // Only show view tabs that have issues (always show All and Open)
+  const viewCounts = await prisma.issue.groupBy({
+    by: ['status'],
+    where: { propertyId: { in: propertyIds } },
+    _count: true,
+  });
+  const statusCountMap = new Map(viewCounts.map((v) => [v.status, v._count]));
+  const alwaysShowViews = new Set(['all', 'open']);
+  const viewsWithIssues = Object.entries(VIEW_STATUS_MAP).filter(([key, statuses]) => {
+    if (alwaysShowViews.has(key)) return true;
+    if (key === currentView) return true; // always show the active tab
+    if (!statuses) return true;
+    return statuses.some((s) => (statusCountMap.get(s) ?? 0) > 0);
+  }).map(([key]) => key);
+
+  // Only show urgency filters that exist in user's issues
+  const usedUrgencies = await prisma.issue.findMany({
+    where: { propertyId: { in: propertyIds }, urgency: { not: null } },
+    select: { urgency: true },
+    distinct: ['urgency'],
+  });
+  const urgenciesWithIssues = new Set(usedUrgencies.map((u) => u.urgency as string));
+
   // Only show category filters that actually exist in the user's issues
   const usedCategories = await prisma.issue.findMany({
     where: { property: { ownerUserId: user.id }, category: { not: null } },
@@ -147,7 +170,7 @@ export default async function IssuesPage({
 
         {/* View tabs */}
         <div className="flex overflow-x-auto gap-1 -mx-1 px-1 pb-1 no-scrollbar">
-          {Object.entries(VIEW_LABELS).map(([key, label]) => {
+          {Object.entries(VIEW_LABELS).filter(([key]) => viewsWithIssues.includes(key)).map(([key, label]) => {
             const isActive = currentView === key;
             return (
               <Link
@@ -168,7 +191,8 @@ export default async function IssuesPage({
           })}
         </div>
 
-        {/* Filter bar */}
+        {/* Filter bar — only show if there are filters to display */}
+        {(properties.length > 1 || urgenciesWithIssues.size > 0 || categories.length > 0 || hasActiveFilters) && (
         <div className="flex flex-wrap items-center gap-2 pb-1">
           {/* Property filter */}
           {properties.length > 1 && (
@@ -198,9 +222,9 @@ export default async function IssuesPage({
             </div>
           )}
 
-          {/* Urgency filter */}
+          {/* Urgency filter — only show urgencies that exist */}
           <div className="flex items-center gap-1">
-            {['emergency', 'high', 'medium', 'low'].map((u) => {
+            {['emergency', 'high', 'medium', 'low'].filter((u) => urgencyFilter === u || urgenciesWithIssues.has(u)).map((u) => {
               const isActive = urgencyFilter === u;
               return (
                 <Link
@@ -260,6 +284,7 @@ export default async function IssuesPage({
             </Link>
           )}
         </div>
+        )}
 
         {/* Results */}
         {issues.length === 0 ? (

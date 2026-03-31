@@ -27,7 +27,9 @@ export default async function DashboardPage() {
   const properties = await prisma.property.findMany({ where: { ownerUserId: user.id }, select: { id: true, nickname: true, addressLine1: true } });
   const contractorCount = await prisma.contractor.count({ where: { ownerUserId: user.id, isArchived: false } });
   const issueCount = await prisma.issue.count({ where: { propertyId: { in: properties.map((p) => p.id) } } });
-  const isNewUser = properties.length === 0 || contractorCount === 0 || issueCount === 0;
+  const stepsComplete = [properties.length > 0, contractorCount > 0, issueCount > 0];
+  const completedCount = stepsComplete.filter(Boolean).length;
+  const isNewUser = completedCount < 3;
 
   // Fetch all dashboard data in parallel
   const [attentionItems, scheduledToday, waitingItems, recentActivity, counts] = await Promise.all([
@@ -44,7 +46,15 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-semibold">Dashboard</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {isNewUser ? 'Welcome! Get set up in 3 quick steps.' : 'What needs your attention today.'}
+            {isNewUser
+              ? 'Welcome! Get set up in 3 quick steps.'
+              : attentionItems.length > 0
+                ? `${attentionItems.length} item${attentionItems.length !== 1 ? 's' : ''} need${attentionItems.length === 1 ? 's' : ''} your attention`
+                : scheduledToday.length > 0
+                  ? `${scheduledToday.length} job${scheduledToday.length !== 1 ? 's' : ''} scheduled today`
+                  : waitingItems.length > 0
+                    ? `Waiting on ${waitingItems.length} contractor response${waitingItems.length !== 1 ? 's' : ''}`
+                    : 'Everything looks good — you\u2019re all caught up.'}
           </p>
         </div>
 
@@ -52,7 +62,7 @@ export default async function DashboardPage() {
         {isNewUser && (
           <Card className="border-blue-200 bg-blue-50/50">
             <CardContent className="py-6">
-              <h2 className="text-base font-semibold mb-4">Get started</h2>
+              <h2 className="text-base font-semibold mb-4">{completedCount === 0 ? 'Get started in 3 steps' : `${completedCount} of 3 steps done — almost there!`}</h2>
               <div className="grid gap-3 sm:grid-cols-3">
                 <Link href="/properties" className={`flex items-start gap-3 rounded-lg border p-4 transition-colors ${properties.length > 0 ? 'border-green-300 bg-green-50' : 'border-blue-300 bg-white hover:bg-blue-50'}`}>
                   <span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${properties.length > 0 ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}>

@@ -52,73 +52,78 @@ export default async function HistoryPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center py-8">
-              <p className="text-muted-foreground mb-2">No completed or canceled issues yet.</p>
-              <p className="text-muted-foreground/70 text-xs">Once a repair is finished or canceled, it will appear here with its final details.</p>
+              <p className="text-muted-foreground mb-2">No completed repairs yet.</p>
+              <p className="text-muted-foreground/70 text-xs">Issues will appear here once they&apos;re finished. Go report one to get started!</p>
             </div>
           </CardContent>
         </Card>
-      ) : (
-        <Card>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="border-b border-border bg-muted/50">
-                  <tr className="text-muted-foreground">
-                    <th className="text-left p-4 font-medium">Date Completed</th>
-                    <th className="text-left p-4 font-medium">Property</th>
-                    <th className="text-left p-4 font-medium">Issue</th>
-                    <th className="text-left p-4 font-medium">Category</th>
-                    <th className="text-left p-4 font-medium">Contractor</th>
-                    <th className="text-left p-4 font-medium">Cost</th>
-                    <th className="text-left p-4 font-medium">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {completedIssues.map((issue) => (
-                    <tr key={issue.id} className="border-b border-border hover:bg-muted/30 transition-colors">
-                      <td className="p-4 text-muted-foreground text-xs">{issue.completedAt ? new Date(issue.completedAt).toLocaleDateString() : '—'}</td>
-                      <td className="p-4 text-muted-foreground">{issue.property.nickname || 'Unnamed Property'}</td>
-                      <td className="p-4">
-                        <Link href={`/issues/${issue.id}`} className="font-medium hover:underline">
-                          {issue.title || 'Untitled Issue'}
-                        </Link>
-                      </td>
-                      <td className="p-4">
-                        <Badge className="border-slate-200 bg-slate-50 text-slate-700">{getCategoryLabel(issue.category)}</Badge>
-                      </td>
-                      <td className="p-4 text-muted-foreground text-sm">
-                        {issue.jobs.length > 0 ? (
-                          <div className="space-y-1">
-                            {issue.jobs.map((job) => (
-                              <div key={job.id}>{job.contractor.name}</div>
-                            ))}
-                          </div>
-                        ) : (
-                          '—'
-                        )}
-                      </td>
-                      <td className="p-4 text-muted-foreground text-sm">
-                        {issue.jobs.length > 0 ? (
-                          <div className="space-y-1">
-                            {issue.jobs.map((job) => (
-                              <div key={job.id}>{formatCurrency(job.selectedEstimate ? parseFloat(job.selectedEstimate.toString()) : undefined)}</div>
-                            ))}
-                          </div>
-                        ) : (
-                          '—'
-                        )}
-                      </td>
-                      <td className="p-4">
-                        <Badge className={getIssueStatusColor(issue.status)}>{getIssueStatusLabel(issue.status)}</Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      ) : (() => {
+        const hasCosts = completedIssues.some((i) => i.jobs.some((j) => j.selectedEstimate));
+        const hasCategories = completedIssues.some((i) => i.category);
+        const completedCount = completedIssues.filter((i) => i.status === 'completed').length;
+        const canceledCount = completedIssues.filter((i) => i.status === 'canceled').length;
+        return (
+          <>
+            <p className="text-sm text-muted-foreground mb-4">
+              {completedCount > 0 && `${completedCount} completed`}{completedCount > 0 && canceledCount > 0 && ', '}{canceledCount > 0 && `${canceledCount} canceled`}
+              {hasCosts && (() => {
+                const total = completedIssues.reduce((sum, i) => sum + i.jobs.reduce((s, j) => s + (j.selectedEstimate ? parseFloat(j.selectedEstimate.toString()) : 0), 0), 0);
+                return total > 0 ? ` \u2014 ${formatCurrency(total)} total` : '';
+              })()}
+            </p>
+            <Card>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="border-b border-border bg-muted/50">
+                      <tr className="text-muted-foreground">
+                        <th className="text-left p-4 font-medium">Date</th>
+                        <th className="text-left p-4 font-medium">Property</th>
+                        <th className="text-left p-4 font-medium">Issue</th>
+                        {hasCategories && <th className="text-left p-4 font-medium">Category</th>}
+                        <th className="text-left p-4 font-medium">Contractor</th>
+                        {hasCosts && <th className="text-left p-4 font-medium">Cost</th>}
+                        <th className="text-left p-4 font-medium">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {completedIssues.map((issue) => (
+                        <tr key={issue.id} className="border-b border-border hover:bg-muted/30 transition-colors">
+                          <td className="p-4 text-muted-foreground text-xs">{issue.completedAt ? new Date(issue.completedAt).toLocaleDateString() : '—'}</td>
+                          <td className="p-4 text-muted-foreground">{issue.property.nickname || issue.property.addressLine1}</td>
+                          <td className="p-4">
+                            <Link href={`/issues/${issue.id}`} className="font-medium hover:underline">
+                              {issue.title || 'Untitled Issue'}
+                            </Link>
+                          </td>
+                          {hasCategories && (
+                            <td className="p-4">
+                              {issue.category ? <Badge className="border-slate-200 bg-slate-50 text-slate-700">{getCategoryLabel(issue.category)}</Badge> : '—'}
+                            </td>
+                          )}
+                          <td className="p-4 text-muted-foreground text-sm">
+                            {issue.jobs.length > 0 ? issue.jobs.map((job) => job.contractor.name).join(', ') : '—'}
+                          </td>
+                          {hasCosts && (
+                            <td className="p-4 text-muted-foreground text-sm">
+                              {issue.jobs.length > 0
+                                ? issue.jobs.map((job) => formatCurrency(job.selectedEstimate ? parseFloat(job.selectedEstimate.toString()) : undefined)).join(', ')
+                                : '—'}
+                            </td>
+                          )}
+                          <td className="p-4">
+                            <Badge className={getIssueStatusColor(issue.status)}>{getIssueStatusLabel(issue.status)}</Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        );
+      })()}
     </LayoutShell>
   );
 }

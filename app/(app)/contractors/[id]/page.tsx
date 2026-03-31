@@ -120,18 +120,26 @@ export default async function ContractorDetailPage({
             <CardTitle>Activity</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {dispatchCount === 0 && completedJobs === 0 ? (
+              <p className="text-sm text-muted-foreground">No activity yet — dispatch an issue to this contractor to get started.</p>
+            ) : (
+              <>
+                {dispatchCount > 0 && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Dispatches Sent</p>
+                    <p className="text-2xl font-bold mt-1">{dispatchCount}</p>
+                  </div>
+                )}
+                {completedJobs > 0 && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Jobs Completed</p>
+                    <p className="text-2xl font-bold mt-1">{completedJobs}</p>
+                  </div>
+                )}
+              </>
+            )}
             <div>
-              <p className="text-sm text-muted-foreground">Dispatches Sent</p>
-              <p className="text-2xl font-bold mt-1">{dispatchCount}</p>
-            </div>
-
-            <div>
-              <p className="text-sm text-muted-foreground">Jobs Completed</p>
-              <p className="text-2xl font-bold mt-1">{completedJobs}</p>
-            </div>
-
-            <div>
-              <p className="text-sm text-muted-foreground">Member Since</p>
+              <p className="text-sm text-muted-foreground">Added</p>
               <p className="text-base font-medium mt-1">
                 {new Date(contractor.createdAt).toLocaleDateString()}
               </p>
