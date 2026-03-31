@@ -7,8 +7,9 @@ export async function createNotification(input: {
   title: string;
   body: string;
   issueId?: string;
-}) {
-  return prisma.notification.create({
+}, tx?: any) {
+  const db = tx || prisma;
+  return db.notification.create({
     data: input,
   });
 }

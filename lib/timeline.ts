@@ -13,8 +13,9 @@ interface LogTimelineEventInput {
   payload?: Prisma.InputJsonValue;
 }
 
-export async function logTimelineEvent(input: LogTimelineEventInput) {
-  return prisma.timelineEvent.create({
+export async function logTimelineEvent(input: LogTimelineEventInput, tx?: any) {
+  const db = tx || prisma;
+  return db.timelineEvent.create({
     data: {
       propertyId: input.propertyId,
       issueId: input.issueId,

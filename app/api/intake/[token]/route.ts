@@ -13,10 +13,10 @@ function hashToken(token: string): string {
 }
 
 const submitIssueSchema = z.object({
-  reporterName: z.string().max(200).optional(),
-  reporterContact: z.string().max(200).optional(),
-  description: z.string().min(5).max(5000),
-  locationInProperty: z.string().max(200).optional(),
+  reporterName: z.string().max(200).optional().transform((v) => v?.trim() || undefined),
+  reporterContact: z.string().max(200).optional().transform((v) => v?.trim() || undefined),
+  description: z.string().min(5).max(5000).transform((v) => v.trim()),
+  locationInProperty: z.string().max(200).optional().transform((v) => v?.trim() || undefined),
   urgencyHint: z.enum(['emergency', 'urgent', 'normal', 'not_sure']).optional(),
   signals: z.array(z.string()).optional(),
 });
@@ -52,8 +52,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: 'We encountered an error. Please try again.' }, { status: 500 });
   }
 }
 
@@ -63,7 +62,8 @@ export async function POST(
 ) {
   try {
     // Rate limit: 10 submissions per minute per IP
-    const ip = request.headers.get('x-forwarded-for') ?? 'unknown';
+    const forwardedFor = request.headers.get('x-forwarded-for') ?? '';
+    const ip = forwardedFor.split(',')[0]?.trim() || 'unknown';
     const { allowed } = issueCreateLimiter.check(ip);
     if (!allowed) {
       return NextResponse.json({ error: 'Too many submissions. Please wait a moment.' }, { status: 429 });
@@ -84,42 +84,57 @@ export async function POST(
       );
     }
 
-    const body = submitIssueSchema.parse(await request.json());
+    let body: SubmitIssueInput;
+    try {
+      body = submitIssueSchema.parse(await request.json());
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return NextResponse.json(
+          { error: 'Invalid input. Please check your submission and try again.' },
+          { status: 400 }
+        );
+      }
+      throw err;
+    }
 
-    // Create the issue
-    const issue = await prisma.issue.create({
-      data: {
-        reference: generateIssueReference(),
+    // Create issue + timeline + notification in a transaction
+    const issue = await prisma.$transaction(async (tx) => {
+      const newIssue = await tx.issue.create({
+        data: {
+          reference: generateIssueReference(),
+          propertyId: intakeLink.property.id,
+          sourceType: 'tenant_link',
+          reporterName: body.reporterName,
+          reporterContact: body.reporterContact,
+          description: body.description,
+          locationInProperty: body.locationInProperty,
+          status: 'new',
+        },
+      });
+
+      // Log timeline event
+      await logTimelineEvent({
         propertyId: intakeLink.property.id,
-        sourceType: 'tenant_link',
-        reporterName: body.reporterName,
-        reporterContact: body.reporterContact,
-        description: body.description,
-        locationInProperty: body.locationInProperty,
-        status: 'new',
-      },
-    });
+        issueId: newIssue.id,
+        actorType: 'tenant',
+        actorLabel: body.reporterName,
+        eventType: 'issue_submitted_by_tenant',
+        payload: {
+          reporterName: body.reporterName,
+          reporterContact: body.reporterContact,
+        },
+      }, tx);
 
-    // Log timeline event (do this right after issue creation, before classification)
-    await logTimelineEvent({
-      propertyId: intakeLink.property.id,
-      issueId: issue.id,
-      actorType: 'tenant',
-      actorLabel: body.reporterName,
-      eventType: 'issue_submitted_by_tenant',
-      payload: {
-        reporterName: body.reporterName,
-        reporterContact: body.reporterContact,
-      },
-    });
+      // Create notification for property owner
+      const descriptionPreview = body.description.substring(0, 100);
+      await createNotification({
+        userId: intakeLink.property.ownerUserId,
+        type: 'tenant_issue_submitted',
+        title: 'New tenant issue',
+        body: `Tenant reported: ${descriptionPreview}${body.description.length > 100 ? '...' : ''}`,
+      }, tx);
 
-    // Create notification for property owner
-    const descriptionPreview = body.description.substring(0, 100);
-    await createNotification({
-      userId: intakeLink.property.ownerUserId,
-      type: 'tenant_issue_submitted',
-      title: 'New tenant issue',
-      body: `Tenant reported: ${descriptionPreview}${body.description.length > 100 ? '...' : ''}`,
+      return newIssue;
     });
 
     // Run AI classification — treat as secondary enrichment
@@ -141,8 +156,9 @@ export async function POST(
         photoDescriptions,
       });
 
-      classifiedIssue = await prisma.issue.update({
-        where: { id: issue.id },
+      // Only update if issue is still in 'new' status (race guard)
+      const updated = await prisma.issue.updateMany({
+        where: { id: issue.id, status: 'new' },
         data: {
           title: classification.title,
           category: classification.category,
@@ -152,13 +168,14 @@ export async function POST(
           recommendedTrade: classification.recommendedTrade,
           aiConfidence: classification.confidenceScore,
           status: 'classified',
-          usageMetrics: {
-            create: {
-              aiRequestCount: 1,
-            },
-          },
         },
       });
+
+      if (updated.count > 0) {
+        classifiedIssue = await prisma.issue.findUniqueOrThrow({
+          where: { id: issue.id },
+        });
+      }
     } catch (classificationError) {
       // Classification failed — issue stays as 'new' with no enrichment
       // This is fine: owner can see and manually classify it
@@ -182,7 +199,6 @@ export async function POST(
       { status: 201 }
     );
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'We encountered an error. Please try again.';
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: 'We encountered an error. Please try again.' }, { status: 400 });
   }
 }
