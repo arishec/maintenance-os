@@ -184,9 +184,11 @@ export async function POST(
       let providerMessageId: string | null = null;
 
       // Send based on channel
+      console.log(`[DISPATCH] Sending via ${reqContractor.channel} to ${contractor.name} (${reqContractor.channel === 'email' ? contractor.email : contractor.phone})`);
       try {
         if (reqContractor.channel === 'sms') {
           const response = await sendRepairRequestSms(contractor.phone!, smsMessage);
+          console.log('[DISPATCH] SMS response:', JSON.stringify({ sid: response.sid }));
           if (response.sid) {
             providerMessageId = response.sid;
             smsCount++;
@@ -201,6 +203,7 @@ export async function POST(
             emailBody,
             `replies+${replyToken}@ifbids.com`
           );
+          console.log('[DISPATCH] Email response:', JSON.stringify({ data: response.data, error: response.error }));
           if (response.data?.id) {
             providerMessageId = response.data.id;
             emailCount++;
@@ -210,6 +213,7 @@ export async function POST(
           }
         }
       } catch (error) {
+        console.error('[DISPATCH] Send threw exception:', error);
         // Log the error but continue to next contractor
         // Update dispatch as failed
         await prisma.dispatch.update({
