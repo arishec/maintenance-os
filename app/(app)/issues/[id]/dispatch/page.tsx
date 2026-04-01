@@ -32,6 +32,31 @@ function formatLabel(value: string): string {
   return value.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
+function formatContractorStats(stats?: ContractorStats): string | null {
+  if (!stats) return null;
+  const parts: string[] = [];
+
+  // Jobs or dispatches
+  if (stats.completedJobs > 0) {
+    parts.push(`${stats.completedJobs} job${stats.completedJobs !== 1 ? 's' : ''} completed`);
+  } else if (stats.totalDispatches > 0) {
+    parts.push(`contacted ${stats.totalDispatches}x`);
+  }
+
+  // Response speed
+  if (stats.totalDispatches >= 2) {
+    if (stats.replied === 0) {
+      parts.push('no responses');
+    } else if (stats.avgResponseMs !== null) {
+      const hours = stats.avgResponseMs / (1000 * 60 * 60);
+      if (hours < 2) parts.push('responds quickly');
+      else if (hours < 24) parts.push('usually responds');
+    }
+  }
+
+  return parts.length > 0 ? parts.join(' · ') : null;
+}
+
 interface Issue {
   id: string;
   title: string | null;
@@ -42,6 +67,15 @@ interface Issue {
   photos: Array<{ id: string; fileUrl: string | null }>;
 }
 
+interface ContractorStats {
+  totalDispatches: number;
+  replied: number;
+  responseRate: number | null;
+  totalJobs: number;
+  completedJobs: number;
+  avgResponseMs: number | null;
+}
+
 interface Contractor {
   id: string;
   name: string;
@@ -49,6 +83,7 @@ interface Contractor {
   phone: string | null;
   email: string | null;
   isPreferred: boolean;
+  stats?: ContractorStats;
 }
 
 interface SelectedContractor {
@@ -85,7 +120,7 @@ export default function DispatchPage() {
   useEffect(() => {
     Promise.all([
       fetch(`/api/issues/${issueId}`).then(r => r.json()),
-      fetch('/api/contractors').then(r => r.json()),
+      fetch('/api/contractors?stats=1').then(r => r.json()),
     ]).then(([issueData, contractorData]) => {
       setIssue(issueData.issue);
       setContractors(contractorData.contractors ?? []);
@@ -320,7 +355,13 @@ export default function DispatchPage() {
                         <input type="checkbox" checked={isSelected} readOnly className="h-5 w-5 rounded flex-shrink-0" />
                         <div className="flex-1 min-w-0">
                           <div className="font-medium">{contractor.name}</div>
-                          <div className="text-xs text-muted-foreground">{contractor.trade.replace(/_/g, ' ')}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {contractor.trade.replace(/_/g, ' ')}
+                            {(() => {
+                              const statsLine = formatContractorStats(contractor.stats);
+                              return statsLine ? <span> · {statsLine}</span> : null;
+                            })()}
+                          </div>
                           <div className="text-xs text-muted-foreground mt-0.5 sm:hidden truncate">
                             {contractor.phone && <span>{formatPhone(contractor.phone)}</span>}
                             {contractor.phone && contractor.email && <span> · </span>}
