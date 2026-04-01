@@ -46,26 +46,50 @@ export function compressImage(file: File): Promise<File> {
 
       ctx.drawImage(img, 0, 0, width, height);
 
-      canvas.toBlob(
-        (blob) => {
-          if (!blob) {
-            return reject(new Error('Canvas compression failed'));
-          }
-          const baseName = file.name.replace(/\.[^.]+$/, '');
-          const compressed = new File([blob], `${baseName}.jpg`, {
-            type: 'image/jpeg',
-            lastModified: Date.now(),
-          });
-          resolve(compressed);
-        },
-        'image/jpeg',
-        JPEG_QUALITY,
-      );
+      // Try compressing at target quality first, then lower if still too big
+      const tryCompress = (quality: number) => {
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              return reject(new Error('Canvas compression failed'));
+            }
+            if (blob.size > MAX_UPLOAD_BYTES && quality > 0.3) {
+              // Still too large — retry with lower quality
+              tryCompress(quality - 0.15);
+              return;
+            }
+            if (blob.size > MAX_UPLOAD_BYTES) {
+              return reject(new Error('Photo is too large even after compression. Please use a smaller photo.'));
+            }
+            const baseName = file.name.replace(/\.[^.]+$/, '');
+            const compressed = new File([blob], `${baseName}.jpg`, {
+              type: 'image/jpeg',
+              lastModified: Date.now(),
+            });
+            resolve(compressed);
+          },
+          'image/jpeg',
+          quality,
+        );
+      };
+
+      tryCompress(JPEG_QUALITY);
     };
 
     img.onerror = () => {
       URL.revokeObjectURL(url);
-      resolve(file);
+      // Image couldn't be loaded (e.g. HEIC on browsers without support).
+      // If the original file is small enough, pass it through; otherwise reject
+      // with a clear message instead of silently sending an oversized file.
+      if (file.size <= MAX_UPLOAD_BYTES) {
+        resolve(file);
+      } else {
+        reject(
+          new Error(
+            'This photo format could not be compressed. Please convert it to JPEG or PNG and try again.'
+          )
+        );
+      }
     };
 
     img.src = url;

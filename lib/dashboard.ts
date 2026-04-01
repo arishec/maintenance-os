@@ -117,6 +117,18 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
     },
   });
 
+  // Batch-fetch all outbound replies for issues with questions (avoids N+1)
+  const questionIssueIds = issuesWithQuestions.map((i) => i.id);
+  const allOutboundReplies = questionIssueIds.length > 0
+    ? await prisma.contractorMessage.findMany({
+        where: {
+          issueId: { in: questionIssueIds },
+          direction: 'outbound',
+        },
+        select: { issueId: true, contractorId: true, createdAt: true },
+      })
+    : [];
+
   for (const issue of issuesWithQuestions) {
     // Only show one question per issue (the most recent unanswered one)
     if (items.some((i) => i.issueId === issue.id)) continue;
@@ -126,15 +138,11 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
       const question = dispatch.responses[0];
       if (!question) continue;
 
-      const replyAfterQuestion = await prisma.contractorMessage.findFirst({
-        where: {
-          issueId: issue.id,
-          contractorId: dispatch.contractorId,
-          direction: 'outbound',
-          createdAt: { gt: question.createdAt },
-        },
-      });
-      if (replyAfterQuestion) continue;
+      // Check if there's an outbound reply after this question (from batch)
+      const hasReply = allOutboundReplies.some(
+        (r) => r.issueId === issue.id && r.contractorId === dispatch.contractorId && r.createdAt > question.createdAt
+      );
+      if (hasReply) continue;
 
       if (!latestQuestion || question.createdAt > latestQuestion.createdAt) {
         latestQuestion = { name: dispatch.contractor.name, createdAt: question.createdAt };

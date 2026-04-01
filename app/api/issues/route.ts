@@ -10,7 +10,7 @@ import { safeErrorMessage } from '@/lib/utils';
 
 const issueSchema = z.object({
   propertyId: z.string().uuid(),
-  description: z.string().min(2, 'Please describe the issue'),
+  description: z.string().min(2, 'Please describe the issue').max(5000, 'Description is too long (max 5000 characters)'),
   locationInProperty: z.string().optional(),
   signals: z.array(z.string()).optional(),
 });

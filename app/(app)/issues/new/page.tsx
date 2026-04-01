@@ -177,8 +177,13 @@ export default function NewIssuePage() {
     return { success, failed };
   }
 
+  const submittingRef = useRef(false);
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    // Prevent double-submit — React state updates are async, so ref is the reliable guard
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setError('');
     setLoading(true);
     setClassifying(true);
@@ -199,6 +204,7 @@ export default function NewIssuePage() {
       setError('Please select a property.');
       setLoading(false);
       setClassifying(false);
+      submittingRef.current = false;
       return;
     }
 
@@ -206,6 +212,7 @@ export default function NewIssuePage() {
       setError('Please describe the issue.');
       setLoading(false);
       setClassifying(false);
+      submittingRef.current = false;
       return;
     }
 
@@ -229,11 +236,13 @@ export default function NewIssuePage() {
           setShowPaywall(true);
           setLoading(false);
           setClassifying(false);
+          submittingRef.current = false;
           return;
         }
         setError(errData.error || 'Failed to create issue.');
         setLoading(false);
         setClassifying(false);
+        submittingRef.current = false;
         return;
       }
 
@@ -281,6 +290,7 @@ export default function NewIssuePage() {
       setError('An error occurred. Please try again.');
       setLoading(false);
       setClassifying(false);
+      submittingRef.current = false;
     }
   }
 
@@ -440,6 +450,7 @@ export default function NewIssuePage() {
               <Textarea
                 name="description"
                 required
+                maxLength={5000}
                 placeholder="Describe the issue in detail..."
                 rows={3}
               />

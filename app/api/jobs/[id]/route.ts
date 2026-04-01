@@ -165,19 +165,29 @@ export async function PATCH(
         });
         console.log(`[JOB CANCEL] Issue ${job.issueId} closed as completed (self-resolved)`);
       } else {
-        // Revert issue status so the owner can re-dispatch or pick another contractor
+        // Revert issue status so the owner can re-dispatch or pick another contractor.
+        // Check for any existing responses from OTHER contractors (regardless of dispatch status,
+        // since selecting a contractor closes all other dispatches as 'not_selected').
         const otherResponses = await prisma.contractorResponse.count({
           where: {
             dispatch: {
               issueId: job.issueId,
               contractorId: { not: job.contractorId },
-              status: { notIn: ['closed', 'failed'] },
             },
+          },
+        });
+        // Also check for dispatches still waiting for replies
+        const pendingDispatches = await prisma.dispatch.count({
+          where: {
+            issueId: job.issueId,
+            status: { in: ['sent', 'delivered', 'queued'] },
           },
         });
         const revertStatus: IssueStatus = otherResponses > 0
           ? 'quotes_received' as IssueStatus
-          : 'awaiting_dispatch' as IssueStatus;
+          : pendingDispatches > 0
+            ? 'awaiting_quotes' as IssueStatus
+            : 'awaiting_dispatch' as IssueStatus;
 
         await prisma.issue.update({
           where: { id: job.issueId },
