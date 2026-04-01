@@ -40,6 +40,25 @@ export async function POST(
     const contractor = dispatch.contractor;
     const issue = dispatch.issue;
 
+    // Rate limit: max 1 resend per contractor per issue per hour
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const recentDispatch = await prisma.dispatch.findFirst({
+      where: {
+        issueId,
+        contractorId: contractor.id,
+        sentAt: { gte: oneHourAgo },
+      },
+      orderBy: { sentAt: 'desc' },
+    });
+    if (recentDispatch) {
+      const minutesAgo = Math.round((Date.now() - new Date(recentDispatch.sentAt!).getTime()) / 60000);
+      const waitMinutes = 60 - minutesAgo;
+      return NextResponse.json(
+        { error: `This contractor was contacted ${minutesAgo} minute${minutesAgo !== 1 ? 's' : ''} ago. Please wait ${waitMinutes} more minute${waitMinutes !== 1 ? 's' : ''} before resending.` },
+        { status: 429 }
+      );
+    }
+
     // Generate a new reply token for the resend
     const replyToken = generateReplyToken();
 

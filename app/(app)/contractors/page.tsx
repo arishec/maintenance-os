@@ -8,12 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LocalTime } from '@/components/local-time';
 import { formatPhone } from '@/lib/utils';
+import { RestoreButton } from './restore-button';
 
 function tradeLabel(trade: string): string {
   return trade.split('_').join(' ');
 }
 
-export default async function ContractorsPage() {
+export default async function ContractorsPage({ searchParams }: { searchParams: Promise<{ archived?: string }> }) {
   let user;
   try {
     user = await requireDbUser();
@@ -21,8 +22,11 @@ export default async function ContractorsPage() {
     redirect('/sign-in');
   }
 
+  const params = await searchParams;
+  const showArchived = params.archived === '1';
+
   const contractors = await prisma.contractor.findMany({
-    where: { ownerUserId: user.id, isArchived: false },
+    where: { ownerUserId: user.id, isArchived: showArchived },
     include: {
       jobs: {
         select: { id: true, status: true, completedAt: true },
@@ -42,20 +46,45 @@ export default async function ContractorsPage() {
   return (
     <LayoutShell>
       <div className="flex items-center justify-between gap-3 mb-6">
-        <h1 className="text-2xl font-bold">Contractors</h1>
-        <Link href="/contractors/new">
-          <Button size="sm">Add Contractor</Button>
-        </Link>
+        <div>
+          <h1 className="text-2xl font-bold">Contractors</h1>
+          {showArchived && (
+            <p className="text-sm text-muted-foreground mt-1">Showing archived contractors</p>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <Link href={showArchived ? '/contractors' : '/contractors?archived=1'}>
+            <Button variant="outline" size="sm">
+              {showArchived ? 'Show Active' : 'Show Archived'}
+            </Button>
+          </Link>
+          {!showArchived && (
+            <Link href="/contractors/new">
+              <Button size="sm">Add Contractor</Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       {contractors.length === 0 ? (
         <Card>
           <CardContent className="pt-6">
             <div className="text-center py-8">
-              <p className="text-muted-foreground mb-4">No contractors added yet.</p>
-              <Link href="/contractors/new">
-                <Button>Add your first contractor</Button>
-              </Link>
+              {showArchived ? (
+                <>
+                  <p className="text-muted-foreground mb-4">No archived contractors.</p>
+                  <Link href="/contractors">
+                    <Button variant="outline">Back to Active</Button>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <p className="text-muted-foreground mb-4">No contractors added yet.</p>
+                  <Link href="/contractors/new">
+                    <Button>Add your first contractor</Button>
+                  </Link>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -131,6 +160,9 @@ export default async function ContractorsPage() {
                           </div>
                         )}
                       </div>
+                      {showArchived && (
+                        <RestoreButton contractorId={contractor.id} />
+                      )}
                     </div>
                   </CardContent>
                 </Card>

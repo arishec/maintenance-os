@@ -106,8 +106,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
             include: {
               outboundMessages: {
                 where: { direction: 'outbound' },
-                orderBy: { createdAt: 'desc' },
-                take: 1,
+                orderBy: { createdAt: 'asc' },
               },
             },
           },
@@ -521,7 +520,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
                     )}
 
                     {/* Conversation thread: question + reply */}
-                    {(response.followUpQuestion || response.outboundMessages?.[0]) && (
+                    {(response.followUpQuestion || (response.outboundMessages && response.outboundMessages.length > 0)) && (
                       <div className="space-y-2">
                         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Conversation</p>
 
@@ -533,19 +532,16 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
                           </div>
                         )}
 
-                        {/* Outbound reply */}
-                        {response.outboundMessages?.[0] && (() => {
-                          const reply = response.outboundMessages[0];
-                          return (
-                            <div className="rounded-lg bg-blue-50 border border-blue-200 p-3">
-                              <p className="text-sm font-medium text-blue-800">Your reply:</p>
-                              <p className="text-sm text-blue-900 mt-1">{reply.messageBody}</p>
-                              <p className="text-xs text-blue-600 mt-2">
-                                Sent via {reply.channel === 'sms' ? 'SMS' : 'Email'} · <LocalTime date={reply.createdAt} />
-                              </p>
-                            </div>
-                          );
-                        })()}
+                        {/* Outbound replies */}
+                        {response.outboundMessages?.map((reply) => (
+                          <div key={reply.id} className="rounded-lg bg-blue-50 border border-blue-200 p-3">
+                            <p className="text-sm font-medium text-blue-800">Your reply:</p>
+                            <p className="text-sm text-blue-900 mt-1">{reply.messageBody}</p>
+                            <p className="text-xs text-blue-600 mt-2">
+                              Sent via {reply.channel === 'sms' ? 'SMS' : 'Email'} · <LocalTime date={reply.createdAt} />
+                            </p>
+                          </div>
+                        ))}
                       </div>
                     )}
 

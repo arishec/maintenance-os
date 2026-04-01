@@ -48,7 +48,7 @@ export const ISSUE_VALID_TRANSITIONS: Record<string, string[]> = {
   awaiting_dispatch: ['awaiting_quotes', 'quotes_received', 'canceled'],
   awaiting_quotes: ['quotes_received', 'canceled'],
   quotes_received: ['active_job', 'awaiting_quotes', 'canceled', 'archived'],
-  active_job: ['completed', 'canceled'],
+  active_job: ['completed', 'canceled', 'awaiting_dispatch', 'awaiting_quotes', 'quotes_received'],
   completed: ['archived'],
   canceled: ['archived'],
   archived: [],
