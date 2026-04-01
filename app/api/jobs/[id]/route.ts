@@ -15,6 +15,7 @@ const updateJobSchema = z.object({
   notes: z.string().optional(),
   status: z.enum(['selected', 'scheduled', 'in_progress', 'completed', 'canceled']).optional(),
   cancelReason: z.string().optional(),
+  selfResolved: z.boolean().optional(),
 });
 
 export async function GET(
@@ -121,17 +122,23 @@ export async function PATCH(
     }
 
     // Side effects — non-blocking
-    try {
-      await logTimelineEvent({
-        propertyId: job.issue.propertyId,
-        issueId: job.issueId,
-        jobId: id,
-        actorType: 'user',
-        eventType: 'job_updated',
-        payload: body,
-      });
-    } catch (e) {
-      console.error('Timeline event failed:', e);
+    // Skip generic job_updated for cancel/complete — they have their own specific timeline events below
+    if (body.status !== 'canceled' && body.status !== 'completed') {
+      try {
+        const eventType = body.status === 'scheduled' ? 'job_scheduled'
+          : body.status === 'in_progress' ? 'job_started'
+          : 'job_updated';
+        await logTimelineEvent({
+          propertyId: job.issue.propertyId,
+          issueId: job.issueId,
+          jobId: id,
+          actorType: 'user',
+          eventType,
+          payload: body,
+        });
+      } catch (e) {
+        console.error('Timeline event failed:', e);
+      }
     }
 
     if (body.status === 'completed') {
@@ -148,28 +155,36 @@ export async function PATCH(
       }
     }
 
-    // When a job is canceled, notify the contractor and revert the issue
+    // When a job is canceled, notify the contractor and revert (or close) the issue
     if (body.status === 'canceled') {
-      // Revert issue status so the owner can re-dispatch or pick another contractor
-      // Go back to quotes_received if there are other responses, otherwise awaiting_dispatch
-      const otherResponses = await prisma.contractorResponse.count({
-        where: {
-          dispatch: {
-            issueId: job.issueId,
-            contractorId: { not: job.contractorId },
-            status: { notIn: ['closed', 'failed'] },
+      if (body.selfResolved) {
+        // Owner fixed it themselves — close the issue as completed
+        await prisma.issue.update({
+          where: { id: job.issueId },
+          data: { status: 'completed' as IssueStatus, completedAt: new Date() },
+        });
+        console.log(`[JOB CANCEL] Issue ${job.issueId} closed as completed (self-resolved)`);
+      } else {
+        // Revert issue status so the owner can re-dispatch or pick another contractor
+        const otherResponses = await prisma.contractorResponse.count({
+          where: {
+            dispatch: {
+              issueId: job.issueId,
+              contractorId: { not: job.contractorId },
+              status: { notIn: ['closed', 'failed'] },
+            },
           },
-        },
-      });
-      const revertStatus: IssueStatus = otherResponses > 0
-        ? 'quotes_received' as IssueStatus
-        : 'awaiting_dispatch' as IssueStatus;
+        });
+        const revertStatus: IssueStatus = otherResponses > 0
+          ? 'quotes_received' as IssueStatus
+          : 'awaiting_dispatch' as IssueStatus;
 
-      await prisma.issue.update({
-        where: { id: job.issueId },
-        data: { status: revertStatus },
-      });
-      console.log(`[JOB CANCEL] Issue ${job.issueId} reverted to ${revertStatus}`);
+        await prisma.issue.update({
+          where: { id: job.issueId },
+          data: { status: revertStatus },
+        });
+        console.log(`[JOB CANCEL] Issue ${job.issueId} reverted to ${revertStatus}`);
+      }
 
       // Close the dispatch with reason
       try {
@@ -209,7 +224,10 @@ export async function PATCH(
           jobId: id,
           actorType: 'user',
           eventType: 'job_canceled',
-          payload: { reason: body.cancelReason || 'No reason provided' },
+          payload: {
+            reason: body.cancelReason || 'No reason provided',
+            selfResolved: body.selfResolved || false,
+          },
         });
       } catch (e) {
         console.error('Cancel timeline event failed:', e);

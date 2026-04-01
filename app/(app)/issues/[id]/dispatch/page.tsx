@@ -113,9 +113,11 @@ export default function DispatchPage() {
   const relevantTrades = issue?.category ? (tradeMap[issue.category] ?? []) : [];
   const tradeFiltered = contractors.filter(c => relevantTrades.includes(c.trade));
   // If no contractors match the recommended trade, show all by default
-  const filteredContractors = showAll || relevantTrades.length === 0 || tradeFiltered.length === 0
+  const unsorted = showAll || relevantTrades.length === 0 || tradeFiltered.length === 0
     ? contractors
     : tradeFiltered;
+  // Preferred contractors float to the top
+  const filteredContractors = [...unsorted].sort((a, b) => Number(b.isPreferred) - Number(a.isPreferred));
 
   function toggleContractor(contractor: Contractor) {
     const exists = selected.find(s => s.contractorId === contractor.id);
@@ -460,8 +462,21 @@ export default function DispatchPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Dispatch</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to contact {selected.length} contractor{selected.length !== 1 ? 's' : ''}? They&apos;ll receive {selected.some(s => s.channel === 'sms') ? 'an email or SMS' : 'an email'} with the issue details.
+            <AlertDialogDescription asChild>
+              <div>
+                <p>Send the issue details to {selected.length} contractor{selected.length !== 1 ? 's' : ''}?</p>
+                <ul className="mt-3 space-y-1.5">
+                  {selected.map(s => {
+                    const c = contractors.find(ct => ct.id === s.contractorId);
+                    return c ? (
+                      <li key={s.contractorId} className="flex items-center justify-between text-sm">
+                        <span className="font-medium text-foreground">{c.name}</span>
+                        <span className="text-xs text-muted-foreground capitalize">{s.channel === 'sms' ? 'SMS' : 'Email'}</span>
+                      </li>
+                    ) : null;
+                  })}
+                </ul>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

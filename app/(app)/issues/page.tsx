@@ -402,9 +402,16 @@ export default async function IssuesPage({
                             {issue.property.nickname || issue.property.addressLine1 || 'Unnamed'}
                           </td>
                           <td className="p-3 sm:p-4 hidden lg:table-cell">
-                            <Badge className="border-slate-200 bg-slate-50 text-slate-700">
-                              {getCategoryLabel(issue.category)}
-                            </Badge>
+                            <div className="flex items-center gap-1.5">
+                              <Badge className="border-slate-200 bg-slate-50 text-slate-700">
+                                {getCategoryLabel(issue.category)}
+                              </Badge>
+                              {(issue.urgency === 'emergency' || issue.urgency === 'high') && (
+                                <Badge className="bg-red-100 text-red-700 border-red-200 text-xs">
+                                  {issue.urgency === 'emergency' ? 'Emergency' : 'High'}
+                                </Badge>
+                              )}
+                            </div>
                           </td>
                           <td className="p-3 sm:p-4">
                             <div>

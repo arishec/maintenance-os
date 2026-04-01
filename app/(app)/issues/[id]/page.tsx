@@ -55,6 +55,11 @@ function formatTimelineEvent(eventType: string, payload: Record<string, unknown>
       return 'Job scheduled';
     case 'job_started':
       return 'Job started';
+    case 'job_canceled':
+      if (p.selfResolved) {
+        return `Issue resolved by owner${p.reason && p.reason !== 'No reason provided' ? ` — ${p.reason}` : ''}`;
+      }
+      return `Job canceled${p.reason && p.reason !== 'No reason provided' ? ` — ${p.reason}` : ''}`;
     case 'job_completed':
       return 'Job marked complete';
     case 'manual_quote_added':

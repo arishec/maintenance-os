@@ -45,10 +45,11 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
   })();
   const [scheduleDate, setScheduleDate] = useState(defaultScheduleDate);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
-  const [actualCost, setActualCost] = useState('');
+  const [actualCost, setActualCost] = useState(job.agreedPrice || '');
   const [completionNotes, setCompletionNotes] = useState('');
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  const [selfResolved, setSelfResolved] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const handleStatusChange = async (nextStatus: string, extra?: { scheduledFor?: string }) => {
@@ -131,13 +132,13 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
       const res = await fetch(`/api/jobs/${job.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'canceled', cancelReason: cancelReason || undefined }),
+        body: JSON.stringify({ status: 'canceled', cancelReason: cancelReason || undefined, selfResolved }),
       });
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || 'Failed to cancel job');
       }
-      setToastMessage('Job canceled. You can dispatch to another contractor.');
+      setToastMessage(selfResolved ? 'Issue resolved and closed.' : 'Job canceled. You can dispatch to another contractor.');
       setTimeout(() => {
         setToastMessage(null);
         router.refresh();
@@ -146,6 +147,7 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsLoading(null);
+      setSelfResolved(false);
       setCancelReason('');
     }
   };
@@ -364,6 +366,9 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
                 placeholder="e.g. 450.00"
                 className="w-full rounded-lg border border-border p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+              {job.agreedPrice && (
+                <p className="text-xs text-muted-foreground mt-1">Pre-filled from agreed quote. Adjust if the final cost was different.</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Notes (optional)</label>
@@ -400,14 +405,25 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
           <div className="relative z-10 w-full max-w-sm mx-4 rounded-xl bg-white p-6 shadow-xl space-y-4">
             <h3 className="text-lg font-semibold">Cancel this job?</h3>
             <p className="text-sm text-muted-foreground">
-              {job.contractorName} will be notified the job has been canceled. The issue will reopen so you can dispatch to someone else.
+              {selfResolved
+                ? 'This will close the issue as resolved and notify the contractor.'
+                : `${job.contractorName} will be notified the job has been canceled. The issue will reopen so you can dispatch to someone else.`}
             </p>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={selfResolved}
+                onChange={(e) => setSelfResolved(e.target.checked)}
+                className="h-4 w-4 rounded"
+              />
+              I resolved this issue myself
+            </label>
             <div>
               <label className="block text-sm font-medium mb-1">Reason (optional)</label>
               <textarea
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
-                placeholder="e.g. Found a cheaper option, no longer needed"
+                placeholder={selfResolved ? 'e.g. Fixed it myself, turned out to be minor' : 'e.g. Found a cheaper option, no longer needed'}
                 rows={2}
                 className="w-full rounded-lg border border-border p-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
               />
@@ -415,7 +431,7 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
             <div className="flex gap-3 justify-end">
               <Button
                 variant="outline"
-                onClick={() => { setShowCancelModal(false); setCancelReason(''); }}
+                onClick={() => { setShowCancelModal(false); setCancelReason(''); setSelfResolved(false); }}
               >
                 Keep Job
               </Button>
@@ -423,7 +439,7 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
                 className="bg-red-600 hover:bg-red-700 text-white"
                 onClick={handleCancelConfirm}
               >
-                Cancel Job
+                {selfResolved ? 'Close Issue' : 'Cancel Job'}
               </Button>
             </div>
           </div>
