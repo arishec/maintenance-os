@@ -86,7 +86,7 @@ export default async function ContractorsPage() {
             } else if (totalDispatches > 0) {
               contextParts.push(`Used ${totalDispatches} time${totalDispatches !== 1 ? 's' : ''}`);
             }
-            if (responseRate !== null) {
+            if (responseRate !== null && totalDispatches >= 3) {
               contextParts.push(
                 responseRate >= 80 ? 'Responds quickly' :
                 responseRate >= 50 ? 'Usually responds' :
