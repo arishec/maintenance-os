@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Camera, ImagePlus, X } from 'lucide-react';
+import { compressImage } from '@/lib/compress-image';
 import { LayoutShell } from '@/components/layout-shell';
 import { PaywallModal } from '@/components/paywall-modal';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -154,8 +155,9 @@ export default function NewIssuePage() {
     let failed = 0;
     for (const photo of photos) {
       try {
+        const compressed = await compressImage(photo.file);
         const formData = new FormData();
-        formData.append('file', photo.file);
+        formData.append('file', compressed);
         const res = await fetch(`/api/issues/${createdIssueId}/photos`, {
           method: 'POST',
           body: formData,
