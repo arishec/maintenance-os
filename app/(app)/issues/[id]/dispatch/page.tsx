@@ -337,8 +337,8 @@ export default function DispatchPage() {
                           onClick={e => e.stopPropagation()}
                           className="rounded-lg border border-border bg-white px-3 py-2 text-sm ml-8 sm:ml-0 w-fit"
                         >
-                          {contractor.phone && <option value="sms">SMS</option>}
                           {contractor.email && <option value="email">Email</option>}
+                          {contractor.phone && <option value="sms">SMS</option>}
                         </select>
                       )}
                     </div>

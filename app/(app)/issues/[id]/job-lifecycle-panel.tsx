@@ -26,6 +26,8 @@ interface JobProps {
   startedAt?: string | null;
   completedAt?: string | null;
   notes?: string | null;
+  contractorAvailabilityDate?: string | null;
+  contractorAvailabilityText?: string | null;
 }
 
 export function JobLifecyclePanel({ job }: { job: JobProps }) {
@@ -33,7 +35,15 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
   const [isLoading, setIsLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const [scheduleDate, setScheduleDate] = useState('');
+  // Pre-fill schedule date from contractor's stated availability
+  const defaultScheduleDate = (() => {
+    if (!job.contractorAvailabilityDate) return '';
+    const d = new Date(job.contractorAvailabilityDate);
+    // Only pre-fill if the date is in the future
+    if (d <= new Date()) return '';
+    return d.toISOString().split('T')[0];
+  })();
+  const [scheduleDate, setScheduleDate] = useState(defaultScheduleDate);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [actualCost, setActualCost] = useState('');
   const [completionNotes, setCompletionNotes] = useState('');
@@ -432,6 +442,11 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
             <p className="text-sm text-muted-foreground">
               Select the date the contractor is expected to arrive.
             </p>
+            {job.contractorAvailabilityText && defaultScheduleDate && (
+              <p className="text-xs text-blue-600">
+                Pre-filled from contractor&apos;s availability: &ldquo;{job.contractorAvailabilityText}&rdquo;
+              </p>
+            )}
             <input
               type="date"
               value={scheduleDate}

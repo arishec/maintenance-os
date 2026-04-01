@@ -261,6 +261,10 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
               startedAt: activeJob.startedAt ? activeJob.startedAt.toISOString() : null,
               completedAt: activeJob.completedAt ? activeJob.completedAt.toISOString() : null,
               notes: activeJob.notes,
+              contractorAvailabilityDate: activeJob.selectedResponse?.availabilityDate
+                ? activeJob.selectedResponse.availabilityDate.toISOString()
+                : null,
+              contractorAvailabilityText: activeJob.selectedResponse?.availabilityText || null,
             }}
           />
         )}
