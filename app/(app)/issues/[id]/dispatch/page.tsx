@@ -122,7 +122,8 @@ export default function DispatchPage() {
     if (exists) {
       setSelected(selected.filter(s => s.contractorId !== contractor.id));
     } else {
-      const channel = contractor.phone ? 'sms' : 'email';
+      // Default to email — SMS is pending A2P 10DLC carrier approval
+      const channel = contractor.email ? 'email' : 'sms';
       setSelected([...selected, { contractorId: contractor.id, channel: channel as 'sms' | 'email' }]);
     }
   }
@@ -166,7 +167,8 @@ export default function DispatchPage() {
       const created = data.contractor;
       setContractors(prev => [...prev, created]);
       // Auto-select the new contractor
-      const channel = created.phone ? 'sms' : 'email';
+      // Default to email — SMS is pending A2P 10DLC carrier approval
+      const channel = created.email ? 'email' : 'sms';
       setSelected(prev => [...prev, { contractorId: created.id, channel: channel as 'sms' | 'email' }]);
       setNewContractor({ name: '', trade: 'handyman', phone: '', email: '', companyName: '' });
       setShowAddForm(false);
