@@ -81,13 +81,37 @@ export async function POST(
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
     const filePath = `${issue.id}/${Date.now()}-${safeName}`;
 
+    // Content-type fallback: mobile devices (especially iPhone) may send HEIC
+    // or have empty/malformed content types
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'];
+    let contentType = file.type || 'image/jpeg';
+    // If content type isn't recognized, infer from extension or default to jpeg
+    if (!ALLOWED_TYPES.includes(contentType)) {
+      const ext = safeName.split('.').pop()?.toLowerCase();
+      const extMap: Record<string, string> = {
+        jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
+        gif: 'image/gif', webp: 'image/webp', heic: 'image/heic', heif: 'image/heif',
+      };
+      contentType = extMap[ext ?? ''] || 'image/jpeg';
+    }
+
     const { error: uploadError } = await supabaseAdmin.storage
       .from('issue-photos')
-      .upload(filePath, buffer, { contentType: file.type, upsert: false });
+      .upload(filePath, buffer, { contentType, upsert: false });
 
     if (uploadError) {
+      console.error('[photos/POST] Supabase upload error:', {
+        message: uploadError.message,
+        name: (uploadError as any).name,
+        statusCode: (uploadError as any).statusCode,
+        filePath,
+        contentType,
+        fileSize: file.size,
+        originalType: file.type,
+        fileName: file.name,
+      });
       return NextResponse.json(
-        { error: 'We couldn\'t upload your photo. Please try again.' },
+        { error: `Upload failed: ${uploadError.message}` },
         { status: 400 }
       );
     }
