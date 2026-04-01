@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { X, Camera, ImagePlus } from 'lucide-react';
 
@@ -166,11 +165,11 @@ export function PhotoUpload({
               return (
                 <div key={id} className="relative">
                   <div className="relative h-24 w-full overflow-hidden rounded-lg bg-muted">
-                    <Image
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
                       src={preview}
                       alt="Preview"
-                      fill
-                      className="object-cover"
+                      className="h-full w-full object-cover"
                     />
                     {isUploading && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/50">
