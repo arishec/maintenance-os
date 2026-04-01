@@ -30,24 +30,29 @@ export function PhotoUpload({
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+    try {
+      const files = Array.from(e.target.files || []);
 
-    const newFiles: SelectedFile[] = files.map((file) => ({
-      id: Math.random().toString(36).substr(2, 9),
-      file,
-      preview: URL.createObjectURL(file),
-    }));
+      const newFiles: SelectedFile[] = files.map((file) => ({
+        id: Math.random().toString(36).substr(2, 9),
+        file,
+        preview: URL.createObjectURL(file),
+      }));
 
-    if (multiple) {
-      setSelectedFiles([...selectedFiles, ...newFiles]);
-    } else {
-      selectedFiles.forEach((f) => URL.revokeObjectURL(f.preview));
-      setSelectedFiles(newFiles);
+      if (multiple) {
+        setSelectedFiles([...selectedFiles, ...newFiles]);
+      } else {
+        selectedFiles.forEach((f) => URL.revokeObjectURL(f.preview));
+        setSelectedFiles(newFiles);
+      }
+
+      // Reset inputs so same file can be selected again
+      if (cameraInputRef.current) cameraInputRef.current.value = '';
+      if (galleryInputRef.current) galleryInputRef.current.value = '';
+    } catch (err) {
+      const msg = err instanceof Error ? `[SELECT] ${err.name}: ${err.message}` : '[SELECT] Unknown error';
+      if (onError) onError(msg);
     }
-
-    // Reset inputs so same file can be selected again
-    if (cameraInputRef.current) cameraInputRef.current.value = '';
-    if (galleryInputRef.current) galleryInputRef.current.value = '';
   };
 
   const removeFile = (id: string) => {
@@ -88,7 +93,9 @@ export function PhotoUpload({
 
           setUploadProgress((prev) => ({ ...prev, [id]: 100 }));
         } catch (err) {
-          const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+          const errorMsg = err instanceof Error
+            ? `[UPLOAD] ${err.name}: ${err.message} | issueId=${issueId} | fileName=${file.name} | fileType=${file.type} | fileSize=${file.size}`
+            : `[UPLOAD] Unknown: ${String(err)}`;
           uploadError = errorMsg;
           setUploadProgress((prev) => ({ ...prev, [id]: -1 }));
         }
