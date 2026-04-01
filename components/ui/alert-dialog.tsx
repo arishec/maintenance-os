@@ -118,7 +118,9 @@ const AlertDialogCancel = React.forwardRef<
   HTMLButtonElement,
   React.ComponentPropsWithoutRef<typeof Button>
 >(({ className, ...props }, ref) => (
-  <Button ref={ref} variant="outline" className={cn(className)} {...props} />
+  <DialogPrimitive.Close asChild>
+    <Button ref={ref} variant="outline" className={cn(className)} {...props} />
+  </DialogPrimitive.Close>
 ));
 AlertDialogCancel.displayName = 'AlertDialogCancel';
 
