@@ -43,16 +43,26 @@ Signals: ${(input.signals ?? []).join(', ') || 'none provided'}${photoContext}`;
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 500,
     temperature: 0,
-    messages: [{ role: 'user', content: prompt }],
+    system: 'You are a JSON-only API. Return ONLY a valid JSON object with no surrounding text, markdown, or explanation.',
+    messages: [
+      { role: 'user', content: prompt },
+      { role: 'assistant', content: '{' },
+    ],
   });
 
-  let text = response.content
+  let text = '{' + response.content
     .map((block) => ('text' in block ? block.text : ''))
     .join('')
     .trim();
 
   // Strip markdown code fences if present
   text = text.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+
+  // Extract JSON object if there's trailing text after the closing brace
+  const lastBrace = text.lastIndexOf('}');
+  if (lastBrace !== -1 && lastBrace < text.length - 1) {
+    text = text.substring(0, lastBrace + 1);
+  }
 
   let json: unknown;
   try {

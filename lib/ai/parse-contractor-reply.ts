@@ -33,11 +33,16 @@ export async function parseContractorReply(input: {
 
   console.log('[parseContractorReply] Input length:', input.rawReply.length, '→ cleaned:', cleanedReply.length);
 
+  const todayStr = new Date().toISOString().split('T')[0];
+  const dayOfWeek = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+
   const prompt = `Parse this contractor reply into structured JSON only.
 Return keys:
 availabilityText, availabilityDate, estimateLow, estimateHigh, flatEstimate, notes, followUpQuestion, confidenceScore, requiresReview.
 Use null rather than guessing. For dollar amounts, extract the number only (no $ sign).
 If the message is too vague, set requiresReview=true.
+Today is ${dayOfWeek}, ${todayStr}. For availabilityDate, if the contractor mentions a relative day (e.g. "Monday", "next Wednesday", "this weekend"), convert it to an ISO date string like "${todayStr}" based on today's date. Pick the NEXT occurrence of that day. If no date or day is mentioned, use null.
+availabilityText should preserve the contractor's original wording (e.g. "Monday", "next week").
 Issue category: ${input.issueCategory ?? 'unknown'}
 Contractor trade: ${input.contractorTrade ?? 'unknown'}
 Raw reply:
@@ -48,10 +53,14 @@ ${cleanedReply}`;
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 500,
     temperature: 0,
-    messages: [{ role: 'user', content: prompt }],
+    system: 'You are a JSON-only API. Return ONLY a valid JSON object with no surrounding text, markdown, or explanation.',
+    messages: [
+      { role: 'user', content: prompt },
+      { role: 'assistant', content: '{' },
+    ],
   });
 
-  let text = response.content
+  let text = '{' + response.content
     .map((block) => ('text' in block ? block.text : ''))
     .join('')
     .trim();
@@ -60,6 +69,12 @@ ${cleanedReply}`;
 
   // Strip markdown code fences if present
   text = text.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+
+  // Extract JSON object if there's trailing text after the closing brace
+  const lastBrace = text.lastIndexOf('}');
+  if (lastBrace !== -1 && lastBrace < text.length - 1) {
+    text = text.substring(0, lastBrace + 1);
+  }
 
   let json: unknown;
   try {

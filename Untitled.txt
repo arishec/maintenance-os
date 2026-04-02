@@ -1,0 +1,193 @@
+Here's my take on each:
+Should dispatching after quotes_received be allowed? Yes, keep it. In real life, a property manager gets two quotes back, neither is great, and they want to send it to one more contractor. Blocking that would be frustrating. The code already handles it cleanly — the race-safe updateMany won't regress the status backwards. Just make sure the UI makes it obvious they're adding more contractors to an issue that already has quotes.
+Should classified and awaiting_dispatch be merged? Yes, merge them. Right now they're visually identical (same label, same color) and there's no user action that moves an issue from classified to awaiting_dispatch — it's a phantom state. Every route that checks one also checks the other. Kill awaiting_dispatch, just use classified to mean "AI looked at it, ready to send to contractors." One less status to maintain, one less thing to confuse users. This is a schema migration though, so it's not a 5-minute fix — you'd need to update the Prisma enum, migrate existing rows, and update every reference. I'd do it, but not today.
+Should manual-quote work from new? Yes, but with a caveat. Sometimes a property manager already knows who they want and what the price is — they talked to the contractor on the phone and just want to log it. Forcing them to classify first adds friction for no reason. The issue will get a title and category from the manual entry context anyway. Keep it allowed.
+So the short version: keep dispatching after quotes, keep manual-quote from new, and merge classified/awaiting_dispatch when you're ready for a migration. None of these are urgent — the code handles all three scenarios correctly right now. The merge is the only one worth scheduling, and it's a cleanup, not a fix.
+
+
+
+This is actually one of the best examples you could have picked — because it proves your product can move upmarket.
+
+Let’s break it down clearly.
+
+What a company like MLA Claims, LLC actually does
+
+They are public insurance adjusters.
+
+Their job:
+Represent the property owner (not the insurance company)
+Inspect damage (fire, water, storm, etc.)
+Determine full scope of loss
+Bring in contractors / experts
+Negotiate with insurance
+Maximize payout
+
+👉 They literally sit in the middle of: problem → vendors → money → resolution
+
+Their real workflow (this is where it clicks)
+
+Here’s their actual day-to-day:
+
+Loss happens (fire, water, etc.)
+Client submits claim
+Adjuster inspects + documents damage
+They bring in:
+contractors
+engineers
+restoration vendors
+Collect estimates / scopes
+Compare / validate pricing
+Negotiate with insurance
+Track repairs + payout
+This is IMPORTANT
+
+That workflow is almost identical to your app
+
+Your app today:
+Issue → contractor → quotes → selection → track
+Their world:
+Claim → vendors → estimates → negotiation → payout → repair
+
+👉 It’s the SAME system with slightly different labels
+
+Why this vertical is 🔥 (much bigger than landlords)
+1. Huge $$$
+Claims can be:
+$20k (water damage)
+$500k+ (commercial loss)
+They take % fees → they care deeply about optimization
+2. Extremely messy process (your opportunity)
+
+Right now it’s:
+
+email chains
+PDFs
+phone calls
+spreadsheets
+manual comparisons
+
+👉 This is EXACTLY what your dashboard fixes
+
+3. Time-sensitive + high stress
+Clients want fast answers
+Insurance delays everything
+Vendors respond inconsistently
+
+👉 Your system = control + visibility
+
+How your product fits THEM (perfectly)
+
+If you re-skinned your app:
+
+Instead of:
+“Report Issue”
+
+You have:
+
+“Submit Claim”
+Instead of:
+“Contractors”
+
+You have:
+
+“Vendors / Experts”
+Instead of:
+“Quotes”
+
+You have:
+
+“Estimates / Scope Reports”
+Add 2 things:
+Document uploads (photos, reports, PDFs)
+Status tracking (Filed → Inspecting → Negotiating → Settled → Repairing)
+This is the big unlock
+
+You are not building:
+
+maintenance software
+
+You are building:
+
+“claim + vendor coordination infrastructure”
+
+Even bigger insight (this is where it gets serious)
+
+Companies like MLA Claims are:
+
+doing $50M–$100M revenue scale
+still running on manual workflows
+
+👉 That means:
+
+You’re sitting on a real SaaS opportunity, not a niche tool
+
+Where you would position this (VERY important)
+
+Do NOT say:
+
+“Track maintenance”
+
+For this market, you say:
+
+“End-to-end claims coordination platform”
+
+or even better:
+
+“From loss → estimate → settlement → repair. All in one system.”
+Even better (this is your wedge)
+
+You don’t replace them.
+
+You start with:
+
+“Quote / estimate aggregation + vendor coordination”
+
+Then expand into:
+
+claim tracking
+documentation
+negotiation insights (later AI layer)
+Brutally honest take (what you should do)
+
+If you want the highest upside version of your product:
+
+👉 Pivot or expand into:
+
+insurance adjusters
+restoration companies
+claims consultants
+
+NOT just landlords
+
+My direct recommendation for you (based on your situation)
+
+Given:
+
+your current product
+your background (operations / vehicles / process)
+your ability to sell
+Best path:
+Keep landlord version (easy entry)
+Build “Claims OS” version
+Test with:
+2–3 local adjusters (you’re in Philly — perfect)
+Iterate fast
+Bottom line
+
+Yes — companies like MLA Claims are exactly the type of business your system can serve
+
+👉 And they are:
+
+higher value
+more complex
+more painful (good for you)
+less competitive (huge opportunity)
+
+If you want, I can rewrite your entire dashboard (same backend) to look like a claims platform — and it will feel like a completely different, enterprise product.
+
+
+
+Need to add more than 2 issue at a time at 1 property
+AI photo classification not showing at top, will not let me choose a contractor unitl that is working
+
+The date in the calendar did not read email and put it in the date picker

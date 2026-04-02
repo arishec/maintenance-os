@@ -88,6 +88,7 @@ export default function NewIssuePage() {
   const [classifying, setClassifying] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [photoUploadError, setPhotoUploadError] = useState('');
+  const [lastPropertyId, setLastPropertyId] = useState<string>('');
 
   // Inline photo state
   const [photos, setPhotos] = useState<SelectedPhoto[]>([]);
@@ -199,6 +200,7 @@ export default function NewIssuePage() {
 
     const propertyId = (form.get('propertyId') as string)?.trim();
     const description = (form.get('description') as string)?.trim();
+    if (propertyId) setLastPropertyId(propertyId);
 
     if (!propertyId) {
       setError('Please select a property.');
@@ -363,6 +365,22 @@ export default function NewIssuePage() {
                 <Link href={`/issues/${issueId}`}>
                   <Button variant="outline" className="w-full">Review issue first</Button>
                 </Link>
+                <Button
+                  variant="ghost"
+                  className="w-full"
+                  onClick={() => {
+                    setClassification(null);
+                    setIssueId(null);
+                    setPhotoUploadError('');
+                    setPhotos([]);
+                    setError('');
+                    setLoading(false);
+                    setClassifying(false);
+                    submittingRef.current = false;
+                  }}
+                >
+                  Report another issue{lastPropertyId ? ' at this property' : ''}
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -432,7 +450,7 @@ export default function NewIssuePage() {
               {propertiesLoading ? (
                 <Input disabled placeholder="Loading properties..." />
               ) : (
-                <Select name="propertyId" required defaultValue="">
+                <Select name="propertyId" required defaultValue={lastPropertyId || ''} key={`prop-${lastPropertyId}-${issueId || 'new'}`}>
                   <option value="" disabled>
                     Select property
                   </option>

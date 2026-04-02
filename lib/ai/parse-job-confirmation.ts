@@ -18,14 +18,7 @@ export async function parseJobConfirmation(rawReply: string): Promise<JobConfirm
   const todayStr = new Date().toISOString().split('T')[0]; // e.g. "2026-03-30"
   const dayOfWeek = new Date().toLocaleDateString('en-US', { weekday: 'long' }); // e.g. "Monday"
 
-  const response = await anthropic.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 400,
-    temperature: 0,
-    messages: [
-      {
-        role: 'user',
-        content: `A contractor was notified they were selected for a home repair job. They replied with this message:
+  const prompt = `A contractor was notified they were selected for a home repair job. They replied with this message:
 
 "${rawReply}"
 
@@ -37,14 +30,20 @@ Analyze their reply and return JSON with these fields:
 - schedulingInfo: If they mention when they can come (e.g. "Tuesday at 2pm"), include the human-readable text. Otherwise omit.
 - scheduledDate: If they mention a specific day or date (e.g. "Monday", "next Tuesday", "March 31"), convert it to an ISO date string like "2026-03-31" based on today's date. If they say a day of the week, pick the NEXT occurrence of that day. If no date/day is mentioned, omit this field.
 - declineReason: If they declined, briefly explain why. Otherwise omit.
-- followUpQuestion: If they asked a question, include it. Otherwise omit.
+- followUpQuestion: If they asked a question, include it. Otherwise omit.`;
 
-Return ONLY valid JSON, no markdown.`,
-      },
+  const response = await anthropic.messages.create({
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 400,
+    temperature: 0,
+    system: 'You are a JSON-only API. Return ONLY a valid JSON object with no surrounding text, markdown, or explanation.',
+    messages: [
+      { role: 'user', content: prompt },
+      { role: 'assistant', content: '{' },
     ],
   });
 
-  const text = response.content
+  const text = '{' + response.content
     .map((block) => ('text' in block ? block.text : ''))
     .join('')
     .trim();
