@@ -77,6 +77,19 @@ interface ClassificationResult {
   recommendedTrade: string;
 }
 
+interface DetectedIssue {
+  description: string;
+  suggestedLocation: string | null;
+  suggestedSignals: string[];
+}
+
+interface CreatedIssueResult {
+  id: string;
+  title: string;
+  category: string;
+  urgency: string;
+}
+
 export default function NewIssuePage() {
   const router = useRouter();
   const [error, setError] = useState('');
@@ -89,6 +102,12 @@ export default function NewIssuePage() {
   const [showPaywall, setShowPaywall] = useState(false);
   const [photoUploadError, setPhotoUploadError] = useState('');
   const [lastPropertyId, setLastPropertyId] = useState<string>('');
+
+  // Multi-issue split flow
+  const [detectedIssues, setDetectedIssues] = useState<DetectedIssue[] | null>(null);
+  const [pendingFormData, setPendingFormData] = useState<{ propertyId: string; signals: string[]; locationInProperty: string } | null>(null);
+  const [createdIssues, setCreatedIssues] = useState<CreatedIssueResult[]>([]);
+  const [splitProcessing, setSplitProcessing] = useState(false);
 
   // Inline photo state
   const [photos, setPhotos] = useState<SelectedPhoto[]>([]);
@@ -218,12 +237,45 @@ export default function NewIssuePage() {
       return;
     }
 
-    const body = {
-      propertyId,
-      description,
-      locationInProperty: form.get('locationInProperty') as string,
-      signals,
-    };
+    const locationInProperty = form.get('locationInProperty') as string;
+
+    // Check for multiple issues in the description
+    try {
+      const detectRes = await fetch('/api/issues/detect-multi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description, locationInProperty, signals }),
+      });
+
+      if (detectRes.ok) {
+        const detectData = await detectRes.json();
+        if (detectData.issueCount > 1 && detectData.issues?.length > 1) {
+          // Multiple issues detected — show confirmation
+          setDetectedIssues(detectData.issues);
+          setPendingFormData({ propertyId, signals, locationInProperty });
+          setLoading(false);
+          setClassifying(false);
+          submittingRef.current = false;
+          return;
+        }
+      }
+    } catch {
+      // Detection failed — continue with single issue creation
+      console.error('Multi-issue detection failed, proceeding with single issue');
+    }
+
+    // Single issue — create directly
+    await createSingleIssue({ propertyId, description, locationInProperty, signals });
+  }
+
+  async function createSingleIssue(body: {
+    propertyId: string;
+    description: string;
+    locationInProperty: string;
+    signals: string[];
+  }) {
+    setLoading(true);
+    setClassifying(true);
 
     try {
       const res = await fetch('/api/issues', {
@@ -284,7 +336,7 @@ export default function NewIssuePage() {
         return;
       }
 
-      // Fallback — shouldn't normally get here, but redirect to issue page
+      // Fallback
       setLoading(false);
       setClassifying(false);
       router.push(`/issues/${createdIssue.id}`);
@@ -294,6 +346,206 @@ export default function NewIssuePage() {
       setClassifying(false);
       submittingRef.current = false;
     }
+  }
+
+  async function handleConfirmSplit() {
+    if (!pendingFormData || !detectedIssues) return;
+    setSplitProcessing(true);
+    setError('');
+    const results: CreatedIssueResult[] = [];
+
+    for (const issue of detectedIssues) {
+      try {
+        const res = await fetch('/api/issues', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            propertyId: pendingFormData.propertyId,
+            description: issue.description,
+            locationInProperty: issue.suggestedLocation || pendingFormData.locationInProperty,
+            signals: issue.suggestedSignals.length > 0 ? issue.suggestedSignals : pendingFormData.signals,
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const created = data.issue;
+          results.push({
+            id: created.id,
+            title: created.title || issue.description.substring(0, 60),
+            category: created.category || 'unknown',
+            urgency: created.urgency || 'medium',
+          });
+
+          // Upload photos to the first issue only (they're shared context)
+          if (results.length === 1 && photos.length > 0) {
+            await uploadPhotos(created.id);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to create split issue:', err);
+      }
+    }
+
+    setCreatedIssues(results);
+    setSplitProcessing(false);
+    setDetectedIssues(null);
+  }
+
+  function handleRejectSplit() {
+    // User says "no, it's one issue" — create as single issue with original description
+    if (!pendingFormData) return;
+    const form = document.querySelector('form');
+    const description = form?.querySelector('textarea[name="description"]') as HTMLTextAreaElement;
+    setDetectedIssues(null);
+    createSingleIssue({
+      ...pendingFormData,
+      description: description?.value || detectedIssues?.map(i => i.description).join('. ') || '',
+    });
+  }
+
+  // Multi-issue split confirmation screen
+  if (detectedIssues && detectedIssues.length > 1 && !splitProcessing) {
+    return (
+      <LayoutShell>
+        <div className="mx-auto max-w-2xl space-y-4">
+          <div className="text-center pt-2">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+              <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" />
+              </svg>
+            </div>
+            <h1 className="text-xl font-semibold">It looks like you have {detectedIssues.length} separate issues</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              We&apos;ll create them separately so each gets the right contractor
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {detectedIssues.map((issue, i) => (
+              <Card key={i}>
+                <CardContent className="pt-5 pb-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                      {i + 1}
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">{issue.description}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {issue.suggestedLocation && (
+                          <Badge className="text-xs bg-gray-100">{formatLabel(issue.suggestedLocation)}</Badge>
+                        )}
+                        {issue.suggestedSignals.map((s) => (
+                          <Badge key={s} className="text-xs">{formatLabel(s)}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="flex flex-col gap-2 pt-2">
+            <Button onClick={handleConfirmSplit} className="w-full">
+              Create {detectedIssues.length} separate issues
+            </Button>
+            <Button variant="outline" onClick={handleRejectSplit} className="w-full">
+              No, it&apos;s one issue — keep together
+            </Button>
+          </div>
+        </div>
+      </LayoutShell>
+    );
+  }
+
+  // Processing split issues
+  if (splitProcessing) {
+    return (
+      <LayoutShell>
+        <div className="mx-auto max-w-2xl">
+          <Card>
+            <CardContent className="py-12 text-center">
+              <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+              <p className="font-medium">Creating {detectedIssues?.length || 0} separate issues</p>
+              <p className="mt-1 text-sm text-muted-foreground">Classifying each one and preparing for contractors...</p>
+            </CardContent>
+          </Card>
+        </div>
+      </LayoutShell>
+    );
+  }
+
+  // Multi-issue success screen
+  if (createdIssues.length > 1) {
+    return (
+      <LayoutShell>
+        <div className="mx-auto max-w-2xl space-y-4">
+          <div className="text-center pt-2">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+              <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+            </div>
+            <h1 className="text-xl font-semibold">{createdIssues.length} issues created</h1>
+            <p className="text-sm text-muted-foreground mt-1">Each issue is ready to send to contractors</p>
+          </div>
+
+          <div className="space-y-3">
+            {createdIssues.map((issue) => {
+              const urgencyColor =
+                issue.urgency === 'emergency' ? 'bg-red-100 text-red-800'
+                : issue.urgency === 'high' ? 'bg-orange-100 text-orange-800'
+                : issue.urgency === 'medium' ? 'bg-yellow-100 text-yellow-800'
+                : 'bg-green-100 text-green-800';
+              return (
+                <Card key={issue.id}>
+                  <CardContent className="pt-5 pb-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium">{issue.title}</p>
+                        <div className="flex gap-1.5 mt-1">
+                          <Badge className="text-xs bg-gray-100">{formatLabel(issue.category)}</Badge>
+                          <Badge className={`text-xs ${urgencyColor}`}>{formatLabel(issue.urgency)}</Badge>
+                        </div>
+                      </div>
+                      <Link href={`/issues/${issue.id}/dispatch`}>
+                        <Button size="sm">Send to contractors</Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-col gap-2 pt-2">
+            <Link href="/issues">
+              <Button variant="outline" className="w-full">View all issues</Button>
+            </Link>
+            <Button
+              variant="ghost"
+              className="w-full"
+              onClick={() => {
+                setCreatedIssues([]);
+                setDetectedIssues(null);
+                setPendingFormData(null);
+                setClassification(null);
+                setIssueId(null);
+                setPhotoUploadError('');
+                setPhotos([]);
+                setError('');
+                setLoading(false);
+                setClassifying(false);
+                submittingRef.current = false;
+              }}
+            >
+              Report another issue
+            </Button>
+          </div>
+        </div>
+      </LayoutShell>
+    );
   }
 
   // Show result — feels like "the system prepared this perfectly"
