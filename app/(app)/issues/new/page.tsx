@@ -721,7 +721,7 @@ export default function NewIssuePage() {
                 name="description"
                 required
                 maxLength={5000}
-                placeholder="Describe the issue in detail..."
+                placeholder="Describe what's going on — if you have multiple issues (e.g. leak and broken AC) just list them all and we'll sort it out"
                 rows={3}
               />
             </div>
