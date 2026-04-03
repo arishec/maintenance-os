@@ -15,6 +15,7 @@ import { SelectContractorButton } from './select-contractor-button';
 import { ClassifyButton } from './classify-button';
 import { JobLifecyclePanel } from './job-lifecycle-panel';
 import { RawMessageToggle } from './raw-message-toggle';
+import { CloseIssueButton } from './close-issue-button';
 import { ReplyToContractorButton } from './reply-to-contractor-button';
 import { ManualQuoteButton } from './manual-quote-button';
 import { ResendDispatchButton } from './resend-dispatch-button';
@@ -169,9 +170,10 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
               {issue.reference && <span className="ml-2 text-xs text-muted-foreground/60 font-mono">{issue.reference}</span>}
             </p>
           </div>
-          <div className="flex gap-2 flex-shrink-0">
+          <div className="flex gap-2 flex-shrink-0 items-center">
             <Badge className={getIssueStatusColor(issue.status)}>{displayStatus}</Badge>
             {issue.urgency && <Badge className={getUrgencyColor(issue.urgency)}>{formatLabel(issue.urgency)}</Badge>}
+            <CloseIssueButton issueId={issue.id} issueStatus={issue.status} />
           </div>
         </div>
 
