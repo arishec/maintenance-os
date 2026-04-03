@@ -90,6 +90,18 @@ export async function POST(
         });
       }
 
+      // Dedupe: if a manual quote already exists on this dispatch, return it instead of creating a duplicate
+      const existingManualResponse = await tx.contractorResponse.findFirst({
+        where: {
+          dispatchId: disp.id,
+          rawMessage: { startsWith: '[Manual entry]' },
+        },
+        orderBy: { receivedAt: 'desc' },
+      });
+      if (existingManualResponse) {
+        return { response: existingManualResponse, dispatch: disp };
+      }
+
       const resp = await tx.contractorResponse.create({
         data: {
           dispatchId: disp.id,

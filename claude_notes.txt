@@ -691,3 +691,40 @@ External engineer reviewed codebase and flagged 7 issues. 4 were already fixed i
 2. app/api/issues/[id]/resend-dispatch/route.ts - Shorter SMS body
 
 ## TypeScript: Clean compile (npx tsc --noEmit passed)
+
+---
+
+# Duplicate Submit / Idempotency Fixes - Session Summary (Apr 3, 2026)
+
+## Context
+Second engineer review flagged duplicate-submit risk on mutation endpoints. Verified all 5 key endpoints:
+- select-contractor: Already protected (checks for existing active job, returns conflict)
+- dispatch: Already protected (checks existing dispatches per contractor+issue, filters out dupes)
+- manual-quote: NOT protected — double-click could create duplicate contractorResponse rows
+- reply-to-contractor: NOT protected — double-click could send duplicate messages
+- resend-dispatch: Partially protected (1-hour rate limit, but two simultaneous requests could race)
+
+Also verified webhook dedupe (both already have two-layer protection) and job lifecycle transitions (strict transition map + UI button disabling).
+
+## Fixes Applied
+
+### 1. Manual Quote Dedupe (app/api/issues/[id]/manual-quote/route.ts)
+**Problem**: No check for existing manual quote on same dispatch. Double-click creates duplicate contractorResponse rows.
+**Fix**: Inside the transaction, before creating a new response, check for an existing `[Manual entry]` response on the same dispatch. If found, return it instead of creating a duplicate. This is idempotent — the second request gets the same result as the first.
+
+### 2. Reply-to-Contractor Dedupe (app/api/issues/[id]/reply-to-contractor/route.ts)
+**Problem**: No duplicate send protection. Double-click sends the same message twice to the contractor.
+**Fix**: Before creating the message record, check for a recent (within 60 seconds) outbound message with the same body to the same contractor on the same issue, with status 'queued' or 'sent'. If found, return success without sending again. Window is short enough to not block intentional re-sends.
+
+## Already-Protected Endpoints (no changes needed)
+1. select-contractor: Backend guard checks for existing active job
+2. dispatch: Filters out already-contacted contractors
+3. Twilio inbound webhook: Two-layer dedupe (MessageSid + dispatch+rawMessage)
+4. Email inbound webhook: Two-layer dedupe (emailId + dispatch+rawMessage)
+5. Job lifecycle: Strict JOB_VALID_TRANSITIONS map + UI disables all buttons during async
+
+## Files Modified
+1. app/api/issues/[id]/manual-quote/route.ts - Added existing response check inside transaction
+2. app/api/issues/[id]/reply-to-contractor/route.ts - Added 60-second same-message dedupe
+
+## TypeScript: Clean compile (npx tsc --noEmit passed)

@@ -66,6 +66,22 @@ export async function POST(
       return NextResponse.json({ error: 'Contractor has no phone number.' }, { status: 400 });
     }
 
+    // Dedupe: block duplicate sends of the same message within 60 seconds
+    const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+    const recentDuplicate = await prisma.contractorMessage.findFirst({
+      where: {
+        issueId,
+        contractorId: contractor.id,
+        direction: 'outbound',
+        messageBody: body.message,
+        sendStatus: { in: ['queued', 'sent'] },
+        createdAt: { gte: oneMinuteAgo },
+      },
+    });
+    if (recentDuplicate) {
+      return NextResponse.json({ success: true });
+    }
+
     // Create message record FIRST as 'queued' — durable history before send
     const messageRecord = await prisma.contractorMessage.create({
       data: {
