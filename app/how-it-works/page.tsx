@@ -3,9 +3,9 @@ import Link from 'next/link';
 import { PublicLayout } from '@/components/public-layout';
 
 export const metadata: Metadata = {
-  title: 'How Maintenance OS Works',
+  title: 'How It Works — Property Maintenance Management Made Simple',
   description:
-    'Report an issue once, send it to contractors, compare responses, and keep everything organized from start to finish.',
+    'Report a repair, dispatch to contractors, compare quotes, and track the job to completion — all in one place. See how Maintenance OS works step by step.',
   alternates: {
     canonical: '/how-it-works',
   },

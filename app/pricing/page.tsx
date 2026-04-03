@@ -3,9 +3,9 @@ import Link from 'next/link';
 import { PublicLayout } from '@/components/public-layout';
 
 export const metadata: Metadata = {
-  title: 'Pricing',
+  title: 'Pricing — Property Maintenance Software | Maintenance OS',
   description:
-    'Maintenance OS is currently in beta. All features are free while we build.',
+    'Maintenance OS is free during beta. Track repairs, dispatch contractors, and compare quotes — no credit card required.',
   alternates: {
     canonical: '/pricing',
   },

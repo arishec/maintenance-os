@@ -3,9 +3,9 @@ import Link from 'next/link';
 import { PublicLayout } from '@/components/public-layout';
 
 export const metadata: Metadata = {
-  title: 'Features — Stop Chasing Contractors',
+  title: 'Property Maintenance Features — Repair Tracking, Contractor Dispatch & Quotes',
   description:
-    'Send one request. Get multiple quotes. Track everything from issue to completion — without texts, spreadsheets, or guesswork.',
+    'Track repairs, dispatch contractors via SMS and email, compare quotes side-by-side, and manage every job from issue to completion.',
   alternates: {
     canonical: '/features',
   },
