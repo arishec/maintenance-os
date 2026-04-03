@@ -190,6 +190,15 @@ export function AttachmentsSection({
                       View
                     </a>
                   )}
+                  {attachment.fileUrl && (
+                    <a
+                      href={`${attachment.fileUrl}?download=`}
+                      download={attachment.fileName}
+                      className="text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      Download
+                    </a>
+                  )}
                   {!isClosedIssue && (
                     <Button
                       size="sm"
