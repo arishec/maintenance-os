@@ -11,12 +11,48 @@ export const metadata: Metadata = {
   },
 };
 
-const features = [
+const aiHighlights = [
   {
-    headline: 'AI looks at your photos and classifies the issue',
-    body: 'Upload a photo and AI instantly describes what it sees \u2014 water damage, cracked drywall, a broken fixture. It uses that analysis to classify the issue, set urgency, and recommend the right trade. Contractors receive the photos and AI descriptions so they can quote accurately before showing up.',
-    href: '/features/ai-powered-maintenance',
+    icon: (
+      <svg className="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
+      </svg>
+    ),
+    title: 'Photo diagnosis',
+    body: 'Upload a photo — AI describes the damage and severity',
   },
+  {
+    icon: (
+      <svg className="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6Z" />
+      </svg>
+    ),
+    title: 'Auto-classification',
+    body: 'Instantly sorts by trade, urgency, and timeframe',
+  },
+  {
+    icon: (
+      <svg className="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+      </svg>
+    ),
+    title: 'Quote parsing',
+    body: 'Reads contractor SMS/email and extracts the numbers',
+  },
+  {
+    icon: (
+      <svg className="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+      </svg>
+    ),
+    title: 'Quote comparison',
+    body: 'Analyzes bids and recommends the best value',
+  },
+];
+
+const features = [
   {
     headline: 'Stop losing track of repairs',
     body: 'Know exactly what\u2019s happening at every property \u2014 without digging through texts or emails. Track every issue from the moment it\u2019s reported to final completion. See status, updates, photos, and notes all in one place. No more guessing what was fixed, when, or by who.',
@@ -112,6 +148,41 @@ export default function FeaturesPage() {
             </div>
           ))}
         </div>
+
+        {/* AI Showcase */}
+        <section className="rounded-2xl border border-purple-200 bg-gradient-to-b from-purple-50 to-white p-6 sm:p-8 lg:p-10 mb-16 sm:mb-20">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="inline-block bg-purple-100 text-purple-700 text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+              AI-Powered
+            </span>
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+            AI built into every step of the repair process
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Not a chatbot. Real AI that classifies issues, reads contractor replies, compares quotes, and extracts invoices &mdash; automatically.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+            {aiHighlights.map((item) => (
+              <div key={item.title} className="flex items-start gap-3 rounded-xl bg-white border border-purple-100 p-3.5">
+                <div className="flex-shrink-0 mt-0.5">{item.icon}</div>
+                <div>
+                  <p className="font-semibold text-gray-900 text-sm">{item.title}</p>
+                  <p className="text-gray-500 text-xs">{item.body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <Link
+            href="/features/ai-powered-maintenance"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-purple-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-purple-700 transition-colors"
+          >
+            See all 7 AI features
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+            </svg>
+          </Link>
+        </section>
 
         {/* Features */}
         <div className="space-y-10 sm:space-y-14 mb-16 sm:mb-20">
