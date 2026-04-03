@@ -154,6 +154,7 @@ model Contractor {
   email             String?
   notes             String?
   isPreferred       Boolean              @default(false)
+  preferredChannel  String?              // 'sms', 'email', or null (no preference)
   isArchived        Boolean              @default(false)
   createdAt         DateTime             @default(now())
   updatedAt         DateTime             @updatedAt

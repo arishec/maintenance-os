@@ -108,6 +108,15 @@ export default async function ContractorDetailPage({
               </div>
             )}
 
+            {contractor.preferredChannel && (
+              <div>
+                <p className="text-sm text-muted-foreground">Preferred Contact</p>
+                <p className="text-base font-medium mt-1">
+                  {contractor.preferredChannel === 'sms' ? 'SMS / Text' : 'Email'}
+                </p>
+              </div>
+            )}
+
             {contractor.notes && (
               <div>
                 <p className="text-sm text-muted-foreground">Notes</p>

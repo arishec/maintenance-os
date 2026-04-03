@@ -54,6 +54,7 @@ const updateContractorSchema = z.object({
   email: z.string().email().max(254).optional(),
   notes: z.string().max(2000).optional(),
   isPreferred: z.boolean().optional(),
+  preferredChannel: z.enum(['sms', 'email']).nullable().optional(),
   isArchived: z.boolean().optional(),
 });
 

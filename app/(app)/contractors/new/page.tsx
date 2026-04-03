@@ -43,6 +43,7 @@ export default function NewContractorPage() {
       email: form.get('email') as string || undefined,
       notes: form.get('notes') as string || undefined,
       isPreferred: form.get('isPreferred') === 'on',
+      preferredChannel: (form.get('preferredChannel') as string) || null,
     };
 
     try {
@@ -113,6 +114,15 @@ export default function NewContractorPage() {
                   <Input name="email" type="email" placeholder="contractor@example.com" />
                 </div>
               </div>
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium">Preferred Contact Method</label>
+              <Select name="preferredChannel" defaultValue="">
+                <option value="">No preference</option>
+                <option value="sms">SMS / Text</option>
+                <option value="email">Email</option>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">How this contractor prefers to be contacted — auto-selected when dispatching</p>
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium">Notes</label>

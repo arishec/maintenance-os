@@ -83,6 +83,7 @@ interface Contractor {
   phone: string | null;
   email: string | null;
   isPreferred: boolean;
+  preferredChannel: string | null;
   stats?: ContractorStats;
 }
 
@@ -159,9 +160,14 @@ export default function DispatchPage() {
     if (exists) {
       setSelected(selected.filter(s => s.contractorId !== contractor.id));
     } else {
-      // Default to email — SMS is pending A2P 10DLC carrier approval
-      const channel = contractor.email ? 'email' : 'sms';
-      setSelected([...selected, { contractorId: contractor.id, channel: channel as 'sms' | 'email' }]);
+      // Use contractor's preferred channel if set, otherwise default to email
+      let channel: 'sms' | 'email' = contractor.email ? 'email' : 'sms';
+      if (contractor.preferredChannel === 'sms' && contractor.phone) {
+        channel = 'sms';
+      } else if (contractor.preferredChannel === 'email' && contractor.email) {
+        channel = 'email';
+      }
+      setSelected([...selected, { contractorId: contractor.id, channel }]);
     }
   }
 
@@ -203,10 +209,14 @@ export default function DispatchPage() {
       const data = await res.json();
       const created = data.contractor;
       setContractors(prev => [...prev, created]);
-      // Auto-select the new contractor
-      // Default to email — SMS is pending A2P 10DLC carrier approval
-      const channel = created.email ? 'email' : 'sms';
-      setSelected(prev => [...prev, { contractorId: created.id, channel: channel as 'sms' | 'email' }]);
+      // Auto-select the new contractor with their preferred channel
+      let channel: 'sms' | 'email' = created.email ? 'email' : 'sms';
+      if (created.preferredChannel === 'sms' && created.phone) {
+        channel = 'sms';
+      } else if (created.preferredChannel === 'email' && created.email) {
+        channel = 'email';
+      }
+      setSelected(prev => [...prev, { contractorId: created.id, channel }]);
       setNewContractor({ name: '', trade: 'handyman', phone: '', email: '', companyName: '' });
       setShowAddForm(false);
     } catch (err) {
@@ -367,6 +377,11 @@ export default function DispatchPage() {
                             {contractor.phone && contractor.email && <span> · </span>}
                             {contractor.email && <span>{contractor.email}</span>}
                           </div>
+                          {contractor.preferredChannel && (
+                            <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded mt-0.5 inline-block">
+                              Prefers {contractor.preferredChannel === 'sms' ? 'SMS' : 'email'}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="hidden sm:block text-sm text-muted-foreground flex-shrink-0">
