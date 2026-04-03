@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { Toast } from '@/components/ui/toast';
 
 export function CloseIssueButton({ issueId, issueStatus }: { issueId: string; issueStatus: string }) {
   const router = useRouter();
@@ -19,6 +20,7 @@ export function CloseIssueButton({ issueId, issueStatus }: { issueId: string; is
   const [reason, setReason] = useState('');
   const [selfResolved, setSelfResolved] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'error' } | null>(null);
 
   // Don't show on already closed/completed issues
   if (['completed', 'canceled', 'archived'].includes(issueStatus)) return null;
@@ -36,14 +38,16 @@ export function CloseIssueButton({ issueId, issueStatus }: { issueId: string; is
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert(data.error || 'Failed to close issue');
+        setToast({ message: data.error || 'Failed to close issue', type: 'error' });
+        setTimeout(() => setToast(null), 3000);
         setLoading(false);
         return;
       }
       router.refresh();
       setOpen(false);
     } catch {
-      alert('Failed to close issue');
+      setToast({ message: 'Failed to close issue', type: 'error' });
+      setTimeout(() => setToast(null), 3000);
       setLoading(false);
     }
   }
@@ -95,6 +99,7 @@ export function CloseIssueButton({ issueId, issueStatus }: { issueId: string; is
           </div>
         </AlertDialogContent>
       </AlertDialog>
+      {toast && <Toast message={toast.message} type={toast.type} />}
     </>
   );
 }

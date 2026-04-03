@@ -2,28 +2,33 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Toast } from '@/components/ui/toast';
 
 export function ManageSubscriptionButton() {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleManage() {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch('/api/stripe/portal', { method: 'POST' });
       const data = await res.json();
 
       if (!res.ok) {
-        console.error('Portal error:', data.error);
+        setError(data.error || 'Could not open billing portal. Please try again.');
         setLoading(false);
+        setTimeout(() => setError(null), 4000);
         return;
       }
 
       if (data.url) {
         window.location.href = data.url;
       }
-    } catch (error) {
-      console.error('Failed to open billing portal:', error);
+    } catch {
+      setError('Could not open billing portal. Please try again.');
       setLoading(false);
+      setTimeout(() => setError(null), 4000);
     }
   }
 
@@ -40,6 +45,7 @@ export function ManageSubscriptionButton() {
       >
         {loading ? 'Opening...' : 'Manage Subscription'}
       </Button>
+      {error && <Toast message={error} type="error" />}
     </div>
   );
 }

@@ -142,6 +142,8 @@ model Property {
   propertyLinks   PropertyIntakeLink[]
   propertyWorkers PropertyContractor[]
   timelineEvents  TimelineEvent[]
+
+  @@index([ownerUserId])
 }
 
 model Contractor {
@@ -163,6 +165,8 @@ model Contractor {
   dispatches         Dispatch[]
   jobs               Job[]
   contractorMessages ContractorMessage[]
+
+  @@index([ownerUserId])
 }
 
 model PropertyContractor {
@@ -334,6 +338,7 @@ model Job {
   timelineEvents     TimelineEvent[]
 
   @@index([issueId])
+  @@index([contractorId])
   @@index([status])
 }
 
@@ -364,6 +369,9 @@ model PropertyIntakeLink {
   createdAt DateTime @default(now())
   rotatedAt DateTime?
   property  Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@index([tokenHash])
 }
 
 model Notification {
@@ -407,6 +415,8 @@ model UnresolvedInboundMessage {
   receivedAt      DateTime  @default(now())
   resolvedAt      DateTime?
   resolutionNotes String?
+
+  @@index([provider, resolvedAt])
 }
 
 // Webhook idempotency tables — prevent duplicate processing on retries

@@ -36,7 +36,7 @@ export function ManualQuoteButton({ issueId, existingContractors = [] }: ManualQ
         .then(data => {
           if (data.contractors) setContractors(data.contractors);
         })
-        .catch(() => {});
+        .catch((err) => console.error('Failed to load contractors:', err));
     }
   }, [isOpen, contractors.length]);
 

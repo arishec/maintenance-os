@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Select } from '@/components/ui/select';
+import { Toast } from '@/components/ui/toast';
 
 interface Contractor {
   id: string;
@@ -44,6 +45,12 @@ export function PropertyDetailClient({
   const [intakeLinkError, setIntakeLinkError] = useState('');
   const [selectedContractor, setSelectedContractor] = useState<string>('');
   const [addingContractor, setAddingContractor] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  function showToast(message: string, type: 'success' | 'error' = 'error') {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  }
 
   async function handleDelete() {
     setLoading(true);
@@ -54,15 +61,15 @@ export function PropertyDetailClient({
 
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || 'Failed to delete property');
+        showToast(data.error || 'Failed to delete property');
         setLoading(false);
         return;
       }
 
       router.push('/properties');
       router.refresh();
-    } catch (error) {
-      alert('An error occurred. Please try again.');
+    } catch {
+      showToast('An error occurred. Please try again.');
       setLoading(false);
     }
   }
@@ -81,15 +88,15 @@ export function PropertyDetailClient({
 
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || 'Failed to unlink contractor');
+        showToast(data.error || 'Failed to unlink contractor');
         setLoading(false);
         return;
       }
 
       router.refresh();
       setShowUnlinkDialog(false);
-    } catch (error) {
-      alert('An error occurred. Please try again.');
+    } catch {
+      showToast('An error occurred. Please try again.');
       setLoading(false);
     }
   }
@@ -110,7 +117,7 @@ export function PropertyDetailClient({
 
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || 'Failed to link contractor');
+        showToast(data.error || 'Failed to link contractor');
         setAddingContractor(false);
         return;
       }
@@ -118,8 +125,8 @@ export function PropertyDetailClient({
       setSelectedContractor('');
       router.refresh();
       setAddingContractor(false);
-    } catch (error) {
-      alert('An error occurred. Please try again.');
+    } catch {
+      showToast('An error occurred. Please try again.');
       setAddingContractor(false);
     }
   }
@@ -167,15 +174,15 @@ export function PropertyDetailClient({
 
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || 'Failed to deactivate link');
+        showToast(data.error || 'Failed to deactivate link');
         setLoading(false);
         return;
       }
 
       setShowDeactivateDialog(false);
       router.refresh();
-    } catch (error) {
-      alert('An error occurred. Please try again.');
+    } catch {
+      showToast('An error occurred. Please try again.');
       setLoading(false);
     }
   }
@@ -183,7 +190,7 @@ export function PropertyDetailClient({
   function copyToClipboard() {
     if (intakeLink) {
       navigator.clipboard.writeText(intakeLink);
-      alert('Link copied to clipboard!');
+      showToast('Link copied to clipboard!', 'success');
     }
   }
 
@@ -216,6 +223,7 @@ export function PropertyDetailClient({
             </div>
           </AlertDialogContent>
         </AlertDialog>
+        {toast && <Toast message={toast.message} type={toast.type} />}
       </>
     );
   }
@@ -249,6 +257,7 @@ export function PropertyDetailClient({
             </div>
           </AlertDialogContent>
         </AlertDialog>
+        {toast && <Toast message={toast.message} type={toast.type} />}
       </>
     );
   }
@@ -276,6 +285,7 @@ export function PropertyDetailClient({
         >
           {addingContractor ? 'Adding...' : 'Add'}
         </Button>
+        {toast && <Toast message={toast.message} type={toast.type} />}
       </div>
     );
   }
@@ -314,6 +324,7 @@ export function PropertyDetailClient({
               </div>
             </AlertDialogContent>
           </AlertDialog>
+          {toast && <Toast message={toast.message} type={toast.type} />}
         </>
       );
     }
@@ -358,9 +369,10 @@ export function PropertyDetailClient({
             </div>
           </AlertDialogContent>
         </AlertDialog>
+        {toast && <Toast message={toast.message} type={toast.type} />}
       </>
     );
   }
 
-  return null;
+  return toast ? <Toast message={toast.message} type={toast.type} /> : null;
 }

@@ -728,3 +728,51 @@ Also verified webhook dedupe (both already have two-layer protection) and job li
 2. app/api/issues/[id]/reply-to-contractor/route.ts - Added 60-second same-message dedupe
 
 ## TypeScript: Clean compile (npx tsc --noEmit passed)
+
+---
+
+# App Hardening & Polish Pass - Session Summary (Apr 3, 2026)
+
+## 1. Database Indexes Added (prisma/schema.prisma)
+Missing indexes cause slow queries as data grows. Added:
+- Property.ownerUserId — "get all my properties" query
+- Contractor.ownerUserId — "get all my contractors" query
+- Job.contractorId — "find jobs for this contractor" query
+- PropertyIntakeLink.propertyId — intake link lookup by property
+- PropertyIntakeLink.tokenHash — tenant intake authentication
+- UnresolvedInboundMessage [provider, resolvedAt] — admin triage queries
+
+**Action required**: Run `npx prisma db push` to apply.
+
+## 2. Replaced browser alert() with Toast Notifications
+alert() blocks the UI thread and looks unprofessional. Replaced in:
+- property-detail-client.tsx — All 9 alert() calls (delete, unlink, add contractor, deactivate link, copy link) now use Toast component with proper success/error types
+- close-issue-button.tsx — Both error alert() calls now use Toast
+- manage-subscription-button.tsx — Silent failures now show visible error Toast
+
+## 3. Global Error Boundaries
+- Created app/error.tsx — Root-level error boundary for routes outside (app) group (intake, contact, etc.)
+- Created app/not-found.tsx — Custom 404 page replacing Next.js default
+- Both match existing design system (centered card layout, icon, action buttons)
+
+## 4. Fixed Silent Error Swallowing
+- manual-quote-button.tsx — Empty .catch(() => {}) now logs to console
+- manage-subscription-button.tsx — console.error-only failures now show user-facing Toast
+
+## Files Created
+1. app/error.tsx — Root error boundary
+2. app/not-found.tsx — Custom 404 page
+
+## Files Modified
+1. prisma/schema.prisma — 6 new indexes
+2. app/(app)/properties/[id]/property-detail-client.tsx — alert() → Toast
+3. app/(app)/issues/[id]/close-issue-button.tsx — alert() → Toast
+4. app/(app)/settings/manage-subscription-button.tsx — silent fail → Toast
+5. app/(app)/issues/[id]/manual-quote-button.tsx — empty catch → console.error
+
+## TypeScript: Clean compile (npx tsc --noEmit passed)
+
+## Deployment Note
+After pulling these changes, run:
+  npx prisma db push
+to apply the new database indexes.
