@@ -316,25 +316,56 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
     });
   }
 
-  // 7. High urgency issues still open — should not be ignored
+  // 7. High urgency issues still open — show status-specific guidance
   const highUrgencyIssues = await prisma.issue.findMany({
     where: {
       propertyId: { in: propertyIds },
-      urgency: 'high',
-      status: { notIn: ['completed', 'canceled', 'archived', 'quotes_received'] }, // quotes_received already covered above
+      urgency: { in: ['high', 'emergency'] },
+      status: { notIn: ['completed', 'canceled', 'archived', 'quotes_received'] },
     },
-    select: { id: true, title: true, propertyId: true, status: true, createdAt: true },
+    select: { id: true, title: true, propertyId: true, status: true, urgency: true, createdAt: true },
   });
   for (const issue of highUrgencyIssues) {
     // Don't double-count if already in attention for another reason
     if (items.some((i) => i.issueId === issue.id)) continue;
+
+    const priorityLabel = issue.urgency === 'emergency' ? 'Emergency' : 'High priority';
+    let reason: string;
+    let actionLabel: string;
+
+    switch (issue.status) {
+      case 'new':
+      case 'classified':
+        reason = `${priorityLabel} — needs to be sent to contractors`;
+        actionLabel = 'Send to contractors';
+        break;
+      case 'awaiting_dispatch':
+        reason = `${priorityLabel} — ready to dispatch to contractors`;
+        actionLabel = 'Send to contractors';
+        break;
+      case 'awaiting_quotes':
+        reason = `${priorityLabel} — waiting for contractor responses`;
+        actionLabel = 'View status';
+        break;
+      case 'active_job':
+        reason = `${priorityLabel} — job in progress, check status`;
+        actionLabel = 'View job';
+        break;
+      default:
+        reason = `${priorityLabel} — check job status`;
+        actionLabel = 'View job';
+        break;
+    }
+
     items.push({
       issueId: issue.id,
       issueTitle: issue.title ?? 'Untitled issue',
       propertyName: propertyMap.get(issue.propertyId) ?? '',
-      reason: 'High priority — check job status',
-      actionLabel: 'View job',
-      actionHref: `/issues/${issue.id}`,
+      reason,
+      actionLabel,
+      actionHref: issue.status === 'classified' || issue.status === 'awaiting_dispatch'
+        ? `/issues/${issue.id}/dispatch`
+        : `/issues/${issue.id}`,
       urgency: 'high',
       timestamp: issue.createdAt,
     });
