@@ -24,6 +24,7 @@ import { LocalTime } from '@/components/local-time';
 
 import {
   ISSUE_STATUS_LABELS,
+  ISSUE_NEXT_ACTION,
   getIssueStatusColor,
   getUrgencyColor,
   getDispatchStatusLabel,
@@ -178,6 +179,15 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
             <CloseIssueButton issueId={issue.id} issueStatus={issue.status} />
           </div>
         </div>
+
+        {/* Workflow guidance */}
+        {issue.status !== 'completed' && issue.status !== 'canceled' && (
+          <div className="mb-4 rounded-lg border border-blue-100 bg-blue-50/50 px-4 py-3 flex items-center gap-3">
+            <span className="text-blue-600 text-sm">
+              <strong>Next step:</strong> {ISSUE_NEXT_ACTION[issue.status] || 'Review this issue'}
+            </span>
+          </div>
+        )}
 
         {/* Status Banners */}
         {(issue.status === 'classified' || issue.status === 'awaiting_dispatch') && (

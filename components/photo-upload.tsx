@@ -209,9 +209,9 @@ export function PhotoUpload({
                     type="button"
                     onClick={() => removeFile(id)}
                     disabled={uploading}
-                    className="absolute -right-1.5 -top-1.5 rounded-full bg-red-500 p-0.5 text-white hover:bg-red-600 disabled:opacity-50"
+                    className="absolute -right-1.5 -top-1.5 rounded-full bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 min-h-[44px] min-w-[44px] flex items-center justify-center"
                   >
-                    <X className="h-3.5 w-3.5" />
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
               );

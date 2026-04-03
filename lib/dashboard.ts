@@ -45,6 +45,13 @@ export interface ActivityItem {
 
 export interface OverviewCounts {
   openIssues: number;
+  openIssuesByStatus?: {
+    new: number;
+    classifiedOrReady: number;
+    awaitingQuotes: number;
+    quotesReceived: number;
+    activeJob: number;
+  };
   quotesReady: number;
   activeJobs: number;
   completedThisMonth: number;
@@ -669,15 +676,30 @@ export async function getOverviewCounts(userId: string): Promise<OverviewCounts>
   const propertyIds = properties.map((p) => p.id);
 
   if (propertyIds.length === 0) {
-    return { openIssues: 0, quotesReady: 0, activeJobs: 0, completedThisMonth: 0, properties: 0 };
+    return { openIssues: 0, openIssuesByStatus: { new: 0, classifiedOrReady: 0, awaitingQuotes: 0, quotesReceived: 0, activeJob: 0 }, quotesReady: 0, activeJobs: 0, completedThisMonth: 0, properties: 0 };
   }
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const [openIssues, quotesReady, activeJobs, completedThisMonth] = await Promise.all([
+  const [openIssues, newCount, classifiedOrReadyCount, awaitingQuotesCount, quotesReadyCount, activeJobsCount, quotesReady, activeJobs, completedThisMonth] = await Promise.all([
     prisma.issue.count({
       where: { propertyId: { in: propertyIds }, status: { notIn: ['completed', 'canceled', 'archived'] } },
+    }),
+    prisma.issue.count({
+      where: { propertyId: { in: propertyIds }, status: 'new' },
+    }),
+    prisma.issue.count({
+      where: { propertyId: { in: propertyIds }, status: { in: ['classified', 'awaiting_dispatch'] } },
+    }),
+    prisma.issue.count({
+      where: { propertyId: { in: propertyIds }, status: 'awaiting_quotes' },
+    }),
+    prisma.issue.count({
+      where: { propertyId: { in: propertyIds }, status: 'quotes_received' },
+    }),
+    prisma.issue.count({
+      where: { propertyId: { in: propertyIds }, status: 'active_job' },
     }),
     prisma.issue.count({
       where: { propertyId: { in: propertyIds }, status: 'quotes_received' },
@@ -692,6 +714,13 @@ export async function getOverviewCounts(userId: string): Promise<OverviewCounts>
 
   return {
     openIssues,
+    openIssuesByStatus: {
+      new: newCount,
+      classifiedOrReady: classifiedOrReadyCount,
+      awaitingQuotes: awaitingQuotesCount,
+      quotesReceived: quotesReadyCount,
+      activeJob: activeJobsCount,
+    },
     quotesReady,
     activeJobs,
     completedThisMonth,

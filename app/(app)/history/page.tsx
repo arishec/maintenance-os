@@ -6,6 +6,7 @@ import { LayoutShell } from '@/components/layout-shell';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LocalTime } from '@/components/local-time';
+import { HistoryFilters } from './history-filters';
 
 import {
   getCategoryLabel,
@@ -67,10 +68,34 @@ export default async function HistoryPage() {
           </CardContent>
         </Card>
       ) : (() => {
+        // Serialize issues data for client component
+        const serializedIssues = completedIssues.map((issue) => {
+          const closingEvent = issue.timelineEvents?.[0];
+          const payload = closingEvent?.eventPayloadJson as Record<string, unknown> | null;
+          const isSelfResolved = payload?.selfResolved === true;
+          const reasonText = typeof payload?.reason === 'string' && payload.reason !== 'No reason provided' ? payload.reason : null;
+          const cost = issue.jobs.length > 0 ? parseFloat(issue.jobs[0].selectedEstimate?.toString() || '0') : null;
+
+          return {
+            id: issue.id,
+            title: issue.title,
+            status: issue.status,
+            completedAt: issue.completedAt?.toISOString() || null,
+            category: issue.category,
+            propertyName: issue.property.nickname || issue.property.addressLine1,
+            propertyId: issue.propertyId,
+            contractorName: issue.jobs.length > 0 ? issue.jobs.map((j) => j.contractor.name).join(', ') : '',
+            cost,
+            isSelfResolved,
+            reason: reasonText,
+          };
+        });
+
         const hasCosts = completedIssues.some((i) => i.jobs.some((j) => j.selectedEstimate));
         const hasCategories = completedIssues.some((i) => i.category);
         const completedCount = completedIssues.filter((i) => i.status === 'completed').length;
         const canceledCount = completedIssues.filter((i) => i.status === 'canceled').length;
+
         return (
           <>
             <p className="text-sm text-muted-foreground mb-4">
@@ -80,82 +105,98 @@ export default async function HistoryPage() {
                 return total > 0 ? ` \u2014 ${formatCurrency(total)} total` : '';
               })()}
             </p>
-            <Card>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="border-b border-border bg-muted/50">
-                      <tr className="text-muted-foreground">
-                        <th className="text-left p-4 font-medium">Date</th>
-                        <th className="text-left p-4 font-medium">Property</th>
-                        <th className="text-left p-4 font-medium">Issue</th>
-                        {hasCategories && <th className="text-left p-4 font-medium">Category</th>}
-                        <th className="text-left p-4 font-medium">Contractor</th>
-                        {hasCosts && <th className="text-left p-4 font-medium">Cost</th>}
-                        <th className="text-left p-4 font-medium">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {completedIssues.map((issue) => (
-                        <tr key={issue.id} className="border-b border-border hover:bg-muted/30 transition-colors">
-                          <td className="p-4 text-muted-foreground text-xs">{issue.completedAt ? <LocalTime date={issue.completedAt} format="date" /> : '—'}</td>
-                          <td className="p-4 text-muted-foreground">{issue.property.nickname || issue.property.addressLine1}</td>
-                          <td className="p-4">
-                            <Link href={`/issues/${issue.id}`} className="font-medium hover:underline">
-                              {issue.title || 'Untitled Issue'}
-                            </Link>
-                          </td>
-                          {hasCategories && (
-                            <td className="p-4">
-                              {issue.category ? <Badge className="border-slate-200 bg-slate-50 text-slate-700">{getCategoryLabel(issue.category)}</Badge> : '—'}
-                            </td>
-                          )}
-                          <td className="p-4 text-muted-foreground text-sm">
-                            {issue.jobs.length > 0 ? issue.jobs.map((job) => job.contractor.name).join(', ') : '—'}
-                          </td>
-                          {hasCosts && (
-                            <td className="p-4 text-muted-foreground text-sm">
-                              {issue.jobs.length > 0
-                                ? issue.jobs.map((job) => formatCurrency(job.selectedEstimate ? parseFloat(job.selectedEstimate.toString()) : undefined)).join(', ')
-                                : '—'}
-                            </td>
-                          )}
-                          <td className="p-4">
-                            {(() => {
-                              const closingEvent = issue.timelineEvents?.[0];
-                              const payload = closingEvent?.eventPayloadJson as Record<string, unknown> | null;
-                              const isSelfResolved = payload?.selfResolved === true;
-                              const reasonText = typeof payload?.reason === 'string' && payload.reason !== 'No reason provided' ? payload.reason : null;
-                              if (isSelfResolved) {
-                                return (
-                                  <div>
-                                    <Badge className="bg-blue-50 text-blue-700 border-blue-200">Self-resolved</Badge>
-                                    {reasonText && (
-                                      <p className="text-xs text-muted-foreground mt-1 max-w-[200px] truncate">{reasonText}</p>
+            <HistoryFilters issues={serializedIssues}>
+              {(filtered) => (
+                <Card>
+                  <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="border-b border-border bg-muted/50">
+                          <tr className="text-muted-foreground">
+                            <th className="text-left p-4 font-medium">Date</th>
+                            <th className="text-left p-4 font-medium">Property</th>
+                            <th className="text-left p-4 font-medium">Issue</th>
+                            {hasCategories && <th className="text-left p-4 font-medium">Category</th>}
+                            <th className="text-left p-4 font-medium">Contractor</th>
+                            {hasCosts && <th className="text-left p-4 font-medium">Cost</th>}
+                            <th className="text-left p-4 font-medium">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filtered.map((filteredIssue) => {
+                            // Find the original issue to get full details
+                            const originalIssue = completedIssues.find((i) => i.id === filteredIssue.id)!;
+                            return (
+                              <tr key={filteredIssue.id} className="border-b border-border hover:bg-muted/30 transition-colors">
+                                <td className="p-4 text-muted-foreground text-xs">
+                                  {filteredIssue.completedAt ? new Date(filteredIssue.completedAt).toLocaleDateString() : '—'}
+                                </td>
+                                <td className="p-4 text-muted-foreground">{filteredIssue.propertyName}</td>
+                                <td className="p-4">
+                                  <Link href={`/issues/${filteredIssue.id}`} className="font-medium hover:underline">
+                                    {filteredIssue.title || 'Untitled Issue'}
+                                  </Link>
+                                </td>
+                                {hasCategories && (
+                                  <td className="p-4">
+                                    {filteredIssue.category ? (
+                                      <Badge className="border-slate-200 bg-slate-50 text-slate-700">
+                                        {getCategoryLabel(filteredIssue.category)}
+                                      </Badge>
+                                    ) : (
+                                      '—'
                                     )}
-                                  </div>
-                                );
-                              }
-                              if (issue.status === 'canceled') {
-                                return (
-                                  <div>
-                                    <Badge className="bg-red-50 text-red-700 border-red-200">Canceled</Badge>
-                                    {reasonText && (
-                                      <p className="text-xs text-muted-foreground mt-1 max-w-[200px] truncate">{reasonText}</p>
-                                    )}
-                                  </div>
-                                );
-                              }
-                              return <Badge className={getIssueStatusColor(issue.status)}>{getIssueStatusLabel(issue.status)}</Badge>;
-                            })()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
+                                  </td>
+                                )}
+                                <td className="p-4 text-muted-foreground text-sm">{filteredIssue.contractorName || '—'}</td>
+                                {hasCosts && (
+                                  <td className="p-4 text-muted-foreground text-sm">
+                                    {filteredIssue.cost ? formatCurrency(filteredIssue.cost) : '—'}
+                                  </td>
+                                )}
+                                <td className="p-4">
+                                  {(() => {
+                                    if (filteredIssue.isSelfResolved) {
+                                      return (
+                                        <div>
+                                          <Badge className="bg-blue-50 text-blue-700 border-blue-200">Self-resolved</Badge>
+                                          {filteredIssue.reason && (
+                                            <p className="text-xs text-muted-foreground mt-1 max-w-[200px] truncate">
+                                              {filteredIssue.reason}
+                                            </p>
+                                          )}
+                                        </div>
+                                      );
+                                    }
+                                    if (filteredIssue.status === 'canceled') {
+                                      return (
+                                        <div>
+                                          <Badge className="bg-red-50 text-red-700 border-red-200">Canceled</Badge>
+                                          {filteredIssue.reason && (
+                                            <p className="text-xs text-muted-foreground mt-1 max-w-[200px] truncate">
+                                              {filteredIssue.reason}
+                                            </p>
+                                          )}
+                                        </div>
+                                      );
+                                    }
+                                    return (
+                                      <Badge className={getIssueStatusColor(filteredIssue.status)}>
+                                        {getIssueStatusLabel(filteredIssue.status)}
+                                      </Badge>
+                                    );
+                                  })()}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </HistoryFilters>
           </>
         );
       })()}

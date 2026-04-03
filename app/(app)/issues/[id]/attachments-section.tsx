@@ -200,7 +200,7 @@ export function AttachmentsSection({
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 h-7 px-2"
+                      className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 min-h-[44px] min-w-[44px] px-2"
                       onClick={() => handleDelete(attachment.id, attachment.fileName)}
                       disabled={deleting === attachment.id}
                     >

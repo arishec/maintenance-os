@@ -329,7 +329,7 @@ export default async function IssuesPage({
                 <p className="text-muted-foreground mb-4">
                   {hasActiveFilters || currentView !== 'all'
                     ? 'No issues match your current filters.'
-                    : 'No issues reported yet.'}
+                    : 'No repairs reported yet. When you report a repair, you can track it here.'}
                 </p>
                 {hasActiveFilters || currentView !== 'all' ? (
                   <Link href="/issues">

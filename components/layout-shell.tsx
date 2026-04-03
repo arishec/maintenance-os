@@ -63,6 +63,12 @@ export function LayoutShell({ children }: { children: ReactNode }) {
             </nav>
           </div>
           <div className="flex items-center gap-3">
+            <Link href="/issues/new" className="hidden md:inline-flex">
+              <Button size="sm">
+                <Plus className="mr-1 h-4 w-4" />
+                Report Issue
+              </Button>
+            </Link>
             <NotificationsBell dropDirection="down" />
             <UserButton afterSignOutUrl="/" />
           </div>

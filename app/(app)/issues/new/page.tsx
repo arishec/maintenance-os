@@ -102,6 +102,7 @@ export default function NewIssuePage() {
   const [classifying, setClassifying] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [photoUploadError, setPhotoUploadError] = useState('');
+  const [uploadProgress, setUploadProgress] = useState<string>('');
   const [lastPropertyId, setLastPropertyId] = useState<string>('');
 
   // Multi-issue split flow
@@ -209,7 +210,11 @@ export default function NewIssuePage() {
       ? photos.filter((p) => photoIds.has(p.id))
       : photos;
 
-    for (const photo of photosToUpload) {
+    for (let i = 0; i < photosToUpload.length; i++) {
+      const photo = photosToUpload[i];
+      const progressMsg = `Uploading photo ${i + 1} of ${photosToUpload.length}...`;
+      setUploadProgress(progressMsg);
+
       try {
         const compressed = await compressImage(photo.file);
         const formData = new FormData();
@@ -230,6 +235,7 @@ export default function NewIssuePage() {
         failed++;
       }
     }
+    setUploadProgress('');
     return { success, failed };
   }
 
@@ -620,6 +626,7 @@ export default function NewIssuePage() {
                 setClassification(null);
                 setIssueId(null);
                 setPhotoUploadError('');
+                setUploadProgress('');
                 setPhotos([]);
                 setError('');
                 setLoading(false);
@@ -711,6 +718,7 @@ export default function NewIssuePage() {
                     setClassification(null);
                     setIssueId(null);
                     setPhotoUploadError('');
+                    setUploadProgress('');
                     setPhotos([]);
                     setError('');
                     setLoading(false);
@@ -738,8 +746,8 @@ export default function NewIssuePage() {
               <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
               <p className="font-medium">Understanding your issue and preparing it for contractors</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                {photos.length > 0 ? `Reviewing ${photos.length} photo${photos.length !== 1 ? 's' : ''}. ` : ''}
-                Organizing your request...
+                {uploadProgress ? uploadProgress : photos.length > 0 ? `Reviewing ${photos.length} photo${photos.length !== 1 ? 's' : ''}. ` : ''}
+                {!uploadProgress && 'Organizing your request...'}
               </p>
             </CardContent>
           </Card>
@@ -874,9 +882,9 @@ export default function NewIssuePage() {
                       <button
                         type="button"
                         onClick={() => handleDeletePhotoClick(photo.id)}
-                        className="absolute -right-1.5 -top-1.5 rounded-full bg-red-500 p-0.5 text-white shadow-sm hover:bg-red-600"
+                        className="absolute -right-1.5 -top-1.5 rounded-full bg-red-500 text-white shadow-sm hover:bg-red-600 min-h-[44px] min-w-[44px] flex items-center justify-center"
                       >
-                        <X className="h-3.5 w-3.5" />
+                        <X className="h-4 w-4" />
                       </button>
                     </div>
                   ))}
@@ -897,7 +905,8 @@ export default function NewIssuePage() {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-sm font-medium">Signals</label>
+              <label className="mb-1.5 block text-sm font-medium">Quick Tags (optional)</label>
+              <p className="text-xs text-muted-foreground mb-3">Select any that apply — helps prioritize your request</p>
               <div className="flex flex-wrap gap-x-4 gap-y-2">
                 {signalOptions.map((opt) => (
                   <div key={opt.value} className="flex items-center gap-2">

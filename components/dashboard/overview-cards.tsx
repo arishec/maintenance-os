@@ -7,6 +7,17 @@ const cards = [
     key: 'openIssues' as const,
     label: 'Open Issues',
     activeLabel: (n: number) => n > 0 ? `${n} open issue${n !== 1 ? 's' : ''}` : 'No open issues',
+    subLabel: (counts?: any) => {
+      if (!counts?.openIssuesByStatus) return null;
+      const s = counts.openIssuesByStatus;
+      const parts = [];
+      if (s.new > 0) parts.push(`${s.new} new`);
+      if (s.classifiedOrReady > 0) parts.push(`${s.classifiedOrReady} ready`);
+      if (s.awaitingQuotes > 0) parts.push(`${s.awaitingQuotes} awaiting`);
+      if (s.quotesReceived > 0) parts.push(`${s.quotesReceived} quoted`);
+      if (s.activeJob > 0) parts.push(`${s.activeJob} active`);
+      return parts.length > 0 ? parts.join(' · ') : null;
+    },
     icon: AlertCircle,
     color: 'text-red-600',
     activeColor: 'border-red-200 bg-red-50/50',
@@ -53,9 +64,10 @@ const cards = [
 export function OverviewCards({ counts }: { counts: OverviewCounts }) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-      {cards.map(({ key, activeLabel, icon: Icon, color, activeColor, href }) => {
+      {cards.map(({ key, activeLabel, subLabel, icon: Icon, color, activeColor, href }) => {
         const value = counts[key];
         const isActive = value > 0 && key !== 'properties';
+        const breakdown = subLabel ? subLabel(counts) : null;
         return (
           <Link
             key={key}
@@ -69,6 +81,9 @@ export function OverviewCards({ counts }: { counts: OverviewCounts }) {
               <span className="text-2xl font-semibold">{value}</span>
             </div>
             <p className="text-xs text-muted-foreground">{activeLabel(value)}</p>
+            {breakdown && (
+              <p className="text-xs text-muted-foreground/70 mt-1.5">{breakdown}</p>
+            )}
           </Link>
         );
       })}

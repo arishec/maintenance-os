@@ -173,24 +173,27 @@ export default function EditContractorPage({
                 ))}
               </Select>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium">Phone</label>
-                <Input
-                  name="phone"
-                  type="tel"
-                  placeholder="(555) 123-4567"
-                  defaultValue={contractor.phone || ''}
-                />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium">Email</label>
-                <Input
-                  name="email"
-                  type="email"
-                  placeholder="contractor@example.com"
-                  defaultValue={contractor.email || ''}
-                />
+            <div>
+              <p className="text-xs text-muted-foreground mb-3">Provide at least a phone number or email (one is required)</p>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium">Phone</label>
+                  <Input
+                    name="phone"
+                    type="tel"
+                    placeholder="(555) 123-4567"
+                    defaultValue={contractor.phone || ''}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium">Email</label>
+                  <Input
+                    name="email"
+                    type="email"
+                    placeholder="contractor@example.com"
+                    defaultValue={contractor.email || ''}
+                  />
+                </div>
               </div>
             </div>
             <div>
@@ -201,17 +204,20 @@ export default function EditContractorPage({
                 defaultValue={contractor.notes || ''}
               />
             </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="isPreferred"
-                name="isPreferred"
-                className="h-4 w-4 rounded border-border"
-                defaultChecked={contractor.isPreferred}
-              />
-              <label htmlFor="isPreferred" className="text-sm font-medium">
-                Mark as preferred contractor
-              </label>
+            <div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="isPreferred"
+                  name="isPreferred"
+                  className="h-4 w-4 rounded border-border"
+                  defaultChecked={contractor.isPreferred}
+                />
+                <label htmlFor="isPreferred" className="text-sm font-medium">
+                  Mark as preferred contractor
+                </label>
+              </div>
+              <p className="text-xs text-muted-foreground ml-6 mt-1">Preferred contractors appear first when dispatching repair requests</p>
             </div>
             <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
               <p className="text-xs text-muted-foreground">

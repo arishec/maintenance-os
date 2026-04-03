@@ -11,8 +11,8 @@ export const ISSUE_STATUS_LABELS: Record<string, string> = {
   new: 'New',
   classified: 'Ready to Send',
   awaiting_dispatch: 'Ready to Send',
-  awaiting_quotes: 'Awaiting Quotes',
-  quotes_received: 'Quotes Received',
+  awaiting_quotes: 'Sent to Contractors',
+  quotes_received: 'Quotes In — Action Needed',
   active_job: 'Active Job',
   completed: 'Completed',
   canceled: 'Canceled',
@@ -32,11 +32,11 @@ export const ISSUE_STATUS_COLORS: Record<string, string> = {
 };
 
 export const ISSUE_NEXT_ACTION: Record<string, string> = {
-  new: 'Classify this issue to get started',
+  new: 'AI will classify this, or send to contractors directly',
   classified: 'Send to contractors for quotes',
   awaiting_dispatch: 'Send to contractors for quotes',
-  awaiting_quotes: 'Waiting for contractor responses',
-  quotes_received: 'Review quotes and select a contractor',
+  awaiting_quotes: 'Contractors have been contacted — waiting for their responses',
+  quotes_received: 'You have quotes! Review them and pick a contractor',
   active_job: 'Track scheduling and progress',
   completed: 'Job complete',
 };
