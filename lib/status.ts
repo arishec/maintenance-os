@@ -43,11 +43,11 @@ export const ISSUE_NEXT_ACTION: Record<string, string> = {
 
 /** Centralized issue lifecycle — the ONLY source of truth for allowed transitions */
 export const ISSUE_VALID_TRANSITIONS: Record<string, string[]> = {
-  new: ['classified', 'quotes_received', 'canceled'],
-  classified: ['awaiting_quotes', 'quotes_received', 'canceled'],
-  awaiting_dispatch: ['awaiting_quotes', 'quotes_received', 'canceled'],
-  awaiting_quotes: ['quotes_received', 'canceled'],
-  quotes_received: ['active_job', 'awaiting_quotes', 'canceled', 'archived'],
+  new: ['classified', 'quotes_received', 'canceled', 'completed'],
+  classified: ['awaiting_quotes', 'quotes_received', 'canceled', 'completed'],
+  awaiting_dispatch: ['awaiting_quotes', 'quotes_received', 'canceled', 'completed'],
+  awaiting_quotes: ['quotes_received', 'canceled', 'completed'],
+  quotes_received: ['active_job', 'awaiting_quotes', 'canceled', 'completed', 'archived'],
   active_job: ['completed', 'canceled', 'awaiting_dispatch', 'awaiting_quotes', 'quotes_received'],
   completed: ['archived'],
   canceled: ['archived'],
