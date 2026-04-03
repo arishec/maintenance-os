@@ -213,6 +213,21 @@ export default function EditContractorPage({
                 Mark as preferred contractor
               </label>
             </div>
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+              <p className="text-xs text-muted-foreground">
+                By saving this contractor, you confirm they have agreed to receive SMS and/or email
+                notifications about repair requests from Maintenance OS. Message &amp; data rates may
+                apply. Contractors can opt out at any time by replying STOP to any SMS message.
+                See our{' '}
+                <a href="/privacy" target="_blank" className="underline hover:text-foreground">
+                  Privacy Policy
+                </a>{' '}
+                and{' '}
+                <a href="/terms" target="_blank" className="underline hover:text-foreground">
+                  Terms of Service
+                </a>.
+              </p>
+            </div>
             <div className="flex gap-2">
               <Button type="submit" disabled={loading}>
                 {loading ? 'Saving...' : 'Save Changes'}
