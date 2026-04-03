@@ -198,3 +198,13 @@ cd ~/dev\ projects/maintenance-os-v1 && git add -A && git commit -m "Fix AI clas
 
 
 
+Smart Contractor Recommendations — Right now the user picks contractors manually on the dispatch page. The system already knows each contractor's trade, response rate, past pricing, and speed. When someone dispatches a plumbing issue, the app should say: "Recommended: Joe Plumber — responds in 2 hrs avg, completed 8 jobs for you, typically quotes $200-400 for this type of work." Rank the list by fit, not just alphabetically.
+Quote Comparison Summary — When 3 contractors send back quotes, the user has to read each one and mentally compare. AI could generate a one-line summary: "Joe: $350, available Monday. Mike: $500, available tomorrow. Sarah: $275 but no availability given. Best value: Sarah. Fastest: Mike."
+Cost Intelligence — Track what you've paid for similar repairs historically. When a quote comes in: "This $800 quote is higher than your average for kitchen plumbing ($350). You may want to get another quote."
+Recurring Issue Detection — "This is the 3rd plumbing issue at 123 Main St this year. You might want to schedule a pipe inspection." The data is already in the database — just needs pattern recognition.
+Auto Follow-Up Nudges — If a contractor hasn't responded in 24 hours, auto-surface it: "Joe hasn't responded to your HVAC request. Want to contact someone else?" You already have stuck-issue detection on the dashboard — this takes it one step further.
+Smart Document Extraction — When someone uploads a receipt or invoice after a job, AI reads it and auto-fills the actual cost field. No manual data entry.
+The one I'd build first is the quote comparison summary — it has the biggest bang for the user. They're already getting quotes through the system, so we just layer AI analysis on top. Want me to start with that one?
+
+
+

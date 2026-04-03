@@ -469,3 +469,186 @@ Loop through each detected issue (i):
 2. **Photo Reordering**: Allow users to reorder photos within each issue
 3. **Photo Notes**: Let users add captions to photos before assignment
 4. **Smart Hints**: Parse photo descriptions (from AI analysis) to auto-suggest assignments
+
+---
+
+# Cost Intelligence & Recurring Issue Detection - Session Summary (Apr 3, 2026)
+
+## Task
+Build two intelligent features for Maintenance OS that provide cost context and detect recurring problems at properties.
+
+## Feature 1: Cost Intelligence
+
+### API Endpoint: `app/api/issues/[id]/cost-context/route.ts`
+**Purpose**: Return historical cost data for issues with the same category at the same property
+
+**Implementation**:
+- Uses `requireDbUser()` for authentication
+- Finds current issue to verify ownership and extract category/propertyId
+- Queries completed jobs where:
+  - Issue has same category
+  - Issue is on same property
+  - Job status is completed and actualCost is not null
+- Calculates: min cost, max cost, average cost, count of historical repairs
+- Returns null if no history exists (graceful no-render pattern)
+
+**Query Pattern**:
+```typescript
+const historicalJobs = await prisma.job.findMany({
+  where: {
+    issue: {
+      propertyId: issue.propertyId,
+      category: issue.category,
+      status: 'completed',
+    },
+    status: 'completed',
+    actualCost: { not: null },
+  },
+  select: { actualCost: true },
+});
+```
+
+### Client Component: `app/(app)/issues/[id]/cost-context.tsx`
+**Purpose**: Display historical cost comparison banner next to quotes
+
+**Features**:
+- Accepts props: issueId, category, currentQuotePrice
+- Fetches cost context from API on mount
+- Shows blue info banner with format:
+  - "Based on X previous [category] repairs, typical cost: $MIN–$MAX (avg $AVG)"
+- Highlights warning if quote is >50% above average:
+  - Shows amber warning icon with message
+  - "This quote is significantly above your typical range"
+- Gracefully renders nothing if no data or no category
+
+**Design**:
+- Blue background banner (consistent with other info banners)
+- Uses AlertCircle icon for warning
+- Responsive text sizing with font weights
+
+### Integration
+- Added to `page.tsx` before quotes section
+- Only renders when:
+  - Issue has quotes (allResponses.length > 0)
+  - Issue is classified (category exists)
+- Passes first quote price for comparison logic
+
+## Feature 2: Recurring Issue Detection
+
+### API Endpoint: `app/api/issues/[id]/patterns/route.ts`
+**Purpose**: Detect if property has repeated issues of same category
+
+**Implementation**:
+- Uses `requireDbUser()` for authentication
+- Finds current issue to verify ownership and extract propertyId/category
+- Counts similar issues in past 12 months:
+  - Same propertyId
+  - Same category
+  - Excluding current issue
+  - Created >= 1 year ago
+- Returns pattern data only if count >= 2 (making current issue the 3rd+)
+- Includes `previousIssueDates` for context
+
+**Query Pattern**:
+```typescript
+const oneYearAgo = new Date(issue.createdAt.getTime() - 365 * 24 * 60 * 60 * 1000);
+const similarIssuesCount = await prisma.issue.count({
+  where: {
+    propertyId: issue.propertyId,
+    category: issue.category,
+    id: { not: id },
+    createdAt: { gte: oneYearAgo },
+  },
+});
+```
+
+### Client Component: `app/(app)/issues/[id]/recurring-alert.tsx`
+**Purpose**: Alert users to recurring problems at a property
+
+**Features**:
+- Accepts props: issueId, category, propertyName
+- Fetches pattern data from API on mount
+- Shows amber alert banner only if pattern detected (3+ issues):
+  - Format: "This is the 3rd [category] issue at [property] this year."
+  - Subtitle: "Consider scheduling a professional inspection to address the root cause."
+- Gracefully renders nothing if no pattern exists
+- Handles ordinal numbers: "3rd", "4th", "5th", etc.
+
+**Design**:
+- Amber background banner with ! icon
+- Suggests proactive inspection
+- Matches recurring problem warning UI pattern
+
+### Integration
+- Added to `page.tsx` after workflow guidance banner
+- Early in the issue detail page (before other content)
+- Only renders if recurring pattern is detected (no noise)
+
+## Files Created
+
+1. `/app/api/issues/[id]/cost-context/route.ts` (67 lines)
+   - GET endpoint for historical cost data
+   - Auth & ownership verification
+   - Cost statistics calculation
+
+2. `/app/api/issues/[id]/patterns/route.ts` (69 lines)
+   - GET endpoint for recurring issue detection
+   - 12-month lookback window
+   - Pattern detection logic
+
+3. `/app/(app)/issues/[id]/cost-context.tsx` (49 lines)
+   - Client component with cost banner
+   - Quote comparison logic
+   - Warning highlighting
+
+4. `/app/(app)/issues/[id]/recurring-alert.tsx` (46 lines)
+   - Client component with recurring pattern alert
+   - Inspection suggestion
+   - Ordinal number formatting
+
+## Files Modified
+
+1. `/app/(app)/issues/[id]/page.tsx`
+   - Added imports for both new components
+   - Added RecurringAlert after workflow guidance (line ~193)
+   - Added CostContext before quotes section (line ~485)
+   - Both conditionally render based on data availability
+
+## Design Patterns Used
+
+1. **Graceful Degradation**: Components render null if no data, no category, or no pattern
+2. **Client-Side Data Fetching**: useEffect pattern for API calls
+3. **Loading State**: Simple state management (loading boolean)
+4. **Error Silencing**: Errors logged to console but don't break UI
+5. **Conditional Rendering**: Based on data availability and issue status
+6. **Color-Coded Alerts**: Blue for info, amber for warnings
+7. **Consistent Styling**: Matches existing banner patterns
+
+## Key Behaviors
+
+**Cost Context**:
+- Shows only when viewing quotes (multi-quote comparison)
+- Provides context for decision-making
+- Highlights outliers (>50% above average)
+- No render if: no history, no category, no quotes
+
+**Recurring Alert**:
+- Shows early (near top of page) for visibility
+- Alerts to pattern after 3rd occurrence
+- Suggests preventive action
+- No render if: fewer than 3 issues, no category, first or second occurrence
+
+## Testing Checklist
+
+- [ ] Create issue with category (e.g., plumbing)
+- [ ] Complete job with actualCost recorded
+- [ ] Create new plumbing issue at same property
+- [ ] Verify cost context banner shows with min/max/avg
+- [ ] Create 2 more plumbing issues at property
+- [ ] Verify recurring alert appears on 3rd issue
+- [ ] Verify no false alerts on 1st or 2nd issue
+- [ ] Verify cost context doesn't show without quotes
+- [ ] Verify components handle missing category gracefully
+- [ ] Test with different categories (electrical, HVAC, etc.)
+- [ ] Verify 12-month lookback window works correctly
+- [ ] Test with edge cases (no history, all same-day issues, etc.)
