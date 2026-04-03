@@ -38,7 +38,15 @@ export default async function HistoryPage() {
 
   const completedIssues = await prisma.issue.findMany({
     where: { propertyId: { in: propertyIds }, status: { in: ['completed', 'canceled'] } },
-    include: { property: true, jobs: { include: { contractor: true } } },
+    include: {
+      property: true,
+      jobs: { include: { contractor: true } },
+      timelineEvents: {
+        where: { eventType: { in: ['issue_resolved', 'job_canceled', 'job_completed'] } },
+        take: 1,
+        orderBy: { createdAt: 'desc' },
+      },
+    },
     orderBy: [{ completedAt: 'desc' }, { createdAt: 'desc' }],
   });
 
@@ -113,7 +121,32 @@ export default async function HistoryPage() {
                             </td>
                           )}
                           <td className="p-4">
-                            <Badge className={getIssueStatusColor(issue.status)}>{getIssueStatusLabel(issue.status)}</Badge>
+                            {(() => {
+                              const closingEvent = issue.timelineEvents?.[0];
+                              const payload = closingEvent?.eventPayloadJson as Record<string, unknown> | null;
+                              const isSelfResolved = payload?.selfResolved === true;
+                              if (isSelfResolved) {
+                                return (
+                                  <div>
+                                    <Badge className="bg-blue-50 text-blue-700 border-blue-200">Self-resolved</Badge>
+                                    {payload?.reason && payload.reason !== 'No reason provided' && (
+                                      <p className="text-xs text-muted-foreground mt-1 max-w-[200px] truncate">{String(payload.reason)}</p>
+                                    )}
+                                  </div>
+                                );
+                              }
+                              if (issue.status === 'canceled') {
+                                return (
+                                  <div>
+                                    <Badge className="bg-red-50 text-red-700 border-red-200">Canceled</Badge>
+                                    {payload?.reason && payload.reason !== 'No reason provided' && (
+                                      <p className="text-xs text-muted-foreground mt-1 max-w-[200px] truncate">{String(payload.reason)}</p>
+                                    )}
+                                  </div>
+                                );
+                              }
+                              return <Badge className={getIssueStatusColor(issue.status)}>{getIssueStatusLabel(issue.status)}</Badge>;
+                            })()}
                           </td>
                         </tr>
                       ))}

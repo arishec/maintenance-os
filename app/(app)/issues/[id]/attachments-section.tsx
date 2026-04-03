@@ -107,35 +107,30 @@ export function AttachmentsSection({
     }
   }
 
-  // Don't render the section at all if there are no attachments and the issue is closed
-  if (attachments.length === 0 && isClosedIssue) return null;
-
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Documents</CardTitle>
-          {!isClosedIssue && (
-            <>
-              <input
-                ref={fileInputRef}
-                type="file"
-                className="hidden"
-                accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.jpg,.jpeg,.png,.gif,.webp,.heic,.heif"
-                onChange={handleUpload}
-                disabled={uploading}
-              />
-              <Button
-                size="sm"
-                variant="outline"
-                className="text-xs"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-              >
-                {uploading ? 'Uploading…' : '+ Upload'}
-              </Button>
-            </>
-          )}
+          <>
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.jpg,.jpeg,.png,.gif,.webp,.heic,.heif"
+              onChange={handleUpload}
+              disabled={uploading}
+            />
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-xs"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+            >
+              {uploading ? 'Uploading…' : '+ Upload'}
+            </Button>
+          </>
         </div>
       </CardHeader>
       <CardContent>
@@ -201,7 +196,7 @@ export function AttachmentsSection({
                       Download
                     </a>
                   )}
-                  {!isClosedIssue && (
+                  {(
                     <Button
                       size="sm"
                       variant="ghost"
