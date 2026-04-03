@@ -1,10 +1,14 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Download, Filter } from 'lucide-react';
+import Link from 'next/link';
+import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { getCategoryLabel, getIssueStatusColor, getIssueStatusLabel } from '@/lib/status';
 
 interface HistoryIssue {
   id: string;
@@ -20,12 +24,22 @@ interface HistoryIssue {
   reason: string | null;
 }
 
-export function HistoryFilters({
+function formatCurrency(value: number | null | undefined): string {
+  if (value === null || value === undefined) return '—';
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(value);
+}
+
+export function HistoryTable({
   issues,
-  children,
+  hasCosts,
+  hasCategories,
 }: {
   issues: HistoryIssue[];
-  children: (filtered: HistoryIssue[]) => React.ReactNode;
+  hasCosts: boolean;
+  hasCategories: boolean;
 }) {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
@@ -44,14 +58,13 @@ export function HistoryFilters({
       if (dateFrom && issue.completedAt && issue.completedAt < dateFrom) return false;
       if (dateTo && issue.completedAt && issue.completedAt > dateTo + 'T23:59:59') return false;
       if (propertyFilter && issue.propertyId !== propertyFilter) return false;
-      if (statusFilter === 'completed' && issue.status !== 'completed') return false;
+      if (statusFilter === 'completed' && (issue.status !== 'completed' || issue.isSelfResolved)) return false;
       if (statusFilter === 'canceled' && issue.status !== 'canceled') return false;
       if (statusFilter === 'self_resolved' && !issue.isSelfResolved) return false;
       return true;
     });
   }, [issues, dateFrom, dateTo, propertyFilter, statusFilter]);
 
-  // Calculate total cost of filtered items
   const totalCost = useMemo(() => {
     return filtered.reduce((sum, i) => sum + (i.cost || 0), 0);
   }, [filtered]);
@@ -137,7 +150,7 @@ export function HistoryFilters({
             <p className="text-xs text-muted-foreground">
               Showing {filtered.length} of {issues.length} records
               {totalCost > 0 &&
-                ` — $${totalCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                ` — ${formatCurrency(totalCost)}`}
             </p>
             <button
               onClick={() => {
@@ -153,7 +166,89 @@ export function HistoryFilters({
           </div>
         )}
       </div>
-      {children(filtered)}
+
+      {/* Table */}
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="border-b border-border bg-muted/50">
+                <tr className="text-muted-foreground">
+                  <th className="text-left p-4 font-medium">Date</th>
+                  <th className="text-left p-4 font-medium">Property</th>
+                  <th className="text-left p-4 font-medium">Issue</th>
+                  {hasCategories && <th className="text-left p-4 font-medium">Category</th>}
+                  <th className="text-left p-4 font-medium">Contractor</th>
+                  {hasCosts && <th className="text-left p-4 font-medium">Cost</th>}
+                  <th className="text-left p-4 font-medium">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((issue) => (
+                  <tr key={issue.id} className="border-b border-border hover:bg-muted/30 transition-colors">
+                    <td className="p-4 text-muted-foreground text-xs">
+                      {issue.completedAt ? new Date(issue.completedAt).toLocaleDateString() : '—'}
+                    </td>
+                    <td className="p-4 text-muted-foreground">{issue.propertyName}</td>
+                    <td className="p-4">
+                      <Link href={`/issues/${issue.id}`} className="font-medium hover:underline">
+                        {issue.title || 'Untitled Issue'}
+                      </Link>
+                    </td>
+                    {hasCategories && (
+                      <td className="p-4">
+                        {issue.category ? (
+                          <Badge className="border-slate-200 bg-slate-50 text-slate-700">
+                            {getCategoryLabel(issue.category)}
+                          </Badge>
+                        ) : '—'}
+                      </td>
+                    )}
+                    <td className="p-4 text-muted-foreground text-sm">{issue.contractorName || '—'}</td>
+                    {hasCosts && (
+                      <td className="p-4 text-muted-foreground text-sm">
+                        {issue.cost ? formatCurrency(issue.cost) : '—'}
+                      </td>
+                    )}
+                    <td className="p-4">
+                      {(() => {
+                        if (issue.isSelfResolved) {
+                          return (
+                            <div>
+                              <Badge className="bg-blue-50 text-blue-700 border-blue-200">Self-resolved</Badge>
+                              {issue.reason && (
+                                <p className="text-xs text-muted-foreground mt-1 max-w-[200px] truncate">{issue.reason}</p>
+                              )}
+                            </div>
+                          );
+                        }
+                        if (issue.status === 'canceled') {
+                          return (
+                            <div>
+                              <Badge className="bg-red-50 text-red-700 border-red-200">Canceled</Badge>
+                              {issue.reason && (
+                                <p className="text-xs text-muted-foreground mt-1 max-w-[200px] truncate">{issue.reason}</p>
+                              )}
+                            </div>
+                          );
+                        }
+                        return <Badge className={getIssueStatusColor(issue.status)}>{getIssueStatusLabel(issue.status)}</Badge>;
+                      })()}
+                    </td>
+                  </tr>
+                ))}
+                {filtered.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                      No records match your filters.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

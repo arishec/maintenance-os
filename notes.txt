@@ -83,3 +83,45 @@ FILES UPDATED:
 All files had the canonical URL already nested in alternates object, so only the URL value was changed from full domain to relative path. No structural changes needed.
 
 NOTE: app/page.tsx and app/layout.tsx already use relative paths and were not modified.
+
+---
+
+Maintenance OS Development Session - 2026-04-03
+
+=== USER-FRIENDLY STATUS LABELS & WORKFLOW GUIDANCE ===
+
+Improved issue status labels, added next-step guidance, and enhanced dashboard overview card with breakdown.
+
+CHANGE 1: Improved status labels (lib/status.ts)
+- Updated ISSUE_STATUS_LABELS:
+  * "awaiting_quotes" now shows "Sent to Contractors" (clearer user action)
+  * "quotes_received" now shows "Quotes In — Action Needed" (prompts action)
+- Updated ISSUE_NEXT_ACTION descriptions for clarity:
+  * "new" → "AI will classify this, or send to contractors directly"
+  * "awaiting_quotes" → "Contractors have been contacted — waiting for their responses"
+  * "quotes_received" → "You have quotes! Review them and pick a contractor"
+
+CHANGE 2: Workflow guidance banner (app/(app)/issues/[id]/page.tsx)
+- Added import for ISSUE_NEXT_ACTION
+- Added subtle blue banner below header showing next step contextually
+- Banner displays on all statuses except 'completed' and 'canceled'
+- Format: "Next step: [action text from ISSUE_NEXT_ACTION]"
+- Uses blue-100/blue-50/50 colors for consistent visual hierarchy
+- Falls back to generic "Review this issue" if status not found
+
+CHANGE 3: Dashboard overview breakdown (dashboard components & lib)
+- Updated lib/dashboard.ts getOverviewCounts() to fetch per-status breakdown:
+  * Added openIssuesByStatus object with counts for: new, classifiedOrReady, awaitingQuotes, quotesReceived, activeJob
+  * Updated OverviewCounts interface to include optional openIssuesByStatus
+- Updated components/dashboard/overview-cards.tsx:
+  * Added subLabel function to "Open Issues" card
+  * Displays pipeline breakdown as: "3 new · 2 ready · 1 awaiting · 1 quoted · 2 active"
+  * Sub-text shows only statuses with count > 0, joined with " · " separator
+  * Sub-text displays in muted-foreground/70 color below main label
+
+IMPLEMENTATION NOTES:
+- All changes are backward compatible
+- Workflow guidance banner is non-intrusive and contextual
+- Dashboard breakdown helps users understand what "open" means at a glance
+- Status labels now use action verbs (e.g., "Sent" vs "Awaiting")
+- No structural changes to data models or APIs

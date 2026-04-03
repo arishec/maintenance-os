@@ -1,10 +1,16 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { LocalTime } from '@/components/local-time';
+import { formatPhone } from '@/lib/utils';
+import { RestoreButton } from './restore-button';
 
-interface Contractor {
+interface ContractorDisplay {
   id: string;
   name: string;
   companyName: string | null;
@@ -12,18 +18,20 @@ interface Contractor {
   email: string | null;
   trade: string;
   isPreferred: boolean;
+  contextParts: string[];
+  lastUsedDate: string | null;
 }
 
 function tradeLabel(trade: string): string {
   return trade.split('_').join(' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
-export function ContractorFilters({
+export function ContractorList({
   contractors,
-  children,
+  showArchived,
 }: {
-  contractors: Contractor[];
-  children: (filtered: Contractor[]) => React.ReactNode;
+  contractors: ContractorDisplay[];
+  showArchived: boolean;
 }) {
   const [search, setSearch] = useState('');
   const [tradeFilter, setTradeFilter] = useState<string | null>(null);
@@ -104,7 +112,54 @@ export function ContractorFilters({
         </p>
       )}
 
-      {children(filtered)}
+      {/* Contractor cards grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {filtered.map((contractor) => (
+          <Link key={contractor.id} href={`/contractors/${contractor.id}`}>
+            <Card className="hover:shadow-md transition-all hover:-translate-y-0.5 h-full cursor-pointer">
+              <CardContent className="pt-6">
+                <div className="space-y-3">
+                  <div>
+                    <h3 className="font-semibold leading-tight">{contractor.name}</h3>
+                    {contractor.companyName && <p className="text-sm text-muted-foreground">{contractor.companyName}</p>}
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge className="border-slate-200 bg-slate-50 text-slate-700">{tradeLabel(contractor.trade)}</Badge>
+                    {contractor.isPreferred && <span className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1 rounded-full">Preferred</span>}
+                  </div>
+                  {contractor.contextParts.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      {contractor.contextParts.join(' · ')}
+                    </p>
+                  )}
+                  {contractor.lastUsedDate && (
+                    <p className="text-xs text-muted-foreground/70">
+                      Last contacted <LocalTime date={new Date(contractor.lastUsedDate)} format="date" />
+                    </p>
+                  )}
+                  <div className="space-y-1 text-sm">
+                    {contractor.phone && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">Phone:</span>
+                        <span>{formatPhone(contractor.phone)}</span>
+                      </div>
+                    )}
+                    {contractor.email && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">Email:</span>
+                        <span>{contractor.email}</span>
+                      </div>
+                    )}
+                  </div>
+                  {showArchived && (
+                    <RestoreButton contractorId={contractor.id} />
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
