@@ -88,6 +88,7 @@ export async function POST(
       select: { contractorId: true, contractor: { select: { name: true } } },
     });
     const alreadyContactedIds = new Set(existingDispatches.map(d => d.contractorId));
+    const skippedCount = alreadyContactedIds.size;
     if (alreadyContactedIds.size > 0) {
       const names = existingDispatches.map(d => d.contractor.name).join(', ');
       console.warn(`[DISPATCH] Skipping already-contacted contractors: ${names}`);
@@ -316,7 +317,17 @@ export async function POST(
       console.error('Timeline event failed:', e);
     }
 
-    return NextResponse.json({ dispatches: dispatchRecords }, { status: 201 });
+    // Build response message with accurate counts
+    const sentCount = dispatchRecords.filter(d => d.status === 'sent').length;
+    let message = `Request sent to ${sentCount} contractor${sentCount !== 1 ? 's' : ''}`;
+    if (skippedCount > 0) {
+      message += `. ${skippedCount} contractor${skippedCount !== 1 ? 's were' : ' was'} already contacted and skipped.`;
+    }
+
+    return NextResponse.json({
+      dispatches: dispatchRecords,
+      message
+    }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: safeErrorMessage(error) }, { status: 400 });
   }

@@ -371,6 +371,60 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
     });
   }
 
+  // 7b. Stuck issues — ANY urgency in "new" or "classified" for 24+ hours
+  const stuckThreshold = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const stuckIssues = await prisma.issue.findMany({
+    where: {
+      propertyId: { in: propertyIds },
+      status: { in: ['new', 'classified'] },
+      createdAt: { lt: stuckThreshold },
+    },
+    select: { id: true, title: true, propertyId: true, createdAt: true },
+  });
+  for (const issue of stuckIssues) {
+    // Don't double-count if already in attention for another reason
+    if (items.some((i) => i.issueId === issue.id)) continue;
+    const daysSince = Math.floor((Date.now() - issue.createdAt.getTime()) / (1000 * 60 * 60 * 24));
+    items.push({
+      issueId: issue.id,
+      issueTitle: issue.title ?? 'Untitled issue',
+      propertyName: propertyMap.get(issue.propertyId) ?? '',
+      reason: `Reported ${daysSince} day${daysSince !== 1 ? 's' : ''} ago — needs to be sent to contractors`,
+      actionLabel: 'Send to contractors',
+      actionHref: `/issues/${issue.id}/dispatch`,
+      urgency: 'medium',
+      timestamp: issue.createdAt,
+    });
+  }
+
+  // 7c. Failed dispatch alerts — issues with dispatches that failed to reach contractors
+  const failedDispatches = await prisma.dispatch.findMany({
+    where: {
+      issue: { propertyId: { in: propertyIds } },
+      status: 'failed',
+    },
+    select: {
+      issueId: true,
+      createdAt: true,
+      contractor: { select: { name: true } },
+      issue: { select: { title: true, propertyId: true } },
+    },
+  });
+  for (const dispatch of failedDispatches) {
+    // Don't double-count if already in attention for another reason
+    if (items.some((i) => i.issueId === dispatch.issueId)) continue;
+    items.push({
+      issueId: dispatch.issueId,
+      issueTitle: dispatch.issue.title ?? 'Untitled issue',
+      propertyName: propertyMap.get(dispatch.issue.propertyId) ?? '',
+      reason: `Failed to reach ${dispatch.contractor.name} — try resending or contact another contractor`,
+      actionLabel: 'Dispatch again',
+      actionHref: `/issues/${dispatch.issueId}/dispatch`,
+      urgency: 'high',
+      timestamp: dispatch.createdAt,
+    });
+  }
+
   // 8. Unread notifications — surface what the user hasn't seen
   const unreadNotifications = await prisma.notification.findMany({
     where: { userId, readAt: null },
@@ -400,7 +454,7 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
     });
   }
 
-  // 9. Completed jobs missing actual cost
+  // 10. Completed jobs missing actual cost
   const missingCostJobs = await prisma.job.findMany({
     where: {
       issue: { propertyId: { in: propertyIds } },

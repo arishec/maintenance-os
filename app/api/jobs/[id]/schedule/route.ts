@@ -39,6 +39,19 @@ export async function POST(
 
     const scheduledDate = new Date(body.scheduledFor);
 
+    // Validate that the scheduled date is not in the past
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Start of today
+    const scheduledDateStart = new Date(scheduledDate);
+    scheduledDateStart.setHours(0, 0, 0, 0); // Start of scheduled date
+
+    if (scheduledDateStart < today) {
+      return NextResponse.json(
+        { error: 'Cannot schedule a job in the past. Please pick today or a future date.' },
+        { status: 400 }
+      );
+    }
+
     const updatedJob = await prisma.$transaction(async (tx) => {
       const updated = await tx.job.update({
         where: { id },

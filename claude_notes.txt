@@ -277,3 +277,195 @@ Used shadcn AlertDialog component (consistent with existing property delete patt
 - Issue detail page: Click X on saved photos -> Dialog appears -> Confirms before API call
 - Router refreshes after successful deletion to update photo grid
 - Errors from API are clearly communicated to user
+
+---
+
+# Multi-Issue Photo Assignment - Session Summary (Apr 3, 2026)
+
+## Task
+Implement intelligent photo assignment for split multi-issue flow. Previously, when multiple issues were detected and split, ALL photos were uploaded only to the first issue. Now users can assign individual photos to each split issue during confirmation.
+
+## Changes Made
+
+### 1. Updated `lib/ai/detect-multi-issue.ts`
+- **Added Field**: `photoHint?: string` to `singleIssueSchema`
+- **Purpose**: AI generates a brief, user-friendly hint about what type of photo is relevant to each issue
+- **Example Values**:
+  - "photo of leaking pipe"
+  - "photo of broken AC unit"
+  - "photo of window damage"
+- **Location in Schema**: Zod schema updated to include optional photoHint field
+- **Updated Type Exports**: `DetectedIssue` type now includes optional `photoHint`
+- **AI Prompt Update**: Added instruction to AI:
+  ```
+  photoHint: a brief description of what kind of photo would be most relevant
+  to this issue (e.g., "photo of leaking pipe" or "photo of broken AC unit").
+  This helps the user assign their photos correctly. Keep it short (under 20 words)
+  and specific.
+  ```
+
+### 2. Updated `app/(app)/issues/new/page.tsx` - Main Functionality
+
+#### 2a. Added Photo Assignment State
+- **New State**: `photoAssignments: Record<number, Set<string>>({})`
+- **Purpose**: Maps issue index to Set of assigned photo IDs
+- **Initialization**: Happens when multi-issue confirmation screen first renders
+
+#### 2b. Added Helper Functions
+- **togglePhotoAssignment(issueIndex, photoId)**:
+  - Toggles a photo's assignment to an issue
+  - Updates state using Set operations for O(1) lookup
+  - Handles creating new Sets for issues if they don't exist
+
+- **initializePhotoAssignments()**:
+  - Called when split confirmation screen renders
+  - Only initializes if `photoAssignments` is empty (prevents reinitializing on every render)
+  - Pre-checks all photos for all issues by default (good UX - user sees everything assigned)
+  - Creates Set for each issue with all photo IDs
+
+#### 2c. Updated `uploadPhotos()` Function
+- **New Parameter**: `photoIds?: Set<string>`
+- **Logic**:
+  - If `photoIds` provided, filters photos to only those with IDs in the Set
+  - If no `photoIds` (single-issue flow), uploads all photos as before
+  - Maintains backward compatibility
+
+#### 2d. Updated `handleConfirmSplit()` Function
+- **Key Change**: Now uses indexed loop `for (let i = 0; i < detectedIssues.length; i++)`
+- **Photo Upload Logic**:
+  ```
+  if (photos.length > 0) {
+    const assignedPhotos = photoAssignments[i];
+    if (assignedPhotos && assignedPhotos.size > 0) {
+      await uploadPhotos(created.id, assignedPhotos);
+    }
+  }
+  ```
+- **Behavior**: Only uploads photos that were explicitly checked for each issue
+- **Previous Behavior**: Uploaded all photos only to the first issue
+
+#### 2e. Updated Split Confirmation UI
+- **Location**: Multi-issue split confirmation screen (renders when `detectedIssues.length > 1`)
+- **Call**: `initializePhotoAssignments()` at start of render to ensure state is initialized
+- **For Each Issue Card**:
+  - Shows `issue.photoHint` if available (renders as italic gray text below description)
+  - Format: "Suggested photo: {photoHint}"
+  - Added photo assignment section below issue details (only shown if photos exist)
+
+- **Photo Assignment UI**:
+  ```
+  {photos.length > 0 && (
+    <div className="pt-2 border-t">
+      <label>Assign photos to this issue</label>
+      <div className="grid grid-cols-3 gap-2">
+        {photos.map((photo) => (
+          <button>
+            <Image src={photo.preview} />
+            {isAssigned && (
+              <CheckmarkIcon /> // Shows checkmark overlay
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  )}
+  ```
+
+- **Visual Design**:
+  - Grid layout with 3 columns
+  - Clickable photo thumbnails (h-20 height)
+  - Border color indicates assignment state:
+    - `border-primary bg-primary/5` when assigned
+    - `border-border bg-muted/50` when not assigned
+  - Checkmark icon (SVG path) overlays assigned photos with semi-transparent black background
+  - Smooth transitions on hover/click
+
+### 3. Updated Interface Definition
+- **DetectedIssue Interface** in page.tsx now includes `photoHint?: string`
+
+## User Flow
+
+1. User describes multiple issues (e.g., "toilet leak and broken AC")
+2. AI detects 2 issues and returns:
+   - Issue 1: "toilet leak" with photoHint: "photo of leaking toilet"
+   - Issue 2: "broken AC" with photoHint: "photo of AC unit"
+3. Confirmation screen shows:
+   - Both issues with their descriptions and hints
+   - All uploaded photos in a 3-column grid under each issue
+   - All photos pre-checked for each issue (default: share context)
+4. User can uncheck photos that don't apply to specific issues
+5. When creating issues:
+   - Issue 1 gets photos user kept checked
+   - Issue 2 gets photos user kept checked
+   - Photos not assigned to any issue won't be uploaded
+
+## Design Decisions
+
+1. **AI Can't See Photos**: Since AI only has text description at detection time, we can't do vision-based assignment. Instead, AI provides helpful hints to guide user selection.
+
+2. **All Assigned By Default**: Pre-checks all photos for each issue because split issues often represent different aspects of the same problem that all photos help document.
+
+3. **Set Data Structure**: Uses `Set<string>` for O(1) lookup performance when checking if photo is assigned.
+
+4. **Default Behavior Maintained**: Single-issue flow (non-split) unchanged - all photos still uploaded to the single issue.
+
+5. **Photo Hints as Guidance**: Not mandatory assignment rules - user can override hints if they prefer. Hints are just suggestions to improve UX.
+
+6. **No Drag-and-Drop**: Simpler checkbox-based UI instead of complex drag-and-drop that could confuse users and add complexity.
+
+## Files Modified
+
+1. `lib/ai/detect-multi-issue.ts` - Added `photoHint` field and AI prompt instruction
+2. `app/(app)/issues/new/page.tsx` - Major updates:
+   - Added `photoAssignments` state
+   - Added `togglePhotoAssignment()` helper function
+   - Added `initializePhotoAssignments()` helper function
+   - Updated `uploadPhotos()` to accept optional photoIds Set
+   - Updated `handleConfirmSplit()` to use indexed loop and selective photo upload
+   - Updated DetectedIssue interface to include optional `photoHint`
+   - Updated split confirmation screen UI to show photos and checkboxes
+   - Updated split confirmation screen UI to display photo hints
+
+## Technical Details
+
+### Photo Assignment State Management
+- State: `Record<number, Set<string>>` where key is issue index, value is Set of photo IDs
+- Initialization happens once per render (guarded by checking if length is 0)
+- Updates use immutable pattern with spread operator for state object
+- Sets provide efficient membership testing
+
+### Upload Flow for Split Issues
+```
+Loop through each detected issue (i):
+  1. Create issue via API
+  2. Get assigned photos Set from photoAssignments[i]
+  3. If Set has items, call uploadPhotos(issueId, assignedPhotos)
+  4. uploadPhotos filters photos array to only those in the Set
+  5. Uploads filtered photos to the specific issue
+```
+
+### Backward Compatibility
+- Single-issue flow: uploadPhotos() still receives undefined photoIds, uses all photos
+- Split flow with no photos: Skips upload entirely
+- Split flow with photos but no assignments: Skips upload for that issue
+
+## Testing Checklist
+
+- [ ] Multi-issue detection still works (e.g., "leak and broken AC")
+- [ ] AI returns photoHint for each issue
+- [ ] Confirmation screen shows photo hints below descriptions
+- [ ] Photos display in 3-column grid with checkmarks when selected
+- [ ] All photos pre-checked by default
+- [ ] Clicking photo toggles checkmark and assignment
+- [ ] Visual styling matches primary color for assigned state
+- [ ] Creating issues only uploads assigned photos
+- [ ] Issue 1 has only its photos, Issue 2 has only its photos
+- [ ] Single-issue flow still uploads all photos (not affected)
+- [ ] Reject split button still works (creates as single issue)
+
+## Future Enhancements
+
+1. **Vision-Based Assignment**: If we send photo data to AI at detection time, could suggest which photos match which issues
+2. **Photo Reordering**: Allow users to reorder photos within each issue
+3. **Photo Notes**: Let users add captions to photos before assignment
+4. **Smart Hints**: Parse photo descriptions (from AI analysis) to auto-suggest assignments

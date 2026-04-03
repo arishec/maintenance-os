@@ -122,6 +122,27 @@ export async function PATCH(
       if (normalized) body.phone = normalized;
     }
 
+    // Check for duplicate email/phone (excluding the current contractor)
+    if (body.email || body.phone) {
+      const existing = await prisma.contractor.findFirst({
+        where: {
+          id: { not: id },
+          ownerUserId: user.id,
+          isArchived: false,
+          OR: [
+            ...(body.email ? [{ email: body.email }] : []),
+            ...(body.phone ? [{ phone: body.phone }] : []),
+          ],
+        },
+      });
+      if (existing) {
+        return NextResponse.json(
+          { error: `Another contractor already uses this ${existing.email === body.email ? 'email address' : 'phone number'}.` },
+          { status: 409 }
+        );
+      }
+    }
+
     const updated = await prisma.contractor.update({
       where: { id },
       data: body,

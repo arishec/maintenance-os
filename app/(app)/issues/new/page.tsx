@@ -81,6 +81,7 @@ interface DetectedIssue {
   description: string;
   suggestedLocation: string | null;
   suggestedSignals: string[];
+  photoHint?: string;
 }
 
 interface CreatedIssueResult {
@@ -108,6 +109,7 @@ export default function NewIssuePage() {
   const [pendingFormData, setPendingFormData] = useState<{ propertyId: string; signals: string[]; locationInProperty: string } | null>(null);
   const [createdIssues, setCreatedIssues] = useState<CreatedIssueResult[]>([]);
   const [splitProcessing, setSplitProcessing] = useState(false);
+  const [photoAssignments, setPhotoAssignments] = useState<Record<number, Set<string>>>({});
 
   // Inline photo state
   const [photos, setPhotos] = useState<SelectedPhoto[]>([]);
@@ -158,6 +160,34 @@ export default function NewIssuePage() {
     setShowDeleteDialog(true);
   };
 
+  const togglePhotoAssignment = (issueIndex: number, photoId: string) => {
+    setPhotoAssignments((prev) => {
+      const updated = { ...prev };
+      if (!updated[issueIndex]) {
+        updated[issueIndex] = new Set();
+      }
+      const photoSet = new Set(updated[issueIndex]);
+      if (photoSet.has(photoId)) {
+        photoSet.delete(photoId);
+      } else {
+        photoSet.add(photoId);
+      }
+      updated[issueIndex] = photoSet;
+      return updated;
+    });
+  };
+
+  const initializePhotoAssignments = () => {
+    // When multi-issue is first detected, initialize all issues to have all photos checked
+    if (detectedIssues && Object.keys(photoAssignments).length === 0) {
+      const newAssignments: Record<number, Set<string>> = {};
+      detectedIssues.forEach((_, issueIndex) => {
+        newAssignments[issueIndex] = new Set(photos.map((p) => p.id));
+      });
+      setPhotoAssignments(newAssignments);
+    }
+  };
+
   const confirmDeletePhoto = () => {
     if (photoToDelete) {
       setPhotos((prev) => {
@@ -170,10 +200,16 @@ export default function NewIssuePage() {
     setPhotoToDelete(null);
   };
 
-  async function uploadPhotos(createdIssueId: string): Promise<{ success: number; failed: number }> {
+  async function uploadPhotos(createdIssueId: string, photoIds?: Set<string>): Promise<{ success: number; failed: number }> {
     let success = 0;
     let failed = 0;
-    for (const photo of photos) {
+
+    // If photoIds provided, only upload those photos. Otherwise upload all.
+    const photosToUpload = photoIds
+      ? photos.filter((p) => photoIds.has(p.id))
+      : photos;
+
+    for (const photo of photosToUpload) {
       try {
         const compressed = await compressImage(photo.file);
         const formData = new FormData();
@@ -354,7 +390,8 @@ export default function NewIssuePage() {
     setError('');
     const results: CreatedIssueResult[] = [];
 
-    for (const issue of detectedIssues) {
+    for (let i = 0; i < detectedIssues.length; i++) {
+      const issue = detectedIssues[i];
       try {
         const res = await fetch('/api/issues', {
           method: 'POST',
@@ -377,9 +414,12 @@ export default function NewIssuePage() {
             urgency: created.urgency || 'medium',
           });
 
-          // Upload photos to the first issue only (they're shared context)
-          if (results.length === 1 && photos.length > 0) {
-            await uploadPhotos(created.id);
+          // Upload photos assigned to this issue
+          if (photos.length > 0) {
+            const assignedPhotos = photoAssignments[i];
+            if (assignedPhotos && assignedPhotos.size > 0) {
+              await uploadPhotos(created.id, assignedPhotos);
+            }
           }
         }
       } catch (err) {
@@ -406,6 +446,9 @@ export default function NewIssuePage() {
 
   // Multi-issue split confirmation screen
   if (detectedIssues && detectedIssues.length > 1 && !splitProcessing) {
+    // Initialize photo assignments on render if not already done
+    initializePhotoAssignments();
+
     return (
       <LayoutShell>
         <div className="mx-auto max-w-2xl space-y-4">
@@ -424,13 +467,16 @@ export default function NewIssuePage() {
           <div className="space-y-3">
             {detectedIssues.map((issue, i) => (
               <Card key={i}>
-                <CardContent className="pt-5 pb-4">
+                <CardContent className="pt-5 pb-4 space-y-3">
                   <div className="flex items-start gap-3">
                     <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
                       {i + 1}
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-1 flex-1">
                       <p className="text-sm font-medium">{issue.description}</p>
+                      {issue.photoHint && (
+                        <p className="text-xs text-muted-foreground italic">Suggested photo: {issue.photoHint}</p>
+                      )}
                       <div className="flex flex-wrap gap-1.5">
                         {issue.suggestedLocation && (
                           <Badge className="text-xs bg-gray-100">{formatLabel(issue.suggestedLocation)}</Badge>
@@ -441,6 +487,47 @@ export default function NewIssuePage() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Photo assignment section */}
+                  {photos.length > 0 && (
+                    <div className="pt-2 border-t">
+                      <label className="text-xs font-medium text-muted-foreground mb-2 block">
+                        Assign photos to this issue
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {photos.map((photo) => {
+                          const isAssigned = photoAssignments[i]?.has(photo.id) ?? true;
+                          return (
+                            <div key={photo.id} className="relative">
+                              <button
+                                type="button"
+                                onClick={() => togglePhotoAssignment(i, photo.id)}
+                                className={`relative w-full h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                                  isAssigned
+                                    ? 'border-primary bg-primary/5'
+                                    : 'border-border bg-muted/50'
+                                }`}
+                              >
+                                <Image
+                                  src={photo.preview}
+                                  alt="Photo preview"
+                                  fill
+                                  className="object-cover"
+                                />
+                                {isAssigned && (
+                                  <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                                    <svg className="h-5 w-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                  </div>
+                                )}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}

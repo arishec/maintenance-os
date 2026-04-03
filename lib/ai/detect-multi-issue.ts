@@ -5,6 +5,7 @@ const singleIssueSchema = z.object({
   description: z.string(),
   suggestedLocation: z.string().nullable(),
   suggestedSignals: z.array(z.string()),
+  photoHint: z.string().optional(),
 });
 
 const detectResultSchema = z.object({
@@ -14,6 +15,12 @@ const detectResultSchema = z.object({
 
 export type DetectedIssue = z.infer<typeof singleIssueSchema>;
 export type DetectMultiIssueResult = z.infer<typeof detectResultSchema>;
+
+/**
+ * Represents a detected issue with photo assignment hints.
+ * photoHint: describes what kind of photo would be most relevant to this issue
+ * (e.g., "photo of leaking pipe", "photo of broken AC unit")
+ */
 
 /**
  * Detect if a user's description contains multiple distinct maintenance issues.
@@ -47,7 +54,8 @@ Return JSON with:
 - issues: array of objects, each with:
   - description: the portion of the original description for this issue (use the owner's words, don't rewrite)
   - suggestedLocation: one of [kitchen, bathroom, bedroom, living_room, basement, exterior, hvac_closet, roof, garage, other] or null if unclear
-  - suggestedSignals: array of applicable signals from [safety, water, heat, power], empty array if none apply`;
+  - suggestedSignals: array of applicable signals from [safety, water, heat, power], empty array if none apply
+  - photoHint: a brief description of what kind of photo would be most relevant to this issue (e.g., "photo of leaking pipe" or "photo of broken AC unit"). This helps the user assign their photos correctly. Keep it short (under 20 words) and specific.`;
 
   const response = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
