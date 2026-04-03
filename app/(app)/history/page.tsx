@@ -125,12 +125,13 @@ export default async function HistoryPage() {
                               const closingEvent = issue.timelineEvents?.[0];
                               const payload = closingEvent?.eventPayloadJson as Record<string, unknown> | null;
                               const isSelfResolved = payload?.selfResolved === true;
+                              const reasonText = typeof payload?.reason === 'string' && payload.reason !== 'No reason provided' ? payload.reason : null;
                               if (isSelfResolved) {
                                 return (
                                   <div>
                                     <Badge className="bg-blue-50 text-blue-700 border-blue-200">Self-resolved</Badge>
-                                    {payload?.reason && payload.reason !== 'No reason provided' && (
-                                      <p className="text-xs text-muted-foreground mt-1 max-w-[200px] truncate">{String(payload.reason)}</p>
+                                    {reasonText && (
+                                      <p className="text-xs text-muted-foreground mt-1 max-w-[200px] truncate">{reasonText}</p>
                                     )}
                                   </div>
                                 );
@@ -139,8 +140,8 @@ export default async function HistoryPage() {
                                 return (
                                   <div>
                                     <Badge className="bg-red-50 text-red-700 border-red-200">Canceled</Badge>
-                                    {payload?.reason && payload.reason !== 'No reason provided' && (
-                                      <p className="text-xs text-muted-foreground mt-1 max-w-[200px] truncate">{String(payload.reason)}</p>
+                                    {reasonText && (
+                                      <p className="text-xs text-muted-foreground mt-1 max-w-[200px] truncate">{reasonText}</p>
                                     )}
                                   </div>
                                 );
