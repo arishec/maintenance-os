@@ -24,6 +24,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/features/repair-history',
     '/features/tenant-intake',
     '/features/job-tracking',
+    '/features/ai-powered-maintenance',
     '/guides/how-to-track-home-repairs',
     '/guides/how-to-manage-rental-property-maintenance',
     '/guides/how-to-compare-contractor-quotes',

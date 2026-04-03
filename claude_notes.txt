@@ -776,3 +776,50 @@ alert() blocks the UI thread and looks unprofessional. Replaced in:
 After pulling these changes, run:
   npx prisma db push
 to apply the new database indexes.
+
+---
+
+# AI Features SEO Page + Meta Title Optimization - Session Summary (Apr 3, 2026)
+
+## 1. Created /features/ai-powered-maintenance/page.tsx
+Dedicated SEO landing page showcasing all 7 AI features in the app:
+1. AI repair diagnosis from photos (vision analysis)
+2. Automatic issue classification (trade, urgency, timeframe)
+3. Multi-issue detection (split "toilet leak and broken AC" into 2 issues)
+4. Smart contractor reply parsing (extract quotes from SMS/email)
+5. Job confirmation parsing (contractor confirms/declines/reschedules)
+6. AI quote comparison summary (side-by-side analysis with recommendation)
+7. Invoice and receipt extraction (pull amounts from PDFs/photos)
+
+Plus 3 bonus intelligence features: recurring issue detection, historical cost intelligence, smart contractor recommendations.
+
+Includes comparison table (manual vs AI), related feature links, CTAs.
+
+**Target keywords**: "AI property maintenance", "AI repair diagnosis from photos", "AI property maintenance classification", "AI parse contractor quotes", "AI compare contractor quotes", "AI extract data from maintenance invoices"
+
+## 2. Updated SEO Meta Titles
+- Pricing: "Pricing — Property Maintenance Software | Maintenance OS"
+- Features: "Property Maintenance Features — Repair Tracking, Contractor Dispatch & Quotes"
+- How It Works: "How It Works — Property Maintenance Management Made Simple"
+
+## 3. Updated Sitemap
+- Added /features/ai-powered-maintenance to sitemap.ts (now 24 pages)
+
+## 4. Updated Features Page Link
+- AI feature card now links to /features/ai-powered-maintenance instead of /features/property-maintenance-tracking
+
+## 5. Added robots.txt
+- Created public/robots.txt blocking /dashboard, /properties, /contractors, /issues, /settings, /api/, /intake/ from crawlers
+- Points to sitemap at https://ifbids.com/sitemap.xml
+
+## Files Created
+1. app/features/ai-powered-maintenance/page.tsx
+2. public/robots.txt
+
+## Files Modified
+1. app/sitemap.ts — Added AI page
+2. app/features/page.tsx — Updated AI card link + meta title
+3. app/pricing/page.tsx — Updated meta title
+4. app/how-it-works/page.tsx — Updated meta title
+
+## TypeScript: Clean compile
