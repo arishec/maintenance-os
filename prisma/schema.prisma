@@ -200,6 +200,7 @@ model Issue {
   property           Property            @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   reporter           User?               @relation("IssueReporter", fields: [reportedByUserId], references: [id], onDelete: SetNull)
   photos             IssuePhoto[]
+  attachments        IssueAttachment[]
   dispatches         Dispatch[]
   jobs               Job[]
   contractorMessages ContractorMessage[]
@@ -221,6 +222,21 @@ model IssuePhoto {
   sortOrder      Int      @default(0)
   createdAt      DateTime @default(now())
   issue          Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([issueId])
+}
+
+model IssueAttachment {
+  id          String   @id @default(uuid())
+  issueId     String
+  fileName    String
+  filePath    String
+  fileUrl     String?
+  fileSize    Int
+  mimeType    String
+  label       String?
+  createdAt   DateTime @default(now())
+  issue       Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
 
   @@index([issueId])
 }

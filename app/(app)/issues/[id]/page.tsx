@@ -16,6 +16,7 @@ import { ClassifyButton } from './classify-button';
 import { JobLifecyclePanel } from './job-lifecycle-panel';
 import { RawMessageToggle } from './raw-message-toggle';
 import { CloseIssueButton } from './close-issue-button';
+import { AttachmentsSection } from './attachments-section';
 import { ReplyToContractorButton } from './reply-to-contractor-button';
 import { ManualQuoteButton } from './manual-quote-button';
 import { ResendDispatchButton } from './resend-dispatch-button';
@@ -100,6 +101,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
     include: {
       property: true,
       photos: { orderBy: { sortOrder: 'asc' } },
+      attachments: { orderBy: { createdAt: 'desc' } },
       dispatches: {
         include: {
           contractor: true,
@@ -348,6 +350,16 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
 
         {/* Photos Section */}
         <PhotosSection issueId={issue.id} photos={photosWithUrls} />
+
+        {/* Documents Section */}
+        <AttachmentsSection
+          issueId={issue.id}
+          attachments={(issue.attachments || []).map((a) => ({
+            ...a,
+            createdAt: a.createdAt.toISOString(),
+          }))}
+          isClosedIssue={['completed', 'canceled', 'archived'].includes(issue.status)}
+        />
 
         {/* Dispatches Section */}
         {/* Stale dispatch nudge banners */}
