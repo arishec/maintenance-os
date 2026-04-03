@@ -92,6 +92,70 @@ interface SelectedContractor {
   channel: 'sms' | 'email';
 }
 
+// Compute fit score for a contractor based on stats and trade match
+function computeScore(
+  contractor: Contractor,
+  issueCategory: string | null,
+  tradeMap: Record<string, string[]>
+): number {
+  let score = 0;
+
+  // 1. Trade match (40 points for direct match, 20 for related like handyman)
+  if (issueCategory) {
+    const relevantTrades = tradeMap[issueCategory] ?? [];
+    if (relevantTrades.includes(contractor.trade)) {
+      // Direct match or primary match gets 40 points
+      const primaryTrade = relevantTrades[0];
+      score += contractor.trade === primaryTrade ? 40 : 20;
+    }
+  }
+
+  if (contractor.stats) {
+    // 2. Response rate (up to 25 points)
+    if (contractor.stats.responseRate !== null) {
+      score += Math.round(25 * contractor.stats.responseRate);
+    }
+
+    // 3. Completed jobs (up to 20 points — min(completedJobs * 4, 20))
+    score += Math.min(contractor.stats.completedJobs * 4, 20);
+
+    // 4. Response speed (up to 15 points — faster is better)
+    if (contractor.stats.avgResponseMs !== null) {
+      const hours = contractor.stats.avgResponseMs / (1000 * 60 * 60);
+      if (hours < 1) score += 15;
+      else if (hours < 2) score += 13;
+      else if (hours < 4) score += 11;
+      else if (hours < 8) score += 9;
+      else if (hours < 24) score += 6;
+      else score += 2;
+    }
+  }
+
+  return Math.min(Math.round(score), 100);
+}
+
+// Generate recommendation text for top contractors
+function getRecommendationText(contractor: Contractor): string | null {
+  if (!contractor.stats) return null;
+  const parts: string[] = [];
+
+  // Response time
+  if (contractor.stats.avgResponseMs !== null && contractor.stats.replied > 0) {
+    const hours = contractor.stats.avgResponseMs / (1000 * 60 * 60);
+    if (hours < 1) parts.push('Responds in ~1 hr');
+    else if (hours < 2) parts.push('Responds in ~2 hrs');
+    else if (hours < 24) parts.push(`Responds in ~${Math.round(hours)} hrs`);
+    else parts.push('Responds in 1+ days');
+  }
+
+  // Completed jobs
+  if (contractor.stats.completedJobs > 0) {
+    parts.push(`${contractor.stats.completedJobs} job${contractor.stats.completedJobs !== 1 ? 's' : ''} completed`);
+  }
+
+  return parts.length > 0 ? parts.join(' · ') : null;
+}
+
 export default function DispatchPage() {
   const router = useRouter();
   const params = useParams();
@@ -152,8 +216,12 @@ export default function DispatchPage() {
   const unsorted = showAll || relevantTrades.length === 0 || tradeFiltered.length === 0
     ? contractors
     : tradeFiltered;
-  // Preferred contractors float to the top
-  const filteredContractors = [...unsorted].sort((a, b) => Number(b.isPreferred) - Number(a.isPreferred));
+  // Sort by fit score (preferred contractors get +10 bonus)
+  const filteredContractors = [...unsorted].sort((a, b) => {
+    const scoreA = computeScore(a, issue?.category ?? null, tradeMap) + (a.isPreferred ? 10 : 0);
+    const scoreB = computeScore(b, issue?.category ?? null, tradeMap) + (b.isPreferred ? 10 : 0);
+    return scoreB - scoreA;
+  });
 
   function toggleContractor(contractor: Contractor) {
     const exists = selected.find(s => s.contractorId === contractor.id);
@@ -352,38 +420,57 @@ export default function DispatchPage() {
               <p className="text-sm text-muted-foreground">No contractors found. Add one below.</p>
             ) : (
               <div className="space-y-3">
-                {filteredContractors.map(contractor => {
+                {filteredContractors.map((contractor, idx) => {
                   const isSelected = selected.some(s => s.contractorId === contractor.id);
                   const sel = selected.find(s => s.contractorId === contractor.id);
+                  const score = computeScore(contractor, issue?.category ?? null, tradeMap) + (contractor.isPreferred ? 10 : 0);
+                  const isTopRecommended = score > 70 && idx === 0; // Top recommended is the first with score > 70
+                  const recommText = isTopRecommended ? getRecommendationText(contractor) : null;
+
+                  // Determine score indicator color
+                  let scoreIndicatorColor = 'bg-gray-300'; // below 40
+                  if (score >= 70) scoreIndicatorColor = 'bg-green-500';
+                  else if (score >= 40) scoreIndicatorColor = 'bg-yellow-500';
+
                   return (
-                    <div
-                      key={contractor.id}
-                      className={`flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 rounded-xl border p-4 cursor-pointer transition-colors ${isSelected ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'}`}
-                      onClick={() => toggleContractor(contractor)}
-                    >
-                      <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-                        <input type="checkbox" checked={isSelected} readOnly className="h-5 w-5 rounded flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium">{contractor.name}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {contractor.trade.replace(/_/g, ' ')}
-                            {(() => {
-                              const statsLine = formatContractorStats(contractor.stats);
-                              return statsLine ? <span> · {statsLine}</span> : null;
-                            })()}
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-0.5 sm:hidden truncate">
-                            {contractor.phone && <span>{formatPhone(contractor.phone)}</span>}
-                            {contractor.phone && contractor.email && <span> · </span>}
-                            {contractor.email && <span>{contractor.email}</span>}
-                          </div>
-                          {contractor.preferredChannel && (
-                            <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded mt-0.5 inline-block">
-                              Prefers {contractor.preferredChannel === 'sms' ? 'SMS' : 'email'}
-                            </span>
-                          )}
+                    <div key={contractor.id} className="space-y-2">
+                      {isTopRecommended && recommText && (
+                        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-50 border border-green-200">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                          <span className="text-sm font-medium text-green-700">Recommended:</span>
+                          <span className="text-sm text-green-600">{recommText}</span>
                         </div>
-                      </div>
+                      )}
+                      <div
+                        className={`flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 rounded-xl border p-4 cursor-pointer transition-colors ${isSelected ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'}`}
+                        onClick={() => toggleContractor(contractor)}
+                      >
+                        <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                          <input type="checkbox" checked={isSelected} readOnly className="h-5 w-5 rounded flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium flex items-center gap-2">
+                              {contractor.name}
+                              <div className={`w-2 h-2 rounded-full ${scoreIndicatorColor}`} title={`Fit score: ${score}/100`} />
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {contractor.trade.replace(/_/g, ' ')}
+                              {(() => {
+                                const statsLine = formatContractorStats(contractor.stats);
+                                return statsLine ? <span> · {statsLine}</span> : null;
+                              })()}
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-0.5 sm:hidden truncate">
+                              {contractor.phone && <span>{formatPhone(contractor.phone)}</span>}
+                              {contractor.phone && contractor.email && <span> · </span>}
+                              {contractor.email && <span>{contractor.email}</span>}
+                            </div>
+                            {contractor.preferredChannel && (
+                              <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded mt-0.5 inline-block">
+                                Prefers {contractor.preferredChannel === 'sms' ? 'SMS' : 'email'}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       <div className="hidden sm:block text-sm text-muted-foreground flex-shrink-0">
                         {contractor.phone && <div>{formatPhone(contractor.phone)}</div>}
                         {contractor.email && <div className="truncate max-w-[200px]">{contractor.email}</div>}
@@ -399,6 +486,7 @@ export default function DispatchPage() {
                           {contractor.phone && <option value="sms">SMS</option>}
                         </select>
                       )}
+                      </div>
                     </div>
                   );
                 })}

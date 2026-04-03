@@ -113,6 +113,9 @@ function AttentionCard({ item, showProperty }: { item: AttentionItem; showProper
               {item.reason}
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">{timePressure(item.timestamp)}</p>
+            {item.suggestedAction && (
+              <p className="text-xs text-muted-foreground mt-2">💡 {item.suggestedAction}</p>
+            )}
           </div>
         </div>
         <span className="shrink-0 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">

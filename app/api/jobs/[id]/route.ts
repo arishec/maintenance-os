@@ -14,6 +14,7 @@ const updateJobSchema = z.object({
   scheduledFor: z.string().datetime().optional(),
   notes: z.string().optional(),
   status: z.enum(['selected', 'scheduled', 'in_progress', 'completed', 'canceled']).optional(),
+  actualCost: z.number().positive().optional(),
   cancelReason: z.string().optional(),
   selfResolved: z.boolean().optional(),
 });
@@ -73,6 +74,9 @@ export async function PATCH(
     }
     if (body.notes !== undefined) {
       updateData.notes = body.notes;
+    }
+    if (body.actualCost !== undefined) {
+      updateData.actualCost = new Prisma.Decimal(body.actualCost);
     }
     if (body.status !== undefined) {
       // Validate status transitions

@@ -20,7 +20,10 @@ import { AttachmentsSection } from './attachments-section';
 import { ReplyToContractorButton } from './reply-to-contractor-button';
 import { ManualQuoteButton } from './manual-quote-button';
 import { ResendDispatchButton } from './resend-dispatch-button';
+import { QuoteSummary } from './quote-summary';
 import { LocalTime } from '@/components/local-time';
+import { CostContext } from './cost-context';
+import { RecurringAlert } from './recurring-alert';
 
 import {
   ISSUE_STATUS_LABELS,
@@ -188,6 +191,13 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
             </span>
           </div>
         )}
+
+        {/* Recurring issue alert */}
+        <RecurringAlert
+          issueId={issue.id}
+          category={issue.category}
+          propertyName={issue.property.nickname || issue.property.addressLine1}
+        />
 
         {/* Status Banners */}
         {(issue.status === 'classified' || issue.status === 'awaiting_dispatch') && (
@@ -369,6 +379,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
             createdAt: a.createdAt.toISOString(),
           }))}
           isClosedIssue={['completed', 'canceled', 'archived'].includes(issue.status)}
+          activeJobId={activeJob?.id}
         />
 
         {/* Dispatches Section */}
@@ -464,6 +475,24 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* AI Quote Comparison Summary */}
+        {allResponses.length >= 2 && issue.status === 'quotes_received' && (
+          <QuoteSummary issueId={issue.id} quoteCount={allResponses.length} />
+        )}
+
+        {/* Cost Context Banner */}
+        {allResponses.length > 0 && issue.category && (
+          <CostContext
+            issueId={issue.id}
+            category={issue.category}
+            currentQuotePrice={allResponses.length > 0 ? Number(
+              allResponses[0].response.flatEstimate ||
+              allResponses[0].response.estimateLow ||
+              allResponses[0].response.estimateHigh
+            ) : undefined}
+          />
         )}
 
         {/* Responses/Quotes Section */}

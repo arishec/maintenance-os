@@ -13,6 +13,7 @@ export interface AttentionItem {
   actionHref: string;
   urgency: 'high' | 'medium' | 'low';
   timestamp: Date;
+  suggestedAction?: string;
 }
 
 export interface ScheduledTodayItem {
@@ -87,6 +88,7 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
       reason: 'Contractor sent a quote — pick a contractor or request more',
       actionLabel: 'Review quotes',
       actionHref: `/issues/${issue.id}`,
+      suggestedAction: 'Review quotes before contractors move on to other jobs',
       urgency: 'high',
       timestamp: issue.updatedAt,
     });
@@ -164,6 +166,7 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
         reason: `${latestQuestion.name} asked a question — waiting on your reply`,
         actionLabel: 'Reply now',
         actionHref: `/issues/${issue.id}`,
+        suggestedAction: `Answer ${latestQuestion.name}'s question to move the job forward`,
         urgency: 'high',
         timestamp: latestQuestion.createdAt,
       });
@@ -192,6 +195,7 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
       reason: 'Contractor selected — set a date so the work can begin',
       actionLabel: 'Schedule job',
       actionHref: `/issues/${job.issueId}`,
+      suggestedAction: 'Schedule a date to lock in the work and avoid losing the contractor',
       urgency: 'medium',
       timestamp: job.createdAt,
     });
@@ -199,32 +203,62 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
 
   // 4. Stale dispatches — sent/delivered with no reply and older than threshold
   const staleThreshold = new Date(Date.now() - STALE_THRESHOLD_HOURS * 60 * 60 * 1000);
-  const staleDispatches = await prisma.dispatch.findMany({
+  const staleIssues = await prisma.issue.findMany({
     where: {
-      issue: { propertyId: { in: propertyIds }, status: { notIn: ['completed', 'canceled', 'archived'] } },
-      status: { in: ['sent', 'delivered'] },
-      createdAt: { lt: staleThreshold },
-      responses: { none: {} },
+      propertyId: { in: propertyIds },
+      status: { notIn: ['completed', 'canceled', 'archived'] },
+      dispatches: {
+        some: {
+          status: { in: ['sent', 'delivered'] },
+          createdAt: { lt: staleThreshold },
+          responses: { none: {} },
+        },
+      },
     },
     select: {
-      issueId: true,
-      createdAt: true,
-      contractor: { select: { name: true } },
-      issue: { select: { title: true, propertyId: true } },
+      id: true,
+      title: true,
+      propertyId: true,
+      dispatches: {
+        where: {
+          status: { in: ['sent', 'delivered'] },
+          createdAt: { lt: staleThreshold },
+          responses: { none: {} },
+        },
+        select: {
+          createdAt: true,
+          contractor: { select: { id: true, name: true } },
+        },
+        orderBy: { createdAt: 'asc' },
+      },
     },
   });
-  for (const dispatch of staleDispatches) {
-    if (items.some((i) => i.issueId === dispatch.issueId)) continue;
-    const daysSince = Math.floor((Date.now() - dispatch.createdAt.getTime()) / (1000 * 60 * 60 * 24));
+
+  for (const issue of staleIssues) {
+    if (items.some((i) => i.issueId === issue.id)) continue;
+
+    // Build contractor non-response info
+    const nonResponsiveContractors = issue.dispatches.map((d) => {
+      const daysSince = Math.floor((Date.now() - d.createdAt.getTime()) / (1000 * 60 * 60 * 24));
+      return { name: d.contractor.name, daysSince };
+    });
+
+    const contractorNamesStr = nonResponsiveContractors
+      .map((c) => `${c.name} (${c.daysSince} day${c.daysSince !== 1 ? 's' : ''})`)
+      .join(', ');
+
+    const maxDaysSince = Math.max(...nonResponsiveContractors.map((c) => c.daysSince));
+
     items.push({
-      issueId: dispatch.issueId,
-      issueTitle: dispatch.issue.title ?? 'Untitled issue',
-      propertyName: propertyMap.get(dispatch.issue.propertyId) ?? '',
-      reason: `Waiting ${daysSince} days — ${dispatch.contractor.name} hasn't replied`,
+      issueId: issue.id,
+      issueTitle: issue.title ?? 'Untitled issue',
+      propertyName: propertyMap.get(issue.propertyId) ?? '',
+      reason: `No response from: ${contractorNamesStr}`,
       actionLabel: 'Follow up',
-      actionHref: `/issues/${dispatch.issueId}`,
-      urgency: daysSince > 5 ? 'high' : 'medium',
-      timestamp: dispatch.createdAt,
+      actionHref: `/issues/${issue.id}`,
+      suggestedAction: 'Contact another contractor or send a follow-up reminder',
+      urgency: maxDaysSince > 5 ? 'high' : 'medium',
+      timestamp: issue.dispatches[0]?.createdAt ?? new Date(),
     });
   }
 
@@ -251,6 +285,7 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
       reason: `${job.contractor.name} confirmed — set a date to lock in the schedule`,
       actionLabel: 'Set date',
       actionHref: `/issues/${job.issueId}`,
+      suggestedAction: 'Schedule the work before the contractor becomes unavailable',
       urgency: 'high',
       timestamp: job.updatedAt,
     });
@@ -282,6 +317,7 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
       reason: `${timeLabel} with ${job.contractor.name} — check status or mark complete`,
       actionLabel: 'View job',
       actionHref: `/issues/${job.issueId}`,
+      suggestedAction: `Check in with ${job.contractor.name} on progress or mark complete`,
       urgency: daysSinceStart > 3 ? 'medium' : 'low',
       timestamp: job.startedAt ?? job.createdAt,
     });
@@ -318,6 +354,9 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
         : `${job.contractor.name} scheduled for ${dateStr} — track upcoming work`,
       actionLabel: isToday ? 'View details' : 'View job',
       actionHref: `/issues/${job.issueId}`,
+      suggestedAction: isToday
+        ? `Confirm access with ${job.contractor.name} and be available`
+        : `Confirm the scheduled date with ${job.contractor.name}`,
       urgency: isToday ? 'high' : 'medium',
       timestamp: job.scheduledFor ?? now,
     });
@@ -340,27 +379,33 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
     let reason: string;
     let actionLabel: string;
 
+    let suggestedAction: string;
     switch (issue.status) {
       case 'new':
       case 'classified':
         reason = `${priorityLabel} — needs to be sent to contractors`;
         actionLabel = 'Send to contractors';
+        suggestedAction = 'Dispatch this issue to contractors immediately';
         break;
       case 'awaiting_dispatch':
         reason = `${priorityLabel} — ready to dispatch to contractors`;
         actionLabel = 'Send to contractors';
+        suggestedAction = 'Send to contractors right away';
         break;
       case 'awaiting_quotes':
         reason = `${priorityLabel} — waiting for contractor responses`;
         actionLabel = 'View status';
+        suggestedAction = 'Monitor for contractor responses';
         break;
       case 'active_job':
         reason = `${priorityLabel} — job in progress, check status`;
         actionLabel = 'View job';
+        suggestedAction = 'Stay on top of this priority work';
         break;
       default:
         reason = `${priorityLabel} — check job status`;
         actionLabel = 'View job';
+        suggestedAction = 'Review and take action';
         break;
     }
 
@@ -373,6 +418,7 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
       actionHref: issue.status === 'classified' || issue.status === 'awaiting_dispatch'
         ? `/issues/${issue.id}/dispatch`
         : `/issues/${issue.id}`,
+      suggestedAction,
       urgency: 'high',
       timestamp: issue.createdAt,
     });
@@ -399,6 +445,7 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
       reason: `Reported ${daysSince} day${daysSince !== 1 ? 's' : ''} ago — needs to be sent to contractors`,
       actionLabel: 'Send to contractors',
       actionHref: `/issues/${issue.id}/dispatch`,
+      suggestedAction: 'Get this to contractors so work can begin',
       urgency: 'medium',
       timestamp: issue.createdAt,
     });
@@ -427,6 +474,7 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
       reason: `Failed to reach ${dispatch.contractor.name} — try resending or contact another contractor`,
       actionLabel: 'Dispatch again',
       actionHref: `/issues/${dispatch.issueId}/dispatch`,
+      suggestedAction: `Try resending to ${dispatch.contractor.name} or dispatch to a different contractor`,
       urgency: 'high',
       timestamp: dispatch.createdAt,
     });
@@ -484,6 +532,7 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
       reason: 'Job done — record what you paid for your records',
       actionLabel: 'Add cost',
       actionHref: `/issues/${job.issueId}`,
+      suggestedAction: 'Record the actual cost for your records and budget tracking',
       urgency: 'low',
       timestamp: job.completedAt ?? new Date(),
     });

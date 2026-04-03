@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { DocumentExtraction } from './document-extraction';
 
 interface Attachment {
   id: string;
@@ -35,10 +36,12 @@ export function AttachmentsSection({
   issueId,
   attachments: initialAttachments,
   isClosedIssue,
+  activeJobId,
 }: {
   issueId: string;
   attachments: Attachment[];
   isClosedIssue: boolean;
+  activeJobId?: string | null;
 }) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -145,69 +148,80 @@ export function AttachmentsSection({
             No documents uploaded yet. Upload PDFs, photos, reports, or other files related to this issue.
           </p>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {attachments.map((attachment) => (
-              <div
-                key={attachment.id}
-                className="flex items-center justify-between gap-3 rounded-lg border border-border p-3"
-              >
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <span className="text-lg flex-shrink-0">{getFileIcon(attachment.mimeType)}</span>
-                  <div className="min-w-0 flex-1">
-                    {attachment.fileUrl ? (
+              <div key={attachment.id}>
+                <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <span className="text-lg flex-shrink-0">{getFileIcon(attachment.mimeType)}</span>
+                    <div className="min-w-0 flex-1">
+                      {attachment.fileUrl ? (
+                        <a
+                          href={attachment.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm font-medium hover:underline truncate block"
+                        >
+                          {attachment.label || attachment.fileName}
+                        </a>
+                      ) : (
+                        <p className="text-sm font-medium truncate">
+                          {attachment.label || attachment.fileName}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        {formatFileSize(attachment.fileSize)}
+                        {attachment.label && attachment.label !== attachment.fileName && (
+                          <span className="ml-2">{attachment.fileName}</span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {attachment.fileUrl && (
                       <a
                         href={attachment.fileUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm font-medium hover:underline truncate block"
+                        className="text-xs text-muted-foreground hover:text-foreground"
                       >
-                        {attachment.label || attachment.fileName}
+                        View
                       </a>
-                    ) : (
-                      <p className="text-sm font-medium truncate">
-                        {attachment.label || attachment.fileName}
-                      </p>
                     )}
-                    <p className="text-xs text-muted-foreground">
-                      {formatFileSize(attachment.fileSize)}
-                      {attachment.label && attachment.label !== attachment.fileName && (
-                        <span className="ml-2">{attachment.fileName}</span>
-                      )}
-                    </p>
+                    {attachment.fileUrl && (
+                      <a
+                        href={`${attachment.fileUrl}?download=`}
+                        download={attachment.fileName}
+                        className="text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        Download
+                      </a>
+                    )}
+                    {(
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 min-h-[44px] min-w-[44px] px-2"
+                        onClick={() => handleDelete(attachment.id, attachment.fileName)}
+                        disabled={deleting === attachment.id}
+                      >
+                        {deleting === attachment.id ? 'Removing…' : 'Remove'}
+                      </Button>
+                    )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {attachment.fileUrl && (
-                    <a
-                      href={attachment.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-muted-foreground hover:text-foreground"
-                    >
-                      View
-                    </a>
-                  )}
-                  {attachment.fileUrl && (
-                    <a
-                      href={`${attachment.fileUrl}?download=`}
-                      download={attachment.fileName}
-                      className="text-xs text-muted-foreground hover:text-foreground"
-                    >
-                      Download
-                    </a>
-                  )}
-                  {(
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 min-h-[44px] min-w-[44px] px-2"
-                      onClick={() => handleDelete(attachment.id, attachment.fileName)}
-                      disabled={deleting === attachment.id}
-                    >
-                      {deleting === attachment.id ? 'Removing…' : 'Remove'}
-                    </Button>
-                  )}
-                </div>
+                {/* Document Extraction Component */}
+                {attachment.fileUrl && (
+                  <div className="mt-2 ml-12">
+                    <DocumentExtraction
+                      attachmentId={attachment.id}
+                      fileName={attachment.fileName}
+                      mimeType={attachment.mimeType}
+                      issueId={issueId}
+                      jobId={activeJobId}
+                    />
+                  </div>
+                )}
               </div>
             ))}
           </div>
