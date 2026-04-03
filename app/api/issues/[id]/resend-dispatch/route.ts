@@ -62,11 +62,15 @@ export async function POST(
     // Generate a new reply token for the resend
     const replyToken = generateReplyToken();
 
-    // Build message (reuse original outbound message)
+    // Build channel-appropriate messages
     const message = dispatch.outboundMessage;
+    const propertyLabel = issue.property.nickname || issue.property.addressLine1 || 'a property';
+    const contractorFirst = contractor.name?.split(' ')[0] || 'Hi';
 
-    const smsBody = `[Ref: ${replyToken}] ${message}`;
-    const smsMessage = smsBody.length > 1500 ? smsBody.slice(0, 1497) + '...' : smsBody;
+    // SMS: short reminder — saves cost and avoids multi-segment messages
+    const smsMessage = `Hi ${contractorFirst}, following up on a repair request at ${propertyLabel}: ${issue.title || 'maintenance issue'}. Please reply with your quote or availability. [Ref: ${replyToken}]`;
+
+    // Email: full original message with context
     const emailSubject = `Reminder: Repair request [Ref: ${replyToken}] — ${issue.title}`;
     const emailBody = `<div style="font-family: sans-serif; line-height: 1.6;"><p><strong>Reference: ${replyToken}</strong></p><p>This is a follow-up on a previous request.</p><hr style="border:none;border-top:1px solid #eee;margin:12px 0;">${message.replace(/\n/g, '<br>')}</div>`;
 

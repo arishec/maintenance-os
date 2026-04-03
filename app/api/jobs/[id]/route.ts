@@ -88,6 +88,11 @@ export async function PATCH(
         );
       }
       updateData.status = body.status;
+
+      // Set startedAt when job transitions to in_progress
+      if (body.status === 'in_progress') {
+        updateData.startedAt = new Date();
+      }
     }
 
     const updatedJob = await prisma.job.update({
@@ -170,13 +175,14 @@ export async function PATCH(
         console.log(`[JOB CANCEL] Issue ${job.issueId} closed as completed (self-resolved)`);
       } else {
         // Revert issue status so the owner can re-dispatch or pick another contractor.
-        // Check for any existing responses from OTHER contractors (regardless of dispatch status,
-        // since selecting a contractor closes all other dispatches as 'not_selected').
+        // Only count responses from OTHER contractors whose dispatches are still usable
+        // (not closed as 'not_selected', 'resent', 'issue_canceled', etc.)
         const otherResponses = await prisma.contractorResponse.count({
           where: {
             dispatch: {
               issueId: job.issueId,
               contractorId: { not: job.contractorId },
+              status: { in: ['sent', 'delivered', 'replied'] },
             },
           },
         });
@@ -200,7 +206,7 @@ export async function PATCH(
         console.log(`[JOB CANCEL] Issue ${job.issueId} reverted to ${revertStatus}`);
       }
 
-      // Close the dispatch with reason
+      // Close the canceled contractor's dispatch
       try {
         await prisma.dispatch.updateMany({
           where: { issueId: job.issueId, contractorId: job.contractor.id, status: { notIn: ['closed', 'failed'] } },
@@ -208,6 +214,23 @@ export async function PATCH(
         });
       } catch (e) {
         console.error('Dispatch close on cancel failed:', e);
+      }
+
+      // Reopen dispatches that were closed as 'not_selected' when this contractor was chosen,
+      // so the owner can pick from existing quotes again
+      if (!body.selfResolved) {
+        try {
+          await prisma.dispatch.updateMany({
+            where: {
+              issueId: job.issueId,
+              status: 'closed',
+              closedReason: 'not_selected',
+            },
+            data: { status: 'replied' } as any,
+          });
+        } catch (e) {
+          console.error('Dispatch reopen on cancel failed:', e);
+        }
       }
 
       // Notify the contractor the job was canceled

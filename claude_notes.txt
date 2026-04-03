@@ -652,3 +652,42 @@ const similarIssuesCount = await prisma.issue.count({
 - [ ] Test with different categories (electrical, HVAC, etc.)
 - [ ] Verify 12-month lookback window works correctly
 - [ ] Test with edge cases (no history, all same-day issues, etc.)
+
+---
+
+# Engineer Review Fixes - Session Summary (Apr 3, 2026)
+
+## Context
+External engineer reviewed codebase and flagged 7 issues. 4 were already fixed in current code. 3 valid issues remained.
+
+## Fixes Applied
+
+### 1. Job Cancel Reversion Logic (app/api/jobs/[id]/route.ts)
+**Problem**: When a job was canceled, the code counted ALL contractor responses (including from dispatches closed as 'not_selected') to decide whether to revert to quotes_received. This could incorrectly show quotes_received when no usable quotes remained.
+**Fix**:
+- Added `status: { in: ['sent', 'delivered', 'replied'] }` filter to otherResponses count
+- Only counts responses from contractors whose dispatches are still active/usable
+- Added logic to REOPEN dispatches closed as 'not_selected' when a job is canceled (unless self-resolved)
+- This means the owner can go back and pick a different contractor from existing quotes
+
+### 2. startedAt Timestamp (app/api/jobs/[id]/route.ts)
+**Problem**: Generic PATCH route didn't set startedAt when moving job to in_progress. Only completedAt was handled.
+**Fix**: Added `if (body.status === 'in_progress') { updateData.startedAt = new Date(); }` in the status update block.
+
+### 3. Shorter SMS for Resend Dispatch (app/api/issues/[id]/resend-dispatch/route.ts)
+**Problem**: SMS resends reused the full original outbound message, which could be long and expensive (multi-segment SMS).
+**Fix**: Built a short SMS-specific message: "Hi {name}, following up on a repair request at {property}: {title}. Please reply with your quote or availability. [Ref: {token}]"
+- Email resends still include the full original message (no size concern there)
+- SMS is now ~1 segment instead of potentially 3-4
+
+## Already-Fixed Items (reviewer was working from older code)
+1. select-contractor already uses dispatch.update on specific dispatchId (not updateMany)
+2. Issue cancel already closes 'accepted' dispatches and notifies contractors
+3. reply-to-contractor already uses tokenized replies+TOKEN@ifbids.com
+4. Both inbound webhooks already block 'completed' status
+
+## Files Modified
+1. app/api/jobs/[id]/route.ts - Job cancel reversion + startedAt
+2. app/api/issues/[id]/resend-dispatch/route.ts - Shorter SMS body
+
+## TypeScript: Clean compile (npx tsc --noEmit passed)
