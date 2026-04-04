@@ -14,6 +14,8 @@ interface ReplyToContractorButtonProps {
   dispatchChannel: string;
   issueTitle: string;
   hasExistingReply?: boolean;
+  label?: string;
+  inline?: boolean;
 }
 
 export function ReplyToContractorButton({
@@ -26,6 +28,8 @@ export function ReplyToContractorButton({
   dispatchChannel,
   issueTitle,
   hasExistingReply = false,
+  label,
+  inline = false,
 }: ReplyToContractorButtonProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -78,13 +82,23 @@ export function ReplyToContractorButton({
 
   return (
     <>
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={() => setIsOpen(true)}
-      >
-        {hasExistingReply ? 'Reply again' : 'Reply'}
-      </Button>
+      {inline ? (
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className="text-sm font-medium text-amber-700 hover:text-amber-900 underline underline-offset-2"
+        >
+          {label || 'Answer'}
+        </button>
+      ) : (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setIsOpen(true)}
+        >
+          {label || (hasExistingReply ? 'Reply again' : 'Reply')}
+        </Button>
+      )}
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto py-8">

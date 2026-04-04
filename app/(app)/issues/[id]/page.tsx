@@ -595,8 +595,26 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
                         {/* Follow-up question */}
                         {response.followUpQuestion && (
                           <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
-                            <p className="text-sm font-medium text-amber-800">Contractor question:</p>
-                            <p className="text-sm text-amber-900 mt-1">{tidyQuestion(response.followUpQuestion)}</p>
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <p className="text-sm font-medium text-amber-800">Contractor question:</p>
+                                <p className="text-sm text-amber-900 mt-1">{tidyQuestion(response.followUpQuestion)}</p>
+                              </div>
+                              {!response.outboundMessages?.length && !['canceled', 'completed', 'archived'].includes(issue.status) && (
+                                <ReplyToContractorButton
+                                  issueId={issue.id}
+                                  contractorId={dispatch.contractorId}
+                                  contractorResponseId={response.id}
+                                  contractorName={dispatch.contractor.name}
+                                  contractorEmail={dispatch.contractor.email}
+                                  contractorPhone={dispatch.contractor.phone}
+                                  dispatchChannel={dispatch.channel}
+                                  issueTitle={issue.title || 'Maintenance request'}
+                                  inline
+                                  label="Answer"
+                                />
+                              )}
+                            </div>
                           </div>
                         )}
 
