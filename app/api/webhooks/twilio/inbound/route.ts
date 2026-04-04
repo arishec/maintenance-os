@@ -194,6 +194,23 @@ export async function POST(request: NextRequest) {
             }
           }
 
+          // Fallback: if no date in the confirmation, check their original quote for availabilityDate
+          if (!scheduledFor) {
+            const originalResponse = await prisma.contractorResponse.findFirst({
+              where: {
+                dispatch: {
+                  issueId: issue.id,
+                  contractorId: contractor.id,
+                },
+                availabilityDate: { not: null },
+              },
+              orderBy: { createdAt: 'desc' },
+            });
+            if (originalResponse?.availabilityDate) {
+              scheduledFor = originalResponse.availabilityDate;
+            }
+          }
+
           await prisma.job.update({
             where: { id: activeJob.id },
             data: {
