@@ -302,6 +302,95 @@ export default async function HomePage() {
             </div>
           </section>
 
+          {/* ───── AI BEYOND PHOTOS ───── */}
+          <section className="border-b border-slate-200 bg-gradient-to-br from-purple-50 via-white to-indigo-50">
+            <div className="mx-auto max-w-7xl px-6 py-20 lg:px-10">
+              <div className="mx-auto max-w-3xl text-center">
+                <div className="mb-2 inline-flex items-center rounded-full border border-purple-200 bg-purple-50 px-3 py-1 text-sm font-medium text-purple-700">
+                  Beyond photo analysis
+                </div>
+                <h2 className="mt-3 text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950">
+                  AI that thinks at every step — and learns over time
+                </h2>
+                <p className="mt-5 text-lg leading-8 text-slate-600">
+                  Photo diagnosis is just the start. AI is woven into the entire repair workflow — reading contractor replies, extracting quotes, comparing bids, and pulling data from invoices. The more you use it, the smarter your system gets.
+                </p>
+              </div>
+
+              <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm">
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-full bg-purple-100">
+                    <svg className="h-5 w-5 text-purple-700" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" /></svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-950">Reads contractor replies</h3>
+                  <p className="mt-2 text-sm leading-7 text-slate-600">
+                    When a contractor texts back &quot;I can do it Thursday for $450,&quot; AI extracts the price, timeline, and availability automatically.
+                  </p>
+                </div>
+
+                <div className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm">
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-full bg-purple-100">
+                    <svg className="h-5 w-5 text-purple-700" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-950">Compares quotes for you</h3>
+                  <p className="mt-2 text-sm leading-7 text-slate-600">
+                    AI analyzes multiple bids side by side — comparing price, scope, and value — and highlights the best option so you decide in seconds.
+                  </p>
+                </div>
+
+                <div className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm">
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-full bg-purple-100">
+                    <svg className="h-5 w-5 text-purple-700" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-950">Extracts invoice data</h3>
+                  <p className="mt-2 text-sm leading-7 text-slate-600">
+                    Upload an invoice or receipt and AI pulls out the amount, line items, and contractor details — no manual data entry.
+                  </p>
+                </div>
+
+                <div className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm">
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-full bg-purple-100">
+                    <svg className="h-5 w-5 text-purple-700" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" /></svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-950">Detects multiple issues</h3>
+                  <p className="mt-2 text-sm leading-7 text-slate-600">
+                    One photo might show a leaky pipe and mold. AI catches both and can split them into separate issues requiring different trades.
+                  </p>
+                </div>
+
+                <div className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm">
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-full bg-purple-100">
+                    <svg className="h-5 w-5 text-purple-700" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" /></svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-950">Learns your history</h3>
+                  <p className="mt-2 text-sm leading-7 text-slate-600">
+                    Every repair builds a smarter picture — which contractors quote fast, which trades cost more at your properties, and what keeps breaking.
+                  </p>
+                </div>
+
+                <div className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm">
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-full bg-purple-100">
+                    <svg className="h-5 w-5 text-purple-700" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" /></svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-950">Confirms job details</h3>
+                  <p className="mt-2 text-sm leading-7 text-slate-600">
+                    When a contractor confirms a date or marks work done via text, AI parses the reply and updates the job status automatically.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-10 text-center">
+                <Link
+                  href="/features/ai-powered-maintenance"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-purple-600 px-6 py-4 text-base font-semibold text-white shadow-sm transition hover:bg-purple-700"
+                >
+                  See all 7 AI features
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
+                </Link>
+              </div>
+            </div>
+          </section>
+
           {/* ───── BENEFITS ───── */}
           <section id="benefits" className="mx-auto max-w-7xl px-6 py-20 lg:px-10">
             <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr]">
