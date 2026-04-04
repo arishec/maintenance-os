@@ -867,3 +867,42 @@ Includes comparison table (manual vs AI), related feature links, CTAs.
 3. app/error.tsx, app/(app)/error.tsx, app/(app)/issues/[id]/error.tsx — Added error reporting
 
 ## TypeScript: Clean compile
+
+---
+
+# Session: April 4, 2026 — Site Walkthrough & Fixes
+
+## Walkthrough Completed
+Checked all public pages as a new user would:
+- Homepage: Hero had massive blank gap due to two-column grid height mismatch — FIXED
+- Dashboard: Looks good (checked in prior session)
+- Properties page: Clean
+- Issues page: Solid — filters, badges, contractor info
+- Features hub (/features): Good layout, 4 value props, feature cards
+- AI Features (/features/ai-powered-maintenance): Hero looks great, 7 AI features, comparison table, bonus features, CTAs — all content verified via DOM (screenshot tool had rendering issue but content is all there)
+- Quote Comparison (/features/quote-comparison): Good
+- Repair History (/features/repair-history): Good
+- Contractor Dispatch (/features/contractor-dispatch): Good
+- How It Works: Good
+- Pricing: Good layout but had duplicate "Maintenance OS" in title — FIXED
+- Contact: Good — form + FAQ side by side
+- 404 page: Clean, centered, "Go home" button
+
+## Fixes Applied This Session
+
+### 1. Homepage Hero Gap — FIXED (app/page.tsx)
+- Root cause: Two-column CSS grid (lg:grid-cols-[1.1fr_0.9fr]) forced both columns to same row height. Right column (Old Way/New Way card) was ~700px, left column text was ~450px, creating ~250px blank gap
+- Fix: Restructured hero into stacked layout:
+  - Hero text is now full-width, centered (no more side-by-side grid)
+  - Old Way / New Way split into separate section below hero as a 2-column grid
+  - Both cards now have similar heights so no mismatch
+  - SEO links and tagline moved below the Old Way/New Way section
+
+### 2. Pricing Page Duplicate Title — FIXED (app/pricing/page.tsx)
+- Root cause: Page title was "Pricing — Property Maintenance Software | Maintenance OS" but root layout has template: '%s | Maintenance OS', resulting in "... | Maintenance OS | Maintenance OS"
+- Fix: Removed "| Maintenance OS" from the page-level title
+
+## Known Issues Still Open
+- Sentry not configured yet (user needs to create account, get DSN)
+- Indie Hackers posting blocked (account needs posting privileges)
+- Integration tests not yet written

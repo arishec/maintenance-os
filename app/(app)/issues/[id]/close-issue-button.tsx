@@ -74,7 +74,7 @@ export function CloseIssueButton({ issueId, issueStatus }: { issueId: string; is
                 id="self-resolved"
                 checked={selfResolved}
                 onChange={(e) => setSelfResolved(e.target.checked)}
-                className="h-4 w-4 rounded border-border"
+                className="h-5 w-5 rounded border-border"
               />
               <label htmlFor="self-resolved" className="text-sm">I resolved this myself</label>
             </div>

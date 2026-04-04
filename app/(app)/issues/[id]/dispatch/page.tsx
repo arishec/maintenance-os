@@ -409,7 +409,7 @@ export default function DispatchPage() {
             <div className="flex items-center justify-between">
               <CardTitle>Select Contractors</CardTitle>
               {relevantTrades.length > 0 && (
-                <button onClick={() => setShowAll(!showAll)} className="text-sm text-primary hover:underline">
+                <button type="button" onClick={() => setShowAll(!showAll)} className="text-sm text-primary hover:underline">
                   {showAll ? 'Show recommended' : 'Show all'}
                 </button>
               )}
@@ -565,6 +565,7 @@ export default function DispatchPage() {
               </div>
             ) : (
               <button
+                type="button"
                 onClick={() => setShowAddForm(true)}
                 className="mt-3 flex items-center gap-2 text-sm text-primary hover:underline"
               >

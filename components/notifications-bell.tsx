@@ -145,6 +145,7 @@ export function NotificationsBell({ dropDirection = 'up' }: { dropDirection?: 'u
   return (
     <div className="relative" ref={dropdownRef}>
       <button
+        type="button"
         onClick={handleBellClick}
         className="relative inline-flex items-center justify-center rounded-lg p-2 hover:bg-muted transition-colors"
         aria-label="Notifications"
@@ -163,6 +164,7 @@ export function NotificationsBell({ dropDirection = 'up' }: { dropDirection?: 'u
             <h3 className="font-semibold">Notifications</h3>
             {unreadCount > 0 && (
               <button
+                type="button"
                 onClick={handleMarkAllAsRead}
                 className="text-xs text-blue-600 hover:underline"
               >
@@ -183,6 +185,7 @@ export function NotificationsBell({ dropDirection = 'up' }: { dropDirection?: 'u
             ) : (
               notifications.map((notification) => (
                 <button
+                  type="button"
                   key={notification.id}
                   onClick={() => handleNotificationClick(notification)}
                   className={`w-full px-4 py-3 text-left border-b border-border hover:bg-muted transition-colors ${

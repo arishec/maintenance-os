@@ -71,6 +71,7 @@ export function ContractorList({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
+            type="button"
             onClick={() => { setTradeFilter(null); setPreferredOnly(false); setSearch(''); }}
             className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
               !tradeFilter && !preferredOnly
@@ -81,6 +82,7 @@ export function ContractorList({
             All ({contractors.length})
           </button>
           <button
+            type="button"
             onClick={() => setPreferredOnly(!preferredOnly)}
             className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
               preferredOnly
@@ -92,6 +94,7 @@ export function ContractorList({
           </button>
           {trades.map(trade => (
             <button
+              type="button"
               key={trade}
               onClick={() => setTradeFilter(tradeFilter === trade ? null : trade)}
               className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${

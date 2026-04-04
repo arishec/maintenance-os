@@ -33,6 +33,7 @@ export default function IssueError({
         </p>
         <div className="flex items-center justify-center gap-3 pt-2">
           <button
+            type="button"
             onClick={reset}
             className="rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors"
           >

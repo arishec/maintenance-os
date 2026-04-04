@@ -1,0 +1,187 @@
+Maintenance OS Development Session - 2026-03-26
+
+=== CONTRACTOR DETAIL PAGE BUILT ===
+
+Created the contractor detail page and edit page for Maintenance OS.
+
+FILES CREATED:
+1. app/contractors/[id]/page.tsx
+   - Server component showing contractor details
+   - Displays name, company, trade, phone, email, notes
+   - Shows preferred badge if applicable
+   - Includes Activity stats (dispatches sent, jobs completed, member since date)
+   - Edit button links to /contractors/[id]/edit
+   - Archive button calls DELETE /api/contractors/[id]
+   - Uses requireDbUser() for authentication with redirect to /sign-in
+   - Verifies contractor belongs to user via ownerUserId check
+   - Imports related dispatches and jobs for stats
+   - Uses existing UI components: Badge, Card, Button from @/components/ui
+
+2. app/contractors/[id]/archive-button.tsx
+   - Client component for archive action
+   - Confirms before archiving with confirm dialog
+   - Shows error state if archive fails
+   - Redirects to /contractors after successful archive
+   - Styled with red text for destructive action
+
+3. app/contractors/[id]/edit/page.tsx
+   - Client component form for editing contractor
+   - Fetches contractor data on mount using id from params
+   - Form fields: name, companyName, trade, phone, email, notes, isPreferred
+   - Submits PATCH to /api/contractors/[id]
+   - Pre-fills form with existing contractor data
+   - Shows loading states and error messages
+   - Cancel button goes back
+   - Same visual style as contractors/new page
+
+IMPLEMENTATION NOTES:
+- Used Next.js 15 App Router with async params: const { id } = await params
+- All pages respect user ownership via ownerUserId check
+- Used straight quotes throughout (never curly/smart quotes)
+- Consistent styling with rest of the application
+- Error handling with try/catch blocks
+- Authentication via requireDbUser() with redirect fallback
+- LayoutShell wrapper applied to all pages
+- Button variants match existing patterns (outline, default)
+- Trade labels properly formatted with underscores replaced by spaces
+- Archive uses DELETE endpoint which soft-archives (sets isArchived: true)
+- Stats include completed jobs count and total dispatches
+- Proper Next.js navigation with router.push and router.refresh
+
+All three pages follow the existing API and UI patterns established in the codebase.
+
+---
+
+Maintenance OS Development Session - 2026-03-28
+
+=== CANONICAL URL MIGRATION COMPLETED ===
+
+Changed all hardcoded full canonical URLs to relative paths in metadata alternates across 16 public pages.
+
+CHANGE PATTERN:
+Before: alternates: { canonical: 'https://ifbids.com/pricing' }
+After:  alternates: { canonical: '/pricing' }
+
+FILES UPDATED:
+1. app/pricing/page.tsx → '/pricing'
+2. app/for-homeowners/page.tsx → '/for-homeowners'
+3. app/how-it-works/page.tsx → '/how-it-works'
+4. app/for-landlords/page.tsx → '/for-landlords'
+5. app/contact/page.tsx → '/contact'
+6. app/terms/page.tsx → '/terms'
+7. app/privacy/page.tsx → '/privacy'
+8. app/features/page.tsx → '/features'
+9. app/features/repair-history/page.tsx → '/features/repair-history'
+10. app/features/property-maintenance-tracking/page.tsx → '/features/property-maintenance-tracking'
+11. app/features/contractor-dispatch/page.tsx → '/features/contractor-dispatch'
+12. app/features/quote-comparison/page.tsx → '/features/quote-comparison'
+13. app/features/tenant-intake/page.tsx → '/features/tenant-intake'
+14. app/guides/how-to-compare-contractor-quotes/page.tsx → '/guides/how-to-compare-contractor-quotes'
+15. app/guides/how-to-track-home-repairs/page.tsx → '/guides/how-to-track-home-repairs'
+16. app/guides/how-to-manage-rental-property-maintenance/page.tsx → '/guides/how-to-manage-rental-property-maintenance'
+
+All files had the canonical URL already nested in alternates object, so only the URL value was changed from full domain to relative path. No structural changes needed.
+
+NOTE: app/page.tsx and app/layout.tsx already use relative paths and were not modified.
+
+---
+
+Maintenance OS Development Session - 2026-04-03
+
+=== USER-FRIENDLY STATUS LABELS & WORKFLOW GUIDANCE ===
+
+Improved issue status labels, added next-step guidance, and enhanced dashboard overview card with breakdown.
+
+CHANGE 1: Improved status labels (lib/status.ts)
+- Updated ISSUE_STATUS_LABELS:
+  * "awaiting_quotes" now shows "Sent to Contractors" (clearer user action)
+  * "quotes_received" now shows "Quotes In — Action Needed" (prompts action)
+- Updated ISSUE_NEXT_ACTION descriptions for clarity:
+  * "new" → "AI will classify this, or send to contractors directly"
+  * "awaiting_quotes" → "Contractors have been contacted — waiting for their responses"
+  * "quotes_received" → "You have quotes! Review them and pick a contractor"
+
+CHANGE 2: Workflow guidance banner (app/(app)/issues/[id]/page.tsx)
+- Added import for ISSUE_NEXT_ACTION
+- Added subtle blue banner below header showing next step contextually
+- Banner displays on all statuses except 'completed' and 'canceled'
+- Format: "Next step: [action text from ISSUE_NEXT_ACTION]"
+- Uses blue-100/blue-50/50 colors for consistent visual hierarchy
+- Falls back to generic "Review this issue" if status not found
+
+CHANGE 3: Dashboard overview breakdown (dashboard components & lib)
+- Updated lib/dashboard.ts getOverviewCounts() to fetch per-status breakdown:
+  * Added openIssuesByStatus object with counts for: new, classifiedOrReady, awaitingQuotes, quotesReceived, activeJob
+  * Updated OverviewCounts interface to include optional openIssuesByStatus
+- Updated components/dashboard/overview-cards.tsx:
+  * Added subLabel function to "Open Issues" card
+  * Displays pipeline breakdown as: "3 new · 2 ready · 1 awaiting · 1 quoted · 2 active"
+  * Sub-text shows only statuses with count > 0, joined with " · " separator
+  * Sub-text displays in muted-foreground/70 color below main label
+
+IMPLEMENTATION NOTES:
+- All changes are backward compatible
+- Workflow guidance banner is non-intrusive and contextual
+- Dashboard breakdown helps users understand what "open" means at a glance
+- Status labels now use action verbs (e.g., "Sent" vs "Awaiting")
+- No structural changes to data models or APIs
+
+---
+
+Maintenance OS Development Session - 2026-04-03
+
+=== SMART CONTRACTOR RECOMMENDATIONS ON DISPATCH PAGE ===
+
+Added intelligent contractor fit scoring and recommendations to the dispatch page.
+
+FILE MODIFIED:
+1. app/(app)/issues/[id]/dispatch/page.tsx
+
+FEATURES ADDED:
+
+1. computeScore() function (lines 95-135)
+   - Calculates fit score (0-100) for each contractor based on:
+     * Trade match to issue category: 40 pts (direct match), 20 pts (related like handyman)
+     * Response rate: up to 25 pts (25 * responseRate ratio)
+     * Completed jobs: up to 20 pts (min(completedJobs * 4, 20))
+     * Response speed: up to 15 pts (faster = more points, tiered by hours)
+   - Preferred contractors get +10 bonus applied in sort logic
+
+2. getRecommendationText() function (lines 137-157)
+   - Generates human-readable recommendation text for top contractors
+   - Shows response time estimate (e.g., "Responds in ~2 hrs")
+   - Shows completed jobs count
+   - Format: "Responds in ~2 hrs · 3 jobs completed"
+   - Returns null if insufficient stats data
+
+3. Updated contractor sorting (lines 220-224)
+   - Changed from simple isPreferred float to score-based ranking
+   - Sorts all contractors by computed fit score in descending order
+   - Applies +10 bonus to preferred contractors before sorting
+   - Maintains flexibility with trade filtering and "Show all" toggle
+
+4. Enhanced contractor card rendering (lines 423-491)
+   - Added score indicator dot next to contractor name:
+     * Green dot: score >= 70 (fit score visible in tooltip)
+     * Yellow dot: score 40-69
+     * Gray dot: score < 40
+   - Added green recommendation badge for top contractor:
+     * Shows if score > 70 AND is first in list
+     * Includes star icon and recommendation text
+     * Uses green-50 background with green-200 border
+   - Maintains all existing features (checkboxes, contact info, channel selection)
+
+SCORING BREAKDOWN (max 100 points):
+- Trade relevance: 40 (primary) / 20 (secondary)
+- Response rate: 25 (based on % of replies)
+- Completed jobs: 20 (min of completedJobs*4 or 20)
+- Response speed: 15 (tiered: <1hr=15, <2hr=13, <4hr=11, <8hr=9, <24hr=6, else=2)
+- Preferred bonus: +10 (applied during sort)
+
+IMPLEMENTATION NOTES:
+- Uses existing stats data (totalDispatches, replied, responseRate, completedJobs, avgResponseMs)
+- No API changes required; works with existing GET /api/contractors?stats=1
+- Recommendation badge only shows for single top-ranked contractor (idx === 0 && score > 70)
+- Score calculation integrated into existing tradeMap logic
+- Color-coded dots provide visual quick-scan of contractor quality
+- All changes are surgical edits to maintain code clarity

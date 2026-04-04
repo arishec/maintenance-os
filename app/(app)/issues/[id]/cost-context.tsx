@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
+import { Toast } from '@/components/ui/toast';
 
 interface CostContextProps {
   issueId: string;
@@ -19,6 +20,7 @@ interface CostContextData {
 export function CostContext({ issueId, category, currentQuotePrice }: CostContextProps) {
   const [costData, setCostData] = useState<CostContextData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchCostContext = async () => {
@@ -30,6 +32,7 @@ export function CostContext({ issueId, category, currentQuotePrice }: CostContex
         }
       } catch (error) {
         console.error('Failed to fetch cost context:', error);
+        setError('Failed to load cost context');
       } finally {
         setLoading(false);
       }
@@ -37,6 +40,10 @@ export function CostContext({ issueId, category, currentQuotePrice }: CostContex
 
     fetchCostContext();
   }, [issueId]);
+
+  if (error) {
+    return <Toast message={error} type="error" />;
+  }
 
   if (loading || !costData || !category) {
     return null;

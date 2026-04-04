@@ -79,6 +79,7 @@ export function LayoutShell({ children }: { children: ReactNode }) {
       <div className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-white px-4 py-3 lg:hidden">
         <div className="flex items-center gap-3">
           <button
+            type="button"
             onClick={() => setMobileMenuOpen(true)}
             className="rounded-lg p-1.5 hover:bg-muted"
             aria-label="Open menu"
@@ -114,6 +115,7 @@ export function LayoutShell({ children }: { children: ReactNode }) {
                 <div className="text-xs text-muted-foreground">Homeowner + landlord workflow</div>
               </div>
               <button
+                type="button"
                 onClick={() => setMobileMenuOpen(false)}
                 className="rounded-lg p-1.5 hover:bg-muted"
                 aria-label="Close menu"

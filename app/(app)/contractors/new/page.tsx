@@ -134,7 +134,7 @@ export default function NewContractorPage() {
                   type="checkbox"
                   id="isPreferred"
                   name="isPreferred"
-                  className="h-4 w-4 rounded border-border"
+                  className="h-5 w-5 rounded border-border"
                 />
                 <label htmlFor="isPreferred" className="text-sm font-medium">
                   Mark as preferred contractor

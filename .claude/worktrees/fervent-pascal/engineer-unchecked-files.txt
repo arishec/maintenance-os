@@ -1,0 +1,87 @@
+FILES THE ENGINEER DID NOT REVIEW
+==================================
+(I audited and fixed these myself on March 31, 2026)
+
+NOTE: Marketing/landing/static pages excluded — no logic to review.
+
+
+API ROUTES (not reviewed by engineer):
+--------------------------------------
+app/api/issues/route.ts                                    (list/create issues)
+app/api/issues/[id]/archive/route.ts                       (archive issue) — FIXED: transaction
+app/api/issues/[id]/classify/route.ts                      (AI classification) — FIXED: race-safe status
+app/api/issues/[id]/dispatch/route.ts                      (send to contractors) — FIXED: race-safe status
+app/api/issues/[id]/dispatches/route.ts                    (list dispatches) — clean
+app/api/issues/[id]/photos/route.ts                        (upload photos)
+app/api/issues/[id]/photos/[photoId]/route.ts              (delete photo) — FIXED: reversed delete order
+app/api/issues/[id]/reparse-replies/route.ts               (re-parse contractor replies)
+app/api/jobs/route.ts                                      (list jobs)
+app/api/jobs/[id]/schedule/route.ts                        (schedule job) — FIXED: transaction
+app/api/jobs/[id]/start/route.ts                           (start job) — FIXED: transaction
+app/api/properties/route.ts                                (list/create properties)
+app/api/properties/[id]/route.ts                           (get/update/delete property) — FIXED: ownership in WHERE
+app/api/properties/[id]/contractors/route.ts               (property contractors) — clean
+app/api/properties/[id]/contractors/[contractorId]/route.ts (remove contractor from property) — clean
+app/api/properties/[id]/intake-link/route.ts               (create/get/delete intake link) — FIXED: transaction
+app/api/notifications/route.ts                             (list/mark-read notifications) — clean
+app/api/notifications/[id]/route.ts                        (single notification) — clean
+app/api/stripe/checkout/route.ts                           (create checkout session)
+app/api/stripe/portal/route.ts                             (customer portal)
+app/api/webhooks/stripe/route.ts                           (stripe webhook)
+app/api/webhooks/twilio/status/route.ts                    (twilio delivery status)
+app/api/users/bootstrap/route.ts                           (clerk user sync)
+
+
+APP PAGES (not reviewed by engineer):
+-------------------------------------
+app/(app)/dashboard/page.tsx                               (main dashboard)
+app/(app)/issues/[id]/page.tsx                             (issue detail)
+app/(app)/issues/new/page.tsx                              (create issue) — FIXED: client validation
+app/(app)/issues/[id]/edit/page.tsx                        (edit issue)
+app/(app)/issues/[id]/dispatch/page.tsx                    (dispatch page) — FIXED: email validation + try/catch
+app/(app)/properties/page.tsx                              (properties list)
+app/(app)/properties/new/page.tsx                          (create property)
+app/(app)/properties/[id]/page.tsx                         (property detail)
+app/(app)/properties/[id]/edit/page.tsx                    (edit property)
+app/(app)/contractors/page.tsx                             (contractors list)
+app/(app)/contractors/new/page.tsx                         (create contractor)
+app/(app)/contractors/[id]/page.tsx                        (contractor detail)
+app/(app)/contractors/[id]/edit/page.tsx                   (edit contractor)
+app/(app)/history/page.tsx                                 (repair history) — FIXED: sort order
+app/(app)/settings/page.tsx                                (user settings)
+
+
+LIB FILES (not reviewed by engineer):
+-------------------------------------
+lib/dispatch-helpers.ts                                    — clean
+lib/dashboard.ts
+lib/ai/classify-issue.ts
+lib/ai/parse-contractor-reply.ts
+lib/ai/parse-job-confirmation.ts
+lib/ai/analyze-photo.ts
+lib/ai/client.ts
+lib/stripe.ts
+lib/twilio.ts
+lib/resend.ts
+lib/rate-limit.ts                                          — clean
+lib/tokens.ts                                              — clean
+lib/auth.ts                                                — clean
+lib/env.ts
+lib/supabase.ts
+lib/prisma.ts
+lib/status.ts
+lib/signup-alert.ts
+lib/support-forward.ts
+
+
+COMPONENTS (not reviewed by engineer):
+--------------------------------------
+components/photo-upload.tsx
+components/contact-form.tsx
+components/notifications-bell.tsx
+components/paywall-modal.tsx
+components/dashboard/overview-cards.tsx
+components/dashboard/scheduled-today-list.tsx
+components/dashboard/waiting-on-contractors-list.tsx
+components/dashboard/recent-activity-list.tsx
+components/dashboard/needs-attention-list.tsx

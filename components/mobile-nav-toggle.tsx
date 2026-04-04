@@ -23,6 +23,7 @@ export function MobileNavToggle({
     <div className="lg:hidden">
       {/* Hamburger button */}
       <button
+        type="button"
         onClick={() => setOpen(!open)}
         className="inline-flex items-center justify-center rounded-lg p-2 text-gray-700 hover:bg-gray-100 transition-colors"
         aria-label="Toggle menu"

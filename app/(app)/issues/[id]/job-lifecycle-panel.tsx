@@ -417,7 +417,7 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
                 type="checkbox"
                 checked={selfResolved}
                 onChange={(e) => setSelfResolved(e.target.checked)}
-                className="h-4 w-4 rounded"
+                className="h-5 w-5 rounded"
               />
               I resolved this issue myself
             </label>

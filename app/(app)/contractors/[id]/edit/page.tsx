@@ -225,7 +225,7 @@ export default function EditContractorPage({
                   type="checkbox"
                   id="isPreferred"
                   name="isPreferred"
-                  className="h-4 w-4 rounded border-border"
+                  className="h-5 w-5 rounded border-border"
                   defaultChecked={contractor.isPreferred}
                 />
                 <label htmlFor="isPreferred" className="text-sm font-medium">

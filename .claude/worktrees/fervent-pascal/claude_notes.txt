@@ -1,0 +1,825 @@
+# Property Detail Page Implementation - Session Summary
+
+## Completed Tasks
+
+### 1. Created /app/properties/[id]/page.tsx (Server Component)
+- Main property detail page that displays:
+  - Property name, full address, property type
+  - Edit and Delete buttons in header
+  - Property Details card with address and type info
+  - Linked Contractors section with unlink buttons and "Add Contractor" dropdown
+  - Tenant Intake Link section showing current link status and generate/deactivate options
+  - Issues list for the property
+- Uses requireDbUser() for auth with try/catch redirect pattern
+- Fetches property, contractors, intake link status, and issues from database
+- Proper ownership verification before displaying
+
+### 2. Created /app/properties/[id]/property-detail-client.tsx (Client Component)
+- Interactive actions component handling:
+  - Delete property with confirmation dialog
+  - Unlink contractors with confirmation
+  - Add contractors via dropdown selector
+  - Generate/deactivate tenant intake links
+- Manages all API calls to properties endpoints
+- Provides user-friendly dialogs and error handling
+- Copy-to-clipboard functionality for intake links
+- Router refresh after mutations
+
+### 3. Created /app/properties/[id]/edit/page.tsx (Client Component)
+- Edit form pre-filled with existing property data
+- Client component that:
+  - Loads property via GET /api/properties/[id]
+  - Submits changes via PATCH /api/properties/[id]
+  - Redirects back to detail page on success
+  - Shows loading state while fetching initial data
+  - Displays validation errors
+
+### 4. Created /components/ui/alert-dialog.tsx
+- Custom AlertDialog component using @radix-ui/react-dialog
+- Components: AlertDialog, AlertDialogContent, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel
+- Supports controlled open/onOpenChange props
+- Styled with consistent design system
+
+### 5. Updated /components/ui/button.tsx
+- Added "destructive" variant (red-600 background)
+- Added "ghost" variant (hover background only)
+- Added "sm" size variant
+- Maintains existing default, secondary, outline variants
+
+## Design Patterns Used
+
+1. **Next.js 15 App Router**: params as Promise, proper async/await handling
+2. **Auth Pattern**: requireDbUser() from @/lib/auth with try/catch redirect
+3. **API Integration**: RESTful endpoints for CRUD and relationship management
+4. **Component Architecture**: 
+   - Server component for data fetching and UI layout
+   - Client components for interactivity (modals, forms)
+5. **Form Handling**: Controlled components with React state
+6. **Error Handling**: Try/catch blocks, user-friendly error messages
+7. **UI Components**: Consistent use of Card, Button, Input, Select from design system
+8. **Styling**: Tailwind CSS with muted-foreground, borders, spacing utilities
+
+## API Endpoints Used
+
+- GET /api/properties/[id] - Fetch property details
+- PATCH /api/properties/[id] - Update property
+- DELETE /api/properties/[id] - Delete property
+- GET /api/properties/[id]/contractors - List linked contractors
+- POST /api/properties/[id]/contractors - Link contractor
+- DELETE /api/properties/[id]/contractors/[contractorId] - Unlink contractor
+- GET/POST/DELETE /api/properties/[id]/intake-link - Manage tenant intake links
+
+## Files Created
+
+1. /app/properties/[id]/page.tsx (198 lines)
+2. /app/properties/[id]/property-detail-client.tsx (367 lines)
+3. /app/properties/[id]/edit/page.tsx (216 lines)
+4. /components/ui/alert-dialog.tsx (134 lines)
+
+## Files Modified
+
+1. /components/ui/button.tsx - Added destructive, ghost, and sm variants
+
+## Key Features
+
+✓ Property information display with formatted address
+✓ Edit property button links to edit page
+✓ Delete property with confirmation modal
+✓ Link/unlink contractors with confirmation dialogs
+✓ Add contractor via dropdown selector
+✓ Generate tenant intake link with copy-to-clipboard
+✓ Deactivate intake link with confirmation
+✓ Display issues list with status and urgency badges
+✓ Proper auth and ownership verification
+✓ Error handling and loading states
+✓ Consistent styling with design system
+
+## Notes
+
+- All components use straight quotes (') not smart quotes
+- LayoutShell wrapper ensures consistent page layout
+- PropertyDetailClient is reusable for all interactive actions
+- Edit page is client component but loads data from server API
+- Intake link API uses direct database query on server (faster than HTTP fetch)
+- Button component now supports required destructive and ghost variants
+
+---
+
+# Job Action Success Notifications - Session Summary (Mar 31, 2026)
+
+## Completed Tasks
+
+### 1. Created Reusable Toast Component
+- New file: `/components/ui/toast.tsx`
+- Provides standardized success/error/info notifications
+- Features:
+  - Fixed positioning (bottom center)
+  - Color-coded by type (green for success, red for error, blue for info)
+  - Icon indicators (✓, ✕, ℹ)
+  - Smooth fade-in and slide animations
+  - Accepts custom duration prop
+  - Clean, accessible styling with Tailwind
+
+### 2. Updated Job Lifecycle Panel
+- File: `app/(app)/issues/[id]/job-lifecycle-panel.tsx`
+- Added success toasts for:
+  - Job scheduled: "Job scheduled successfully"
+  - Job marked in progress: "Job marked as in progress"
+  - Job completed: "Job completed successfully!"
+  - Job canceled: "Job canceled. You can dispatch to another contractor."
+- Toast messages appear for 2 seconds before router refresh
+- Prevents premature page navigation while showing feedback
+
+### 3. Updated Contractor Selection Button
+- File: `app/(app)/issues/[id]/select-contractor-button.tsx`
+- Replaced inline toast HTML with Toast component
+- Message: "{contractorName} selected. Job started."
+- Toast duration: 2 seconds
+
+### 4. Updated AI Classification Button
+- File: `app/(app)/issues/[id]/classify-button.tsx`
+- Added success toast: "Issue classified successfully!"
+- Toast appears after successful API call
+- 2-second delay before page refresh
+
+### 5. Updated Manual Quote Addition
+- File: `app/(app)/issues/[id]/manual-quote-button.tsx`
+- Added success toast: "Quote added successfully!"
+- Updated timeout from 1200ms to 2000ms for better UX consistency
+- Toast displays inside modal while form still shows success message
+
+### 6. Updated Resend Dispatch Button
+- File: `app/(app)/issues/[id]/resend-dispatch-button.tsx`
+- Replaced simple text feedback with Toast component
+- Success: "Request resent to {contractorName}"
+- Error: "Failed to resend request"
+- Button remains disabled for 2 seconds after success
+
+## Design Patterns
+
+1. **Consistent Toast Timing**: All successful actions show toast for 2 seconds
+2. **Clear Feedback**: Action-specific messages explain what happened
+3. **Post-Action Refresh**: Page refreshes after toast display ensures UI stays in sync
+4. **Modal Interaction**: In manual-quote, both modal message and floating toast confirm success
+
+## Files Created
+
+1. `/components/ui/toast.tsx` - Reusable toast component (29 lines)
+
+## Files Modified
+
+1. `app/(app)/issues/[id]/job-lifecycle-panel.tsx` - Added toasts for all job status changes
+2. `app/(app)/issues/[id]/select-contractor-button.tsx` - Updated to use Toast component
+3. `app/(app)/issues/[id]/classify-button.tsx` - Added success toast
+4. `app/(app)/issues/[id]/manual-quote-button.tsx` - Added success toast and better timing
+5. `app/(app)/issues/[id]/resend-dispatch-button.tsx` - Added success/error toasts
+
+## Key Improvements
+
+✓ Clear success feedback after all major job actions
+✓ Consistent visual design across toasts
+✓ Users no longer left wondering if action succeeded
+✓ Better user experience with predictable timing
+✓ Toasts prevent premature navigation
+✓ Reusable component reduces code duplication
+✓ Easy to extend with new toast types (warning, info) if needed
+
+---
+
+# Photo Deletion Confirmation Dialog - Session Summary (2026-03-31)
+
+## Task
+Add confirmation dialogs before deleting photos from issues. Previously, clicking the delete (X) button on photos removed them instantly with no confirmation.
+
+## Changes Made
+
+### 1. Updated `app/(app)/issues/new/page.tsx`
+- **File Type**: Client component ('use client')
+- **Changes**:
+  - Imported AlertDialog components from `@/components/ui/alert-dialog`
+  - Added state: `photoToDelete` and `showDeleteDialog` to track deletion flow
+  - Replaced `removePhoto()` function with:
+    - `handleDeletePhotoClick(id)` - Opens confirmation dialog
+    - `confirmDeletePhoto()` - Executes deletion after confirmation
+  - Updated photo preview button onClick to call `handleDeletePhotoClick(photo.id)`
+  - Added AlertDialog component at end of return statement with:
+    - Title: "Delete photo?"
+    - Description: "Are you sure you want to delete this photo? This action cannot be undone."
+    - Cancel and Delete action buttons
+
+### 2. Created `app/(app)/issues/[id]/photos-section.tsx`
+- **New File**: Client component for managing photos in issue detail view
+- **Purpose**: Moved photo display and deletion logic from server component to client component
+- **Features**:
+  - Displays existing photos from issue
+  - Shows AI description for each photo if available
+  - Delete button (X icon) on each photo with hover styling
+  - Confirmation dialog before deletion with API call to DELETE `/api/issues/{id}/photos/{photoId}`
+  - Loading state during deletion
+  - Router refresh after successful deletion
+  - Error handling with user-friendly alert messages
+
+### 3. Updated `app/(app)/issues/[id]/page.tsx`
+- **File Type**: Server component (remains unchanged type)
+- **Changes**:
+  - Removed import of `PhotoUploadButton` (still used by PhotosSection)
+  - Added import of new `PhotosSection` component
+  - Replaced inline Photos section with `<PhotosSection issueId={issue.id} photos={photosWithUrls} />`
+  - Offloads all client-side photo management to PhotosSection component
+
+## Implementation Details
+
+### Issue New Page (Temporary Photos)
+- Photos selected but not yet uploaded are deleted locally without API call
+- Preview URL is revoked from browser memory
+- Dialog feedback prevents accidental deletion
+
+### Issue Detail Page (Saved Photos)
+- Calls DELETE API endpoint for persistent deletion
+- Updates local state after successful deletion
+- Calls `router.refresh()` to stay in sync
+- Shows loading state during deletion
+- Provides error feedback if deletion fails
+
+### Confirmation Dialog Pattern
+Used shadcn AlertDialog component (consistent with existing property delete pattern):
+```
+- Modal overlay prevents dismissal by clicking background
+- Cancel button to abort
+- Delete button (red) to confirm
+- Clear messaging about action consequence
+```
+
+## Files Created
+1. `/app/(app)/issues/[id]/photos-section.tsx` (96 lines)
+
+## Files Modified
+1. `/app/(app)/issues/new/page.tsx` - Added confirmation dialog for preview photo deletion
+2. `/app/(app)/issues/[id]/page.tsx` - Extracted photos to client component
+
+## Design Decisions
+
+1. **Separate Component for Issue Detail**: PhotosSection is a client component because it needs:
+   - State management for deletion flow
+   - API calls to delete saved photos
+   - Router refresh after mutations
+   
+2. **Consistent Pattern**: Both locations use same AlertDialog pattern as property deletion
+
+3. **No Undo**: Photos are permanently deleted (matches API behavior)
+
+4. **Loading State**: Delete button shows "Deleting..." and disabled state during operation
+
+5. **Graceful Error Handling**: API errors shown as alerts with descriptive messages
+
+## Testing Notes
+- Issue new page: Click X on preview photos -> Dialog appears -> Cancel/Delete works
+- Issue detail page: Click X on saved photos -> Dialog appears -> Confirms before API call
+- Router refreshes after successful deletion to update photo grid
+- Errors from API are clearly communicated to user
+
+---
+
+# Multi-Issue Photo Assignment - Session Summary (Apr 3, 2026)
+
+## Task
+Implement intelligent photo assignment for split multi-issue flow. Previously, when multiple issues were detected and split, ALL photos were uploaded only to the first issue. Now users can assign individual photos to each split issue during confirmation.
+
+## Changes Made
+
+### 1. Updated `lib/ai/detect-multi-issue.ts`
+- **Added Field**: `photoHint?: string` to `singleIssueSchema`
+- **Purpose**: AI generates a brief, user-friendly hint about what type of photo is relevant to each issue
+- **Example Values**:
+  - "photo of leaking pipe"
+  - "photo of broken AC unit"
+  - "photo of window damage"
+- **Location in Schema**: Zod schema updated to include optional photoHint field
+- **Updated Type Exports**: `DetectedIssue` type now includes optional `photoHint`
+- **AI Prompt Update**: Added instruction to AI:
+  ```
+  photoHint: a brief description of what kind of photo would be most relevant
+  to this issue (e.g., "photo of leaking pipe" or "photo of broken AC unit").
+  This helps the user assign their photos correctly. Keep it short (under 20 words)
+  and specific.
+  ```
+
+### 2. Updated `app/(app)/issues/new/page.tsx` - Main Functionality
+
+#### 2a. Added Photo Assignment State
+- **New State**: `photoAssignments: Record<number, Set<string>>({})`
+- **Purpose**: Maps issue index to Set of assigned photo IDs
+- **Initialization**: Happens when multi-issue confirmation screen first renders
+
+#### 2b. Added Helper Functions
+- **togglePhotoAssignment(issueIndex, photoId)**:
+  - Toggles a photo's assignment to an issue
+  - Updates state using Set operations for O(1) lookup
+  - Handles creating new Sets for issues if they don't exist
+
+- **initializePhotoAssignments()**:
+  - Called when split confirmation screen renders
+  - Only initializes if `photoAssignments` is empty (prevents reinitializing on every render)
+  - Pre-checks all photos for all issues by default (good UX - user sees everything assigned)
+  - Creates Set for each issue with all photo IDs
+
+#### 2c. Updated `uploadPhotos()` Function
+- **New Parameter**: `photoIds?: Set<string>`
+- **Logic**:
+  - If `photoIds` provided, filters photos to only those with IDs in the Set
+  - If no `photoIds` (single-issue flow), uploads all photos as before
+  - Maintains backward compatibility
+
+#### 2d. Updated `handleConfirmSplit()` Function
+- **Key Change**: Now uses indexed loop `for (let i = 0; i < detectedIssues.length; i++)`
+- **Photo Upload Logic**:
+  ```
+  if (photos.length > 0) {
+    const assignedPhotos = photoAssignments[i];
+    if (assignedPhotos && assignedPhotos.size > 0) {
+      await uploadPhotos(created.id, assignedPhotos);
+    }
+  }
+  ```
+- **Behavior**: Only uploads photos that were explicitly checked for each issue
+- **Previous Behavior**: Uploaded all photos only to the first issue
+
+#### 2e. Updated Split Confirmation UI
+- **Location**: Multi-issue split confirmation screen (renders when `detectedIssues.length > 1`)
+- **Call**: `initializePhotoAssignments()` at start of render to ensure state is initialized
+- **For Each Issue Card**:
+  - Shows `issue.photoHint` if available (renders as italic gray text below description)
+  - Format: "Suggested photo: {photoHint}"
+  - Added photo assignment section below issue details (only shown if photos exist)
+
+- **Photo Assignment UI**:
+  ```
+  {photos.length > 0 && (
+    <div className="pt-2 border-t">
+      <label>Assign photos to this issue</label>
+      <div className="grid grid-cols-3 gap-2">
+        {photos.map((photo) => (
+          <button>
+            <Image src={photo.preview} />
+            {isAssigned && (
+              <CheckmarkIcon /> // Shows checkmark overlay
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  )}
+  ```
+
+- **Visual Design**:
+  - Grid layout with 3 columns
+  - Clickable photo thumbnails (h-20 height)
+  - Border color indicates assignment state:
+    - `border-primary bg-primary/5` when assigned
+    - `border-border bg-muted/50` when not assigned
+  - Checkmark icon (SVG path) overlays assigned photos with semi-transparent black background
+  - Smooth transitions on hover/click
+
+### 3. Updated Interface Definition
+- **DetectedIssue Interface** in page.tsx now includes `photoHint?: string`
+
+## User Flow
+
+1. User describes multiple issues (e.g., "toilet leak and broken AC")
+2. AI detects 2 issues and returns:
+   - Issue 1: "toilet leak" with photoHint: "photo of leaking toilet"
+   - Issue 2: "broken AC" with photoHint: "photo of AC unit"
+3. Confirmation screen shows:
+   - Both issues with their descriptions and hints
+   - All uploaded photos in a 3-column grid under each issue
+   - All photos pre-checked for each issue (default: share context)
+4. User can uncheck photos that don't apply to specific issues
+5. When creating issues:
+   - Issue 1 gets photos user kept checked
+   - Issue 2 gets photos user kept checked
+   - Photos not assigned to any issue won't be uploaded
+
+## Design Decisions
+
+1. **AI Can't See Photos**: Since AI only has text description at detection time, we can't do vision-based assignment. Instead, AI provides helpful hints to guide user selection.
+
+2. **All Assigned By Default**: Pre-checks all photos for each issue because split issues often represent different aspects of the same problem that all photos help document.
+
+3. **Set Data Structure**: Uses `Set<string>` for O(1) lookup performance when checking if photo is assigned.
+
+4. **Default Behavior Maintained**: Single-issue flow (non-split) unchanged - all photos still uploaded to the single issue.
+
+5. **Photo Hints as Guidance**: Not mandatory assignment rules - user can override hints if they prefer. Hints are just suggestions to improve UX.
+
+6. **No Drag-and-Drop**: Simpler checkbox-based UI instead of complex drag-and-drop that could confuse users and add complexity.
+
+## Files Modified
+
+1. `lib/ai/detect-multi-issue.ts` - Added `photoHint` field and AI prompt instruction
+2. `app/(app)/issues/new/page.tsx` - Major updates:
+   - Added `photoAssignments` state
+   - Added `togglePhotoAssignment()` helper function
+   - Added `initializePhotoAssignments()` helper function
+   - Updated `uploadPhotos()` to accept optional photoIds Set
+   - Updated `handleConfirmSplit()` to use indexed loop and selective photo upload
+   - Updated DetectedIssue interface to include optional `photoHint`
+   - Updated split confirmation screen UI to show photos and checkboxes
+   - Updated split confirmation screen UI to display photo hints
+
+## Technical Details
+
+### Photo Assignment State Management
+- State: `Record<number, Set<string>>` where key is issue index, value is Set of photo IDs
+- Initialization happens once per render (guarded by checking if length is 0)
+- Updates use immutable pattern with spread operator for state object
+- Sets provide efficient membership testing
+
+### Upload Flow for Split Issues
+```
+Loop through each detected issue (i):
+  1. Create issue via API
+  2. Get assigned photos Set from photoAssignments[i]
+  3. If Set has items, call uploadPhotos(issueId, assignedPhotos)
+  4. uploadPhotos filters photos array to only those in the Set
+  5. Uploads filtered photos to the specific issue
+```
+
+### Backward Compatibility
+- Single-issue flow: uploadPhotos() still receives undefined photoIds, uses all photos
+- Split flow with no photos: Skips upload entirely
+- Split flow with photos but no assignments: Skips upload for that issue
+
+## Testing Checklist
+
+- [ ] Multi-issue detection still works (e.g., "leak and broken AC")
+- [ ] AI returns photoHint for each issue
+- [ ] Confirmation screen shows photo hints below descriptions
+- [ ] Photos display in 3-column grid with checkmarks when selected
+- [ ] All photos pre-checked by default
+- [ ] Clicking photo toggles checkmark and assignment
+- [ ] Visual styling matches primary color for assigned state
+- [ ] Creating issues only uploads assigned photos
+- [ ] Issue 1 has only its photos, Issue 2 has only its photos
+- [ ] Single-issue flow still uploads all photos (not affected)
+- [ ] Reject split button still works (creates as single issue)
+
+## Future Enhancements
+
+1. **Vision-Based Assignment**: If we send photo data to AI at detection time, could suggest which photos match which issues
+2. **Photo Reordering**: Allow users to reorder photos within each issue
+3. **Photo Notes**: Let users add captions to photos before assignment
+4. **Smart Hints**: Parse photo descriptions (from AI analysis) to auto-suggest assignments
+
+---
+
+# Cost Intelligence & Recurring Issue Detection - Session Summary (Apr 3, 2026)
+
+## Task
+Build two intelligent features for Maintenance OS that provide cost context and detect recurring problems at properties.
+
+## Feature 1: Cost Intelligence
+
+### API Endpoint: `app/api/issues/[id]/cost-context/route.ts`
+**Purpose**: Return historical cost data for issues with the same category at the same property
+
+**Implementation**:
+- Uses `requireDbUser()` for authentication
+- Finds current issue to verify ownership and extract category/propertyId
+- Queries completed jobs where:
+  - Issue has same category
+  - Issue is on same property
+  - Job status is completed and actualCost is not null
+- Calculates: min cost, max cost, average cost, count of historical repairs
+- Returns null if no history exists (graceful no-render pattern)
+
+**Query Pattern**:
+```typescript
+const historicalJobs = await prisma.job.findMany({
+  where: {
+    issue: {
+      propertyId: issue.propertyId,
+      category: issue.category,
+      status: 'completed',
+    },
+    status: 'completed',
+    actualCost: { not: null },
+  },
+  select: { actualCost: true },
+});
+```
+
+### Client Component: `app/(app)/issues/[id]/cost-context.tsx`
+**Purpose**: Display historical cost comparison banner next to quotes
+
+**Features**:
+- Accepts props: issueId, category, currentQuotePrice
+- Fetches cost context from API on mount
+- Shows blue info banner with format:
+  - "Based on X previous [category] repairs, typical cost: $MIN–$MAX (avg $AVG)"
+- Highlights warning if quote is >50% above average:
+  - Shows amber warning icon with message
+  - "This quote is significantly above your typical range"
+- Gracefully renders nothing if no data or no category
+
+**Design**:
+- Blue background banner (consistent with other info banners)
+- Uses AlertCircle icon for warning
+- Responsive text sizing with font weights
+
+### Integration
+- Added to `page.tsx` before quotes section
+- Only renders when:
+  - Issue has quotes (allResponses.length > 0)
+  - Issue is classified (category exists)
+- Passes first quote price for comparison logic
+
+## Feature 2: Recurring Issue Detection
+
+### API Endpoint: `app/api/issues/[id]/patterns/route.ts`
+**Purpose**: Detect if property has repeated issues of same category
+
+**Implementation**:
+- Uses `requireDbUser()` for authentication
+- Finds current issue to verify ownership and extract propertyId/category
+- Counts similar issues in past 12 months:
+  - Same propertyId
+  - Same category
+  - Excluding current issue
+  - Created >= 1 year ago
+- Returns pattern data only if count >= 2 (making current issue the 3rd+)
+- Includes `previousIssueDates` for context
+
+**Query Pattern**:
+```typescript
+const oneYearAgo = new Date(issue.createdAt.getTime() - 365 * 24 * 60 * 60 * 1000);
+const similarIssuesCount = await prisma.issue.count({
+  where: {
+    propertyId: issue.propertyId,
+    category: issue.category,
+    id: { not: id },
+    createdAt: { gte: oneYearAgo },
+  },
+});
+```
+
+### Client Component: `app/(app)/issues/[id]/recurring-alert.tsx`
+**Purpose**: Alert users to recurring problems at a property
+
+**Features**:
+- Accepts props: issueId, category, propertyName
+- Fetches pattern data from API on mount
+- Shows amber alert banner only if pattern detected (3+ issues):
+  - Format: "This is the 3rd [category] issue at [property] this year."
+  - Subtitle: "Consider scheduling a professional inspection to address the root cause."
+- Gracefully renders nothing if no pattern exists
+- Handles ordinal numbers: "3rd", "4th", "5th", etc.
+
+**Design**:
+- Amber background banner with ! icon
+- Suggests proactive inspection
+- Matches recurring problem warning UI pattern
+
+### Integration
+- Added to `page.tsx` after workflow guidance banner
+- Early in the issue detail page (before other content)
+- Only renders if recurring pattern is detected (no noise)
+
+## Files Created
+
+1. `/app/api/issues/[id]/cost-context/route.ts` (67 lines)
+   - GET endpoint for historical cost data
+   - Auth & ownership verification
+   - Cost statistics calculation
+
+2. `/app/api/issues/[id]/patterns/route.ts` (69 lines)
+   - GET endpoint for recurring issue detection
+   - 12-month lookback window
+   - Pattern detection logic
+
+3. `/app/(app)/issues/[id]/cost-context.tsx` (49 lines)
+   - Client component with cost banner
+   - Quote comparison logic
+   - Warning highlighting
+
+4. `/app/(app)/issues/[id]/recurring-alert.tsx` (46 lines)
+   - Client component with recurring pattern alert
+   - Inspection suggestion
+   - Ordinal number formatting
+
+## Files Modified
+
+1. `/app/(app)/issues/[id]/page.tsx`
+   - Added imports for both new components
+   - Added RecurringAlert after workflow guidance (line ~193)
+   - Added CostContext before quotes section (line ~485)
+   - Both conditionally render based on data availability
+
+## Design Patterns Used
+
+1. **Graceful Degradation**: Components render null if no data, no category, or no pattern
+2. **Client-Side Data Fetching**: useEffect pattern for API calls
+3. **Loading State**: Simple state management (loading boolean)
+4. **Error Silencing**: Errors logged to console but don't break UI
+5. **Conditional Rendering**: Based on data availability and issue status
+6. **Color-Coded Alerts**: Blue for info, amber for warnings
+7. **Consistent Styling**: Matches existing banner patterns
+
+## Key Behaviors
+
+**Cost Context**:
+- Shows only when viewing quotes (multi-quote comparison)
+- Provides context for decision-making
+- Highlights outliers (>50% above average)
+- No render if: no history, no category, no quotes
+
+**Recurring Alert**:
+- Shows early (near top of page) for visibility
+- Alerts to pattern after 3rd occurrence
+- Suggests preventive action
+- No render if: fewer than 3 issues, no category, first or second occurrence
+
+## Testing Checklist
+
+- [ ] Create issue with category (e.g., plumbing)
+- [ ] Complete job with actualCost recorded
+- [ ] Create new plumbing issue at same property
+- [ ] Verify cost context banner shows with min/max/avg
+- [ ] Create 2 more plumbing issues at property
+- [ ] Verify recurring alert appears on 3rd issue
+- [ ] Verify no false alerts on 1st or 2nd issue
+- [ ] Verify cost context doesn't show without quotes
+- [ ] Verify components handle missing category gracefully
+- [ ] Test with different categories (electrical, HVAC, etc.)
+- [ ] Verify 12-month lookback window works correctly
+- [ ] Test with edge cases (no history, all same-day issues, etc.)
+
+---
+
+# Engineer Review Fixes - Session Summary (Apr 3, 2026)
+
+## Context
+External engineer reviewed codebase and flagged 7 issues. 4 were already fixed in current code. 3 valid issues remained.
+
+## Fixes Applied
+
+### 1. Job Cancel Reversion Logic (app/api/jobs/[id]/route.ts)
+**Problem**: When a job was canceled, the code counted ALL contractor responses (including from dispatches closed as 'not_selected') to decide whether to revert to quotes_received. This could incorrectly show quotes_received when no usable quotes remained.
+**Fix**:
+- Added `status: { in: ['sent', 'delivered', 'replied'] }` filter to otherResponses count
+- Only counts responses from contractors whose dispatches are still active/usable
+- Added logic to REOPEN dispatches closed as 'not_selected' when a job is canceled (unless self-resolved)
+- This means the owner can go back and pick a different contractor from existing quotes
+
+### 2. startedAt Timestamp (app/api/jobs/[id]/route.ts)
+**Problem**: Generic PATCH route didn't set startedAt when moving job to in_progress. Only completedAt was handled.
+**Fix**: Added `if (body.status === 'in_progress') { updateData.startedAt = new Date(); }` in the status update block.
+
+### 3. Shorter SMS for Resend Dispatch (app/api/issues/[id]/resend-dispatch/route.ts)
+**Problem**: SMS resends reused the full original outbound message, which could be long and expensive (multi-segment SMS).
+**Fix**: Built a short SMS-specific message: "Hi {name}, following up on a repair request at {property}: {title}. Please reply with your quote or availability. [Ref: {token}]"
+- Email resends still include the full original message (no size concern there)
+- SMS is now ~1 segment instead of potentially 3-4
+
+## Already-Fixed Items (reviewer was working from older code)
+1. select-contractor already uses dispatch.update on specific dispatchId (not updateMany)
+2. Issue cancel already closes 'accepted' dispatches and notifies contractors
+3. reply-to-contractor already uses tokenized replies+TOKEN@ifbids.com
+4. Both inbound webhooks already block 'completed' status
+
+## Files Modified
+1. app/api/jobs/[id]/route.ts - Job cancel reversion + startedAt
+2. app/api/issues/[id]/resend-dispatch/route.ts - Shorter SMS body
+
+## TypeScript: Clean compile (npx tsc --noEmit passed)
+
+---
+
+# Duplicate Submit / Idempotency Fixes - Session Summary (Apr 3, 2026)
+
+## Context
+Second engineer review flagged duplicate-submit risk on mutation endpoints. Verified all 5 key endpoints:
+- select-contractor: Already protected (checks for existing active job, returns conflict)
+- dispatch: Already protected (checks existing dispatches per contractor+issue, filters out dupes)
+- manual-quote: NOT protected — double-click could create duplicate contractorResponse rows
+- reply-to-contractor: NOT protected — double-click could send duplicate messages
+- resend-dispatch: Partially protected (1-hour rate limit, but two simultaneous requests could race)
+
+Also verified webhook dedupe (both already have two-layer protection) and job lifecycle transitions (strict transition map + UI button disabling).
+
+## Fixes Applied
+
+### 1. Manual Quote Dedupe (app/api/issues/[id]/manual-quote/route.ts)
+**Problem**: No check for existing manual quote on same dispatch. Double-click creates duplicate contractorResponse rows.
+**Fix**: Inside the transaction, before creating a new response, check for an existing `[Manual entry]` response on the same dispatch. If found, return it instead of creating a duplicate. This is idempotent — the second request gets the same result as the first.
+
+### 2. Reply-to-Contractor Dedupe (app/api/issues/[id]/reply-to-contractor/route.ts)
+**Problem**: No duplicate send protection. Double-click sends the same message twice to the contractor.
+**Fix**: Before creating the message record, check for a recent (within 60 seconds) outbound message with the same body to the same contractor on the same issue, with status 'queued' or 'sent'. If found, return success without sending again. Window is short enough to not block intentional re-sends.
+
+## Already-Protected Endpoints (no changes needed)
+1. select-contractor: Backend guard checks for existing active job
+2. dispatch: Filters out already-contacted contractors
+3. Twilio inbound webhook: Two-layer dedupe (MessageSid + dispatch+rawMessage)
+4. Email inbound webhook: Two-layer dedupe (emailId + dispatch+rawMessage)
+5. Job lifecycle: Strict JOB_VALID_TRANSITIONS map + UI disables all buttons during async
+
+## Files Modified
+1. app/api/issues/[id]/manual-quote/route.ts - Added existing response check inside transaction
+2. app/api/issues/[id]/reply-to-contractor/route.ts - Added 60-second same-message dedupe
+
+## TypeScript: Clean compile (npx tsc --noEmit passed)
+
+---
+
+# App Hardening & Polish Pass - Session Summary (Apr 3, 2026)
+
+## 1. Database Indexes Added (prisma/schema.prisma)
+Missing indexes cause slow queries as data grows. Added:
+- Property.ownerUserId — "get all my properties" query
+- Contractor.ownerUserId — "get all my contractors" query
+- Job.contractorId — "find jobs for this contractor" query
+- PropertyIntakeLink.propertyId — intake link lookup by property
+- PropertyIntakeLink.tokenHash — tenant intake authentication
+- UnresolvedInboundMessage [provider, resolvedAt] — admin triage queries
+
+**Action required**: Run `npx prisma db push` to apply.
+
+## 2. Replaced browser alert() with Toast Notifications
+alert() blocks the UI thread and looks unprofessional. Replaced in:
+- property-detail-client.tsx — All 9 alert() calls (delete, unlink, add contractor, deactivate link, copy link) now use Toast component with proper success/error types
+- close-issue-button.tsx — Both error alert() calls now use Toast
+- manage-subscription-button.tsx — Silent failures now show visible error Toast
+
+## 3. Global Error Boundaries
+- Created app/error.tsx — Root-level error boundary for routes outside (app) group (intake, contact, etc.)
+- Created app/not-found.tsx — Custom 404 page replacing Next.js default
+- Both match existing design system (centered card layout, icon, action buttons)
+
+## 4. Fixed Silent Error Swallowing
+- manual-quote-button.tsx — Empty .catch(() => {}) now logs to console
+- manage-subscription-button.tsx — console.error-only failures now show user-facing Toast
+
+## Files Created
+1. app/error.tsx — Root error boundary
+2. app/not-found.tsx — Custom 404 page
+
+## Files Modified
+1. prisma/schema.prisma — 6 new indexes
+2. app/(app)/properties/[id]/property-detail-client.tsx — alert() → Toast
+3. app/(app)/issues/[id]/close-issue-button.tsx — alert() → Toast
+4. app/(app)/settings/manage-subscription-button.tsx — silent fail → Toast
+5. app/(app)/issues/[id]/manual-quote-button.tsx — empty catch → console.error
+
+## TypeScript: Clean compile (npx tsc --noEmit passed)
+
+## Deployment Note
+After pulling these changes, run:
+  npx prisma db push
+to apply the new database indexes.
+
+---
+
+# AI Features SEO Page + Meta Title Optimization - Session Summary (Apr 3, 2026)
+
+## 1. Created /features/ai-powered-maintenance/page.tsx
+Dedicated SEO landing page showcasing all 7 AI features in the app:
+1. AI repair diagnosis from photos (vision analysis)
+2. Automatic issue classification (trade, urgency, timeframe)
+3. Multi-issue detection (split "toilet leak and broken AC" into 2 issues)
+4. Smart contractor reply parsing (extract quotes from SMS/email)
+5. Job confirmation parsing (contractor confirms/declines/reschedules)
+6. AI quote comparison summary (side-by-side analysis with recommendation)
+7. Invoice and receipt extraction (pull amounts from PDFs/photos)
+
+Plus 3 bonus intelligence features: recurring issue detection, historical cost intelligence, smart contractor recommendations.
+
+Includes comparison table (manual vs AI), related feature links, CTAs.
+
+**Target keywords**: "AI property maintenance", "AI repair diagnosis from photos", "AI property maintenance classification", "AI parse contractor quotes", "AI compare contractor quotes", "AI extract data from maintenance invoices"
+
+## 2. Updated SEO Meta Titles
+- Pricing: "Pricing — Property Maintenance Software | Maintenance OS"
+- Features: "Property Maintenance Features — Repair Tracking, Contractor Dispatch & Quotes"
+- How It Works: "How It Works — Property Maintenance Management Made Simple"
+
+## 3. Updated Sitemap
+- Added /features/ai-powered-maintenance to sitemap.ts (now 24 pages)
+
+## 4. Updated Features Page Link
+- AI feature card now links to /features/ai-powered-maintenance instead of /features/property-maintenance-tracking
+
+## 5. Added robots.txt
+- Created public/robots.txt blocking /dashboard, /properties, /contractors, /issues, /settings, /api/, /intake/ from crawlers
+- Points to sitemap at https://ifbids.com/sitemap.xml
+
+## Files Created
+1. app/features/ai-powered-maintenance/page.tsx
+2. public/robots.txt
+
+## Files Modified
+1. app/sitemap.ts — Added AI page
+2. app/features/page.tsx — Updated AI card link + meta title
+3. app/pricing/page.tsx — Updated meta title
+4. app/how-it-works/page.tsx — Updated meta title
+
+## TypeScript: Clean compile

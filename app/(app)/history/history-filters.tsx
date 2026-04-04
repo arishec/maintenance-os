@@ -153,6 +153,7 @@ export function HistoryTable({
                 ` — ${formatCurrency(totalCost)}`}
             </p>
             <button
+              type="button"
               onClick={() => {
                 setDateFrom('');
                 setDateTo('');

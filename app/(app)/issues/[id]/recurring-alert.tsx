@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Toast } from '@/components/ui/toast';
 
 interface RecurringAlertProps {
   issueId: string;
@@ -16,6 +17,7 @@ interface PatternData {
 export function RecurringAlert({ issueId, category, propertyName }: RecurringAlertProps) {
   const [patternData, setPatternData] = useState<PatternData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPatterns = async () => {
@@ -27,6 +29,7 @@ export function RecurringAlert({ issueId, category, propertyName }: RecurringAle
         }
       } catch (error) {
         console.error('Failed to fetch pattern data:', error);
+        setError('Failed to load pattern data');
       } finally {
         setLoading(false);
       }
@@ -34,6 +37,10 @@ export function RecurringAlert({ issueId, category, propertyName }: RecurringAle
 
     fetchPatterns();
   }, [issueId]);
+
+  if (error) {
+    return <Toast message={error} type="error" />;
+  }
 
   if (loading || !patternData || !category) {
     return null;

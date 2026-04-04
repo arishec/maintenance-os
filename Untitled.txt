@@ -276,6 +276,11 @@ The highest-priority fixes are:
 If you want, I’ll turn just those remaining items into one tight TXT file with exact file, line, bug, and fix order.
 
 
+Got it — you want me to find UX and logic issues like that across the whole app. Things that technically "work" but don't make sense from a user's perspective. Let me do a deep audit.
+
+
+Google ad campaign
+
 
 
 

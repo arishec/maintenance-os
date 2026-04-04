@@ -213,6 +213,7 @@ export default async function IssuesPage({
                 href={buildFilterUrl({ view: key === 'all' ? undefined : key, ...currentFilters }, {})}
               >
                 <button
+                  type="button"
                   className={`px-3 py-2 text-sm rounded-md transition-colors whitespace-nowrap ${
                     isActive
                       ? 'bg-foreground text-background font-medium'

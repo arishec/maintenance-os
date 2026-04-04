@@ -234,6 +234,7 @@ export default function NewIssuePage() {
         }
       } catch (err) {
         console.error('Failed to upload photo:', err);
+        setError(`Failed to upload photo ${i + 1}. Please try again.`);
         failed++;
       }
     }
@@ -303,9 +304,9 @@ export default function NewIssuePage() {
           return;
         }
       }
-    } catch {
+    } catch (err) {
       // Detection failed — continue with single issue creation
-      console.error('Multi-issue detection failed, proceeding with single issue');
+      console.error('Multi-issue detection failed, proceeding with single issue', err);
     }
 
     // Single issue — create directly
@@ -432,6 +433,7 @@ export default function NewIssuePage() {
         }
       } catch (err) {
         console.error('Failed to create split issue:', err);
+        setError('Failed to create one or more issues. Please try again.');
       }
     }
 
