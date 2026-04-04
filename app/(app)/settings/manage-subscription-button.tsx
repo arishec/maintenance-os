@@ -13,14 +13,16 @@ export function ManageSubscriptionButton() {
     setError(null);
     try {
       const res = await fetch('/api/stripe/portal', { method: 'POST' });
-      const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Could not open billing portal. Please try again.');
+        const data = await res.json().catch(() => ({}));
+        setError((data as { error?: string }).error || 'Could not open billing portal. Please try again.');
         setLoading(false);
         setTimeout(() => setError(null), 4000);
         return;
       }
+
+      const data = await res.json();
 
       if (data.url) {
         window.location.href = data.url;

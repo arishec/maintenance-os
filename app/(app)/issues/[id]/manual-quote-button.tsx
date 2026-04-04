@@ -98,12 +98,12 @@ export function ManualQuoteButton({ issueId, existingContractors = [] }: ManualQ
       </Button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto py-8">
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => !isLoading && (setIsOpen(false), resetForm())}
           />
-          <div className="relative z-10 w-full max-w-md mx-4 rounded-xl bg-white p-6 shadow-xl space-y-4">
+          <div className="relative z-10 w-full max-w-md mx-4 rounded-xl bg-white p-6 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <h3 className="text-lg font-semibold">Add Quote Manually</h3>
             <p className="text-xs text-muted-foreground">
               Record a quote received by phone, text, or in person.
@@ -135,6 +135,7 @@ export function ManualQuoteButton({ issueId, existingContractors = [] }: ManualQ
               <label className="text-sm font-medium">Quote amount ($)</label>
               <input
                 type="number"
+                inputMode="decimal"
                 value={flatEstimate}
                 onChange={(e) => setFlatEstimate(e.target.value)}
                 placeholder="e.g. 365"

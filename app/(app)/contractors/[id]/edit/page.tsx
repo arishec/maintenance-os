@@ -183,6 +183,8 @@ export default function EditContractorPage({
                   <Input
                     name="phone"
                     type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
                     placeholder="(555) 123-4567"
                     defaultValue={contractor.phone || ''}
                   />
@@ -192,6 +194,8 @@ export default function EditContractorPage({
                   <Input
                     name="email"
                     type="email"
+                    inputMode="email"
+                    autoComplete="email"
                     placeholder="contractor@example.com"
                     defaultValue={contractor.email || ''}
                   />

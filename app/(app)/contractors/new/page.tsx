@@ -107,11 +107,11 @@ export default function NewContractorPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label className="mb-1.5 block text-sm font-medium">Phone</label>
-                  <Input name="phone" type="tel" placeholder="(555) 123-4567" />
+                  <Input name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="(555) 123-4567" />
                 </div>
                 <div>
                   <label className="mb-1.5 block text-sm font-medium">Email</label>
-                  <Input name="email" type="email" placeholder="contractor@example.com" />
+                  <Input name="email" type="email" inputMode="email" autoComplete="email" placeholder="contractor@example.com" />
                 </div>
               </div>
             </div>

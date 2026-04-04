@@ -14,6 +14,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { PhotoUploadButton } from './photo-upload-button';
+import { Toast } from '@/components/ui/toast';
 
 interface Photo {
   id: string;
@@ -37,6 +38,7 @@ export function PhotosSection({ issueId, photos: initialPhotos }: PhotosSectionP
   const [photoToDelete, setPhotoToDelete] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleDeletePhotoClick = (photoId: string) => {
     setPhotoToDelete(photoId);
@@ -53,8 +55,8 @@ export function PhotosSection({ issueId, photos: initialPhotos }: PhotosSectionP
       });
 
       if (!res.ok) {
-        const data = await res.json();
-        alert(data.error || 'Failed to delete photo');
+        const data = await res.json().catch(() => ({}));
+        setError((data as { error?: string }).error || 'Failed to delete photo');
         setDeleting(false);
         return;
       }
@@ -62,9 +64,10 @@ export function PhotosSection({ issueId, photos: initialPhotos }: PhotosSectionP
       setPhotos((prev) => prev.filter((p) => p.id !== photoToDelete));
       setShowDeleteDialog(false);
       setPhotoToDelete(null);
+      setDeleting(false);
       router.refresh();
-    } catch (error) {
-      alert('An error occurred. Please try again.');
+    } catch {
+      setError('An error occurred. Please try again.');
       setDeleting(false);
     }
   };
@@ -126,6 +129,7 @@ export function PhotosSection({ issueId, photos: initialPhotos }: PhotosSectionP
           </div>
         </AlertDialogContent>
       </AlertDialog>
+      {error && <Toast message={error} type="error" />}
     </>
   );
 }
