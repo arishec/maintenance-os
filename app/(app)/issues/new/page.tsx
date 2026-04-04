@@ -498,7 +498,7 @@ export default function NewIssuePage() {
                   {photos.length > 0 && (
                     <div className="pt-2 border-t">
                       <label className="text-xs font-medium text-muted-foreground mb-2 block">
-                        Assign photos to this issue
+                        Tap photos to assign or remove
                       </label>
                       <div className="grid grid-cols-3 gap-2">
                         {photos.map((photo) => {
