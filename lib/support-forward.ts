@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import { getReceivedEmail } from '@/lib/resend';
+import { escapeHtml } from '@/lib/utils';
 
 const ADMIN_EMAIL = 'ashechtman@icloud.com';
 
@@ -8,15 +9,6 @@ interface SupportEmailData {
   from: string;
   to: string[] | null;
   subject: string | null;
-}
-
-/** Escape HTML special characters to prevent injection */
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
 }
 
 export async function forwardSupportEmail(data: SupportEmailData) {

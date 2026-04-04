@@ -4,7 +4,7 @@ import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 const markAsReadSchema = z.object({
-  notificationIds: z.array(z.string()),
+  notificationIds: z.array(z.string()).max(100),
 });
 
 export async function GET(request: NextRequest) {

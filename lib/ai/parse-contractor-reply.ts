@@ -32,8 +32,9 @@ export async function parseContractorReply(input: {
   const cleanedReply = stripQuotedReply(input.rawReply) || input.rawReply;
 
 
-  const todayStr = new Date().toISOString().split('T')[0];
-  const dayOfWeek = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+  const now = new Date();
+  const todayStr = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
+  const dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' });
 
   const prompt = `Parse this contractor reply into structured JSON only.
 Return keys:

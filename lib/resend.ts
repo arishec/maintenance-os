@@ -15,8 +15,12 @@ function getResendClient() {
 
 export async function sendRepairRequestEmail(to: string, subject: string, html: string, replyTo?: string) {
   const client = getResendClient();
+  const fromEmail = process.env.RESEND_FROM_EMAIL;
+  if (!fromEmail) {
+    throw new Error('RESEND_FROM_EMAIL not configured. Set it in .env');
+  }
   return client.emails.send({
-    from: process.env.RESEND_FROM_EMAIL!,
+    from: fromEmail,
     to,
     subject,
     html,

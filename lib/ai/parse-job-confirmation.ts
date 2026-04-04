@@ -15,8 +15,9 @@ export interface JobConfirmationResult {
  */
 export async function parseJobConfirmation(rawReply: string): Promise<JobConfirmationResult> {
   const anthropic = getAnthropicClient();
-  const todayStr = new Date().toISOString().split('T')[0]; // e.g. "2026-03-30"
-  const dayOfWeek = new Date().toLocaleDateString('en-US', { weekday: 'long' }); // e.g. "Monday"
+  const now = new Date();
+  const todayStr = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
+  const dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' });
 
   const prompt = `A contractor was notified they were selected for a home repair job. They replied with this message:
 

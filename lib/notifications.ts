@@ -90,7 +90,7 @@ export async function sendOwnerNotificationEmail(input: {
         <h2 style="color: #1a1a1a; font-size: 18px; margin-bottom: 12px;">${emailHeading}</h2>
         ${bodyHtml}
         <div style="margin-top: 16px;">
-          <a href="${issueUrl}" style="display: inline-block; background: #2563eb; color: #fff; padding: 10px 24px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 500;">
+          <a href="${encodeURI(issueUrl)}" style="display: inline-block; background: #2563eb; color: #fff; padding: 10px 24px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 500;">
             View Issue
           </a>
         </div>

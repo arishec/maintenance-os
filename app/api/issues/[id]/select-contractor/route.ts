@@ -53,7 +53,7 @@ export async function POST(
     if (!selectedResponse) {
       return NextResponse.json(
         { error: 'Response not found for this issue.' },
-        { status: 400 }
+        { status: 404 }
       );
     }
 
