@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Camera, ImagePlus, X } from 'lucide-react';
 import { compressImage } from '@/lib/compress-image';
+import { uploadWithProgress } from '@/lib/upload-with-progress';
 import { LayoutShell } from '@/components/layout-shell';
 import { PaywallModal } from '@/components/paywall-modal';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -212,20 +213,21 @@ export default function NewIssuePage() {
 
     for (let i = 0; i < photosToUpload.length; i++) {
       const photo = photosToUpload[i];
-      const progressMsg = `Uploading photo ${i + 1} of ${photosToUpload.length}...`;
-      setUploadProgress(progressMsg);
 
       try {
         const compressed = await compressImage(photo.file);
         const formData = new FormData();
         formData.append('file', compressed);
-        const res = await fetch(`/api/issues/${createdIssueId}/photos`, {
-          method: 'POST',
-          body: formData,
-        });
+        const res = await uploadWithProgress(
+          `/api/issues/${createdIssueId}/photos`,
+          formData,
+          (percent) => {
+            setUploadProgress(`Uploading photo ${i + 1} of ${photosToUpload.length}... ${percent}%`);
+          }
+        );
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          console.error('Photo upload failed:', data.error || res.statusText);
+          console.error('Photo upload failed:', (data as { error?: string }).error || res.status);
           failed++;
         } else {
           success++;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,6 +29,11 @@ interface PhotosSectionProps {
 export function PhotosSection({ issueId, photos: initialPhotos }: PhotosSectionProps) {
   const router = useRouter();
   const [photos, setPhotos] = useState<Photo[]>(initialPhotos);
+
+  // Sync local state when server re-renders with new photos (e.g. after upload + router.refresh)
+  useEffect(() => {
+    setPhotos(initialPhotos);
+  }, [initialPhotos]);
   const [photoToDelete, setPhotoToDelete] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);

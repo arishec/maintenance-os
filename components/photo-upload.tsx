@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { X, Camera, ImagePlus } from 'lucide-react';
 import { compressImage } from '@/lib/compress-image';
+import { uploadWithProgress } from '@/lib/upload-with-progress';
 
 interface SelectedFile {
   id: string;
@@ -85,24 +86,19 @@ export function PhotoUpload({
           const formData = new FormData();
           formData.append('file', compressed);
 
-          const response = await fetch(`/api/issues/${issueId}/photos`, {
-            method: 'POST',
-            body: formData,
-          });
+          const response = await uploadWithProgress(
+            `/api/issues/${issueId}/photos`,
+            formData,
+            (percent) => setUploadProgress((prev) => ({ ...prev, [id]: percent }))
+          );
 
           if (!response.ok) {
-            // Handle non-JSON error responses (e.g. Vercel 413 HTML page)
-            const contentType = response.headers.get('content-type') || '';
-            if (contentType.includes('application/json')) {
-              const data = await response.json();
-              throw new Error(data.error || 'Upload failed');
-            } else {
-              throw new Error(
-                response.status === 413
-                  ? 'Photo is too large. Please try a smaller photo.'
-                  : `Upload failed (${response.status}). Please try again.`
-              );
-            }
+            const data = await response.json().catch(() => ({}));
+            throw new Error(
+              response.status === 413
+                ? 'Photo is too large. Please try a smaller photo.'
+                : (data as { error?: string }).error || `Upload failed (${response.status}). Please try again.`
+            );
           }
 
           setUploadProgress((prev) => ({ ...prev, [id]: 100 }));
@@ -191,9 +187,15 @@ export function PhotoUpload({
                       className="h-full w-full object-cover"
                     />
                     {isUploading && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                        <div className="text-center text-sm text-white">
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50">
+                        <div className="text-center text-sm font-medium text-white">
                           {progress}%
+                        </div>
+                        <div className="mt-1 h-1.5 w-3/4 rounded-full bg-white/30 overflow-hidden">
+                          <div
+                            className="h-full bg-white rounded-full transition-all duration-300"
+                            style={{ width: `${Math.max(progress ?? 0, 0)}%` }}
+                          />
                         </div>
                       </div>
                     )}
