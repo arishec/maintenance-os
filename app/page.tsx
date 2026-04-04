@@ -90,7 +90,7 @@ export default async function HomePage() {
       <PublicLayout>
         <main>
           {/* ───── HERO ───── */}
-          <section className="mx-auto grid max-w-7xl gap-14 px-6 py-20 lg:grid-cols-[1.1fr_0.9fr] lg:px-10 lg:py-24">
+          <section className="mx-auto grid max-w-7xl gap-14 px-6 py-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-start lg:px-10 lg:py-24">
             <div className="max-w-3xl">
               <div className="mb-4 inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-sm font-medium text-rose-700">
                 Most landlords don&apos;t have a system — they have conversations

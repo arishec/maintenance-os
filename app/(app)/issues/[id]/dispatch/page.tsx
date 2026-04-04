@@ -579,13 +579,14 @@ export default function DispatchPage() {
         <Card>
           <CardContent className="space-y-4 pt-6">
             <div>
-              <label className="mb-1.5 block text-sm font-medium">Custom message (optional)</label>
+              <label className="mb-1.5 block text-sm font-medium">Add a note (optional)</label>
               <Textarea
                 value={customMessage}
                 onChange={e => setCustomMessage(e.target.value)}
-                placeholder="Override the default message..."
+                placeholder="e.g. 'This is urgent' or 'Use the side entrance'..."
                 rows={3}
               />
+              <p className="mt-1 text-xs text-muted-foreground">This will be included alongside the issue details, not replace them.</p>
             </div>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={includePhotos} onChange={e => setIncludePhotos(e.target.checked)} className="h-5 w-5 rounded" />
