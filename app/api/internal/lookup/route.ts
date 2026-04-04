@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { timingSafeEqual } from 'crypto';
 import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
@@ -27,8 +28,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // 2. Secret header check
-    if (request.headers.get('x-admin-secret') !== process.env.ADMIN_SECRET) {
+    // 2. Secret header check (timing-safe to prevent timing attacks)
+    const providedSecret = request.headers.get('x-admin-secret') || '';
+    const expectedSecret = process.env.ADMIN_SECRET || '';
+    if (!expectedSecret || providedSecret.length !== expectedSecret.length ||
+        !timingSafeEqual(Buffer.from(providedSecret), Buffer.from(expectedSecret))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -41,7 +45,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Audit log
-    console.log('ADMIN_LOOKUP', {
+    console.info('ADMIN_LOOKUP', {
       ref,
       user: user.email,
       timestamp: new Date().toISOString(),

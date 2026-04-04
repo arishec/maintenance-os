@@ -96,7 +96,7 @@ export async function GET(
 
     return NextResponse.json({ issue });
   } catch (error) {
-    return NextResponse.json({ error: safeErrorMessage(error) }, { status: 401 });
+    return NextResponse.json({ error: safeErrorMessage(error) }, { status: 500 });
   }
 }
 
@@ -169,7 +169,7 @@ export async function PATCH(
             issueId: id,
             status: { in: ['queued', 'sent', 'delivered', 'replied', 'accepted'] },
           },
-          data: { status: 'closed', closedReason: 'issue_canceled' } as any,
+          data: { status: 'closed', closedReason: 'issue_canceled' },
         });
         await tx.job.updateMany({
           where: {

@@ -4,6 +4,14 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog';
 import { DocumentExtraction } from './document-extraction';
 
 interface Attachment {
@@ -49,6 +57,7 @@ export function AttachmentsSection({
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -84,9 +93,8 @@ export function AttachmentsSection({
     }
   }
 
-  async function handleDelete(attachmentId: string, fileName: string) {
-    if (!confirm(`Remove "${fileName}"? This can't be undone.`)) return;
-
+  async function handleDelete(attachmentId: string) {
+    setDeleteTarget(null);
     setError(null);
     setDeleting(attachmentId);
 
@@ -202,7 +210,7 @@ export function AttachmentsSection({
                         size="sm"
                         variant="ghost"
                         className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 min-h-[44px] min-w-[44px] px-2"
-                        onClick={() => handleDelete(attachment.id, attachment.fileName)}
+                        onClick={() => setDeleteTarget({ id: attachment.id, name: attachment.fileName })}
                         disabled={deleting === attachment.id}
                       >
                         {deleting === attachment.id ? 'Removing…' : 'Remove'}
@@ -227,6 +235,24 @@ export function AttachmentsSection({
           </div>
         )}
       </CardContent>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogTitle>Remove document?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Remove &ldquo;{deleteTarget?.name}&rdquo;? This can&apos;t be undone.
+          </AlertDialogDescription>
+          <div className="flex justify-end gap-3 mt-4">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteTarget && handleDelete(deleteTarget.id)}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Remove
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

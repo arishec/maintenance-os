@@ -47,7 +47,7 @@ export async function POST(
           issueId: id,
           status: { in: ['queued', 'sent', 'delivered', 'replied'] },
         },
-        data: { status: 'closed', closedReason: 'issue_archived' } as any,
+        data: { status: 'closed', closedReason: 'issue_archived' },
       });
 
       const issue = await tx.issue.update({

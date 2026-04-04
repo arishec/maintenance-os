@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -15,12 +15,7 @@ export function QuoteSummary({ issueId, quoteCount }: QuoteSummaryProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Only render if there are 2+ quotes
-  if (quoteCount < 2) {
-    return null;
-  }
-
-  const fetchSummary = async () => {
+  const fetchSummary = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -35,11 +30,18 @@ export function QuoteSummary({ issueId, quoteCount }: QuoteSummaryProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [issueId]);
 
   useEffect(() => {
-    fetchSummary();
-  }, [issueId]);
+    if (quoteCount >= 2) {
+      fetchSummary();
+    }
+  }, [issueId, quoteCount, fetchSummary]);
+
+  // Only render if there are 2+ quotes
+  if (quoteCount < 2) {
+    return null;
+  }
 
   if (loading) {
     return (

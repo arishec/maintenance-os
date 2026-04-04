@@ -1,5 +1,8 @@
 import { prisma } from '@/lib/prisma';
 import { sendRepairRequestEmail } from '@/lib/resend';
+import { escapeHtml } from '@/lib/utils';
+
+type TransactionClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
 export async function createNotification(input: {
   userId: string;
@@ -7,7 +10,7 @@ export async function createNotification(input: {
   title: string;
   body: string;
   issueId?: string;
-}, tx?: any) {
+}, tx?: TransactionClient) {
   const db = tx || prisma;
   return db.notification.create({
     data: input,
@@ -44,7 +47,7 @@ export async function sendOwnerNotificationEmail(input: {
     });
 
     if (!user?.email) {
-      console.log('[sendOwnerNotificationEmail] No email for user', input.userId);
+      console.warn('[sendOwnerNotificationEmail] No email for user', input.userId);
       return;
     }
 
@@ -70,16 +73,16 @@ export async function sendOwnerNotificationEmail(input: {
     let bodyHtml: string;
     if (input.contractorName && input.quote) {
       const lines: string[] = [];
-      lines.push(`<strong>${input.contractorName}</strong> quoted <strong>$${fmtPrice(input.quote)}</strong> for ${input.issueTitle}`);
+      lines.push(`<strong>${escapeHtml(input.contractorName)}</strong> quoted <strong>$${fmtPrice(input.quote)}</strong> for ${escapeHtml(input.issueTitle)}`);
       if (input.availability) {
-        lines.push(`<strong>Available:</strong> ${input.availability}`);
+        lines.push(`<strong>Available:</strong> ${escapeHtml(input.availability)}`);
       }
       if (input.question) {
-        lines.push(`<strong>They asked:</strong> "${input.question}"`);
+        lines.push(`<strong>They asked:</strong> "${escapeHtml(input.question)}"`);
       }
       bodyHtml = lines.map(l => `<p style="color: #333; font-size: 15px; line-height: 1.5; margin: 0 0 8px;">${l}</p>`).join('\n          ');
     } else {
-      bodyHtml = `<p style="color: #333; font-size: 15px; line-height: 1.5; margin: 0 0 16px;">${input.notifBody}</p>`;
+      bodyHtml = `<p style="color: #333; font-size: 15px; line-height: 1.5; margin: 0 0 16px;">${escapeHtml(input.notifBody)}</p>`;
     }
 
     const html = `
@@ -103,7 +106,6 @@ export async function sendOwnerNotificationEmail(input: {
       html
     );
 
-    console.log('[sendOwnerNotificationEmail] Sent to', user.email);
   } catch (error) {
     console.error('[sendOwnerNotificationEmail] Failed:', error);
     // Don't throw — notification email failure shouldn't break the webhook

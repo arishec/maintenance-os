@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
               ...(customerId ? { stripeCustomerId: customerId } : {}),
             },
           });
-          console.log(`User ${userId} upgraded to pro`);
+          console.info(`[STRIPE] User ${userId} upgraded to pro`);
         }
         break;
       }
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
               stripeSubscriptionId: subscription.id,
             },
           });
-          console.log(`User ${user.id} subscription updated: ${subscription.status} -> plan: ${isActive ? 'pro' : 'free'}`);
+          console.info(`[STRIPE] User ${user.id} subscription updated: ${subscription.status} -> plan: ${isActive ? 'pro' : 'free'}`);
         } else {
           console.error(`Could not resolve user for subscription ${subscription.id}`);
         }
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
               stripeSubscriptionId: null,
             },
           });
-          console.log(`User ${user.id} subscription cancelled, reverted to free`);
+          console.info(`[STRIPE] User ${user.id} subscription cancelled, reverted to free`);
         } else {
           console.error(`Could not resolve user for deleted subscription ${subscription.id}`);
         }

@@ -356,8 +356,9 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
               Record the final cost so you can track maintenance spending over time.
             </p>
             <div>
-              <label className="block text-sm font-medium mb-1">Actual cost ($)</label>
+              <label htmlFor="actual-cost" className="block text-sm font-medium mb-1">Actual cost ($)</label>
               <input
+                id="actual-cost"
                 type="number"
                 step="0.01"
                 min="0"
@@ -371,8 +372,9 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Notes (optional)</label>
+              <label htmlFor="completion-notes" className="block text-sm font-medium mb-1">Notes (optional)</label>
               <textarea
+                id="completion-notes"
                 value={completionNotes}
                 onChange={(e) => setCompletionNotes(e.target.value)}
                 placeholder="e.g. Replaced pipe and tightened fittings"

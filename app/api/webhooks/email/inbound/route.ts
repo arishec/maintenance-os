@@ -9,7 +9,7 @@ import { getReceivedEmail, sendRepairRequestEmail } from '@/lib/resend';
 import { sendOwnerNotificationEmail } from '@/lib/notifications';
 import { forwardSupportEmail } from '@/lib/support-forward';
 
-const REPLY_TOKEN_PATTERN = /MNT-[A-Z0-9]{6}/;
+const REPLY_TOKEN_PATTERN = /\bMNT-[A-Z0-9]{6}\b/;
 
 /**
  * Resend uses Svix for webhook delivery. The signing secret starts with "whsec_"
@@ -312,7 +312,7 @@ export async function POST(request: NextRequest) {
                 : `Contractor confirmed: ${confirmation.summary}${confirmation.schedulingInfo ? ` (${confirmation.schedulingInfo})` : ''}`,
             },
           });
-          console.log(`[EMAIL WEBHOOK] Job ${activeJob.id} confirmed${scheduledFor ? ` — scheduled for ${scheduledFor.toISOString()}` : ' — no date extracted'}`);
+          console.info(`[EMAIL WEBHOOK] Job ${activeJob.id} confirmed${scheduledFor ? ` — scheduled for ${scheduledFor.toISOString()}` : ' — no date extracted'}`);
         } else if (confirmation.status === 'declined') {
           await prisma.job.update({
             where: { id: activeJob.id },
@@ -333,7 +333,7 @@ export async function POST(request: NextRequest) {
             where: { id: issue.id },
             data: { status: otherResponseCount > 0 ? 'quotes_received' : 'awaiting_dispatch' },
           });
-          console.log(`[EMAIL WEBHOOK] Contractor declined — issue reverted to ${otherResponseCount > 0 ? 'quotes_received' : 'awaiting_dispatch'}`);
+          console.info(`[EMAIL WEBHOOK] Contractor declined — issue reverted to ${otherResponseCount > 0 ? 'quotes_received' : 'awaiting_dispatch'}`);
         } else {
           // question or unclear — keep current status but add notes
           await prisma.job.update({
@@ -448,7 +448,7 @@ export async function POST(request: NextRequest) {
               <p style="color: #888; font-size: 12px;">Sent via Maintenance OS</p>
             </div>`
           );
-          console.log('[EMAIL WEBHOOK] Late reply auto-response sent to:', contractor.name, contractor.email);
+          console.info('[EMAIL WEBHOOK] Late reply auto-response sent to:', contractor.name, contractor.email);
         }
       } catch (autoReplyErr) {
         console.error('[EMAIL WEBHOOK] Failed to send late reply auto-response:', autoReplyErr);
@@ -558,7 +558,7 @@ export async function POST(request: NextRequest) {
         where: { id: issue.id, status: { in: ['awaiting_dispatch', 'awaiting_quotes', 'classified'] } },
         data: { status: 'quotes_received' },
       });
-      console.log(`[EMAIL WEBHOOK] Issue ${issue.id} advanced to quotes_received (was ${issue.status})`);
+      console.info(`[EMAIL WEBHOOK] Issue ${issue.id} advanced to quotes_received (was ${issue.status})`);
     }
 
     // Log timeline event

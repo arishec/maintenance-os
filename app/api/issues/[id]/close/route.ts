@@ -55,7 +55,7 @@ export async function POST(
         issueId,
         status: { in: ['sent', 'delivered', 'queued'] },
       },
-      data: { status: 'closed', closedReason: 'issue_closed' } as any,
+      data: { status: 'closed', closedReason: 'issue_closed' },
     });
 
     // Log timeline event

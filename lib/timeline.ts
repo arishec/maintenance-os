@@ -13,7 +13,9 @@ interface LogTimelineEventInput {
   payload?: Prisma.InputJsonValue;
 }
 
-export async function logTimelineEvent(input: LogTimelineEventInput, tx?: any) {
+type TransactionClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
+
+export async function logTimelineEvent(input: LogTimelineEventInput, tx?: TransactionClient) {
   const db = tx || prisma;
   return db.timelineEvent.create({
     data: {

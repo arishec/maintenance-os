@@ -7,7 +7,7 @@ import { logTimelineEvent } from '@/lib/timeline';
 import { validateTwilioSignature, sendRepairRequestSms } from '@/lib/twilio';
 import { sendOwnerNotificationEmail } from '@/lib/notifications';
 
-const REPLY_TOKEN_PATTERN = /MNT-[A-Z0-9]{6}/;
+const REPLY_TOKEN_PATTERN = /\bMNT-[A-Z0-9]{6}\b/;
 
 function normalizePhone(phone: string): string {
   return phone.replace(/\D/g, '');
@@ -204,7 +204,7 @@ export async function POST(request: NextRequest) {
                 : `Contractor confirmed: ${confirmation.summary}${confirmation.schedulingInfo ? ` (${confirmation.schedulingInfo})` : ''}`,
             },
           });
-          console.log(`[TWILIO WEBHOOK] Job ${activeJob.id} confirmed${scheduledFor ? ` — scheduled for ${scheduledFor.toISOString()}` : ' — no date extracted'}`);
+          console.info(`[TWILIO WEBHOOK] Job ${activeJob.id} confirmed${scheduledFor ? ` — scheduled for ${scheduledFor.toISOString()}` : ' — no date extracted'}`);
         } else if (confirmation.status === 'declined') {
           await prisma.job.update({
             where: { id: activeJob.id },
@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
             where: { id: issue.id },
             data: { status: otherResponseCount > 0 ? 'quotes_received' : 'awaiting_dispatch' },
           });
-          console.log(`[TWILIO WEBHOOK] Contractor declined — issue reverted to ${otherResponseCount > 0 ? 'quotes_received' : 'awaiting_dispatch'}`);
+          console.info(`[TWILIO WEBHOOK] Contractor declined — issue reverted to ${otherResponseCount > 0 ? 'quotes_received' : 'awaiting_dispatch'}`);
         } else {
           await prisma.job.update({
             where: { id: activeJob.id },
@@ -332,7 +332,7 @@ export async function POST(request: NextRequest) {
             contractor.phone,
             `Hi ${contractor.name}, thanks for your reply about "${issue.title || 'maintenance request'}". This job has already been awarded to another contractor. We appreciate your time and will keep you in mind for future work.`
           );
-          console.log('[TWILIO WEBHOOK] Late reply auto-response sent to:', contractor.name);
+          console.info('[TWILIO WEBHOOK] Late reply auto-response sent to:', contractor.name);
         }
       } catch (autoReplyErr) {
         console.error('[TWILIO WEBHOOK] Failed to send late reply auto-response:', autoReplyErr);
@@ -443,7 +443,7 @@ export async function POST(request: NextRequest) {
         where: { id: issue.id, status: { in: ['awaiting_dispatch', 'awaiting_quotes', 'classified'] } },
         data: { status: 'quotes_received' },
       });
-      console.log(`[TWILIO WEBHOOK] Issue ${issue.id} advanced to quotes_received (was ${issue.status})`);
+      console.info(`[TWILIO WEBHOOK] Issue ${issue.id} advanced to quotes_received (was ${issue.status})`);
     }
 
     // Log timeline event

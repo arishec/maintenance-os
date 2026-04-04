@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { IssueStatus } from '@prisma/client';
 import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { classifyIssue } from '@/lib/ai/classify-issue';
@@ -44,7 +45,7 @@ export async function POST(
 
     // Race-safe: only classify if status hasn't moved past classifiable states
     const raceCheck = await prisma.issue.updateMany({
-      where: { id, status: { in: ['new', 'classified', 'awaiting_dispatch'] as any } },
+      where: { id, status: { in: [IssueStatus.new, IssueStatus.classified, IssueStatus.awaiting_dispatch] } },
       data: {
         title: classification.title,
         category: classification.category,

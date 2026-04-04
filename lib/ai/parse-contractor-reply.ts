@@ -31,7 +31,6 @@ export async function parseContractorReply(input: {
   // Strip quoted reply thread — only parse the contractor's actual new text
   const cleanedReply = stripQuotedReply(input.rawReply) || input.rawReply;
 
-  console.log('[parseContractorReply] Input length:', input.rawReply.length, '→ cleaned:', cleanedReply.length);
 
   const todayStr = new Date().toISOString().split('T')[0];
   const dayOfWeek = new Date().toLocaleDateString('en-US', { weekday: 'long' });
@@ -65,7 +64,6 @@ ${cleanedReply}`;
     .join('')
     .trim();
 
-  console.log('[parseContractorReply] AI raw response:', text.substring(0, 300));
 
   // Strip markdown code fences if present
   text = text.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
@@ -109,12 +107,6 @@ ${cleanedReply}`;
   }
   // If neither price nor availability, leave AI's confidence and requiresReview as-is
 
-  console.log('[parseContractorReply] Post-processed:', {
-    hasPrice,
-    hasAvailability,
-    confidence: parsed.confidenceScore,
-    requiresReview: parsed.requiresReview,
-  });
 
   return parsed;
 }

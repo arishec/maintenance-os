@@ -3,17 +3,22 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog';
 
 export function ArchiveButton({ contractorId }: { contractorId: string }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showConfirm, setShowConfirm] = useState(false);
 
   async function handleArchive() {
-    if (!window.confirm('Are you sure you want to archive this contractor?')) {
-      return;
-    }
-
     setError('');
     setLoading(true);
 
@@ -26,14 +31,16 @@ export function ArchiveButton({ contractorId }: { contractorId: string }) {
         const data = await res.json();
         setError(data.error || 'Failed to archive contractor.');
         setLoading(false);
+        setShowConfirm(false);
         return;
       }
 
       router.push('/contractors');
       router.refresh();
-    } catch (err) {
+    } catch {
       setError('An error occurred. Please try again.');
       setLoading(false);
+      setShowConfirm(false);
     }
   }
 
@@ -41,17 +48,34 @@ export function ArchiveButton({ contractorId }: { contractorId: string }) {
     <>
       <Button
         variant="outline"
-        onClick={handleArchive}
+        onClick={() => setShowConfirm(true)}
         disabled={loading}
         className="text-red-600 hover:text-red-700 hover:bg-red-50"
       >
         {loading ? 'Archiving...' : 'Archive'}
       </Button>
       {error && (
-        <div className="absolute top-4 right-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 mt-2">
           {error}
         </div>
       )}
+      <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <AlertDialogContent>
+          <AlertDialogTitle>Archive this contractor?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This contractor will be moved to your archived list. You can restore them later if needed.
+          </AlertDialogDescription>
+          <div className="flex justify-end gap-3 mt-4">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleArchive}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Archive
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

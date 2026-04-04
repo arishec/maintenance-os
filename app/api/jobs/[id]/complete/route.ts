@@ -44,20 +44,24 @@ export async function POST(
 
   const now = new Date();
 
-  const updatedJob = await prisma.job.update({
-    where: { id },
-    data: {
-      status: 'completed',
-      completedAt: now,
-      ...(actualCost != null ? { actualCost } : {}),
-      ...(completionNotes ? { completionNotes } : {}),
-    },
-    include: { contractor: true, selectedResponse: true },
-  });
+  const updatedJob = await prisma.$transaction(async (tx) => {
+    const updated = await tx.job.update({
+      where: { id },
+      data: {
+        status: 'completed',
+        completedAt: now,
+        ...(actualCost != null ? { actualCost } : {}),
+        ...(completionNotes ? { completionNotes } : {}),
+      },
+      include: { contractor: true, selectedResponse: true },
+    });
 
-  await prisma.issue.update({
-    where: { id: job.issueId },
-    data: { status: 'completed', completedAt: now },
+    await tx.issue.update({
+      where: { id: job.issueId },
+      data: { status: 'completed', completedAt: now },
+    });
+
+    return updated;
   });
 
   await logTimelineEvent({

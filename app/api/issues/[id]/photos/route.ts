@@ -102,8 +102,8 @@ export async function POST(
     if (uploadError) {
       console.error('[photos/POST] Supabase upload error:', {
         message: uploadError.message,
-        name: (uploadError as any).name,
-        statusCode: (uploadError as any).statusCode,
+        name: uploadError.name,
+        statusCode: 'statusCode' in uploadError ? (uploadError as { statusCode?: number }).statusCode : undefined,
         filePath,
         contentType,
         fileSize: file.size,
@@ -144,7 +144,6 @@ export async function POST(
           where: { id: photoId },
           data: { aiDescription: description },
         });
-        console.log(`[analyzePhoto] Photo ${photoId}: ${description.substring(0, 80)}...`);
       } catch (err) {
         console.error(`[analyzePhoto] Failed for photo ${photoId}:`, err);
         // Photo is still saved — AI description just won't be available yet

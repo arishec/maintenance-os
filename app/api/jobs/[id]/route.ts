@@ -172,7 +172,7 @@ export async function PATCH(
           where: { id: job.issueId },
           data: { status: 'completed' as IssueStatus, completedAt: new Date() },
         });
-        console.log(`[JOB CANCEL] Issue ${job.issueId} closed as completed (self-resolved)`);
+        console.info(`[JOB CANCEL] Issue ${job.issueId} closed as completed (self-resolved)`);
       } else {
         // Revert issue status so the owner can re-dispatch or pick another contractor.
         // Only count responses from OTHER contractors whose dispatches are still usable
@@ -203,14 +203,14 @@ export async function PATCH(
           where: { id: job.issueId },
           data: { status: revertStatus },
         });
-        console.log(`[JOB CANCEL] Issue ${job.issueId} reverted to ${revertStatus}`);
+        console.info(`[JOB CANCEL] Issue ${job.issueId} reverted to ${revertStatus}`);
       }
 
       // Close the canceled contractor's dispatch
       try {
         await prisma.dispatch.updateMany({
           where: { issueId: job.issueId, contractorId: job.contractor.id, status: { notIn: ['closed', 'failed'] } },
-          data: { status: 'closed', closedReason: 'owner_canceled' } as any,
+          data: { status: 'closed', closedReason: 'owner_canceled' },
         });
       } catch (e) {
         console.error('Dispatch close on cancel failed:', e);
@@ -226,7 +226,7 @@ export async function PATCH(
               status: 'closed',
               closedReason: 'not_selected',
             },
-            data: { status: 'replied' } as any,
+            data: { status: 'replied' },
           });
         } catch (e) {
           console.error('Dispatch reopen on cancel failed:', e);
@@ -243,11 +243,11 @@ export async function PATCH(
             `Job canceled: ${issueTitle}`,
             `<p>${cancelMessage}</p>`,
           );
-          console.log(`[JOB CANCEL] Cancellation email sent to ${job.contractor.email}`);
+          console.info(`[JOB CANCEL] Cancellation email sent to ${job.contractor.email}`);
         }
         if (job.contractor.phone) {
           await sendRepairRequestSms(job.contractor.phone, cancelMessage);
-          console.log(`[JOB CANCEL] Cancellation SMS sent to ${job.contractor.phone}`);
+          console.info(`[JOB CANCEL] Cancellation SMS sent to ${job.contractor.phone}`);
         }
       } catch (e) {
         console.error('[JOB CANCEL] Failed to notify contractor:', e);

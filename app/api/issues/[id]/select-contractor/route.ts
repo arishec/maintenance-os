@@ -110,7 +110,7 @@ export async function POST(
           id: { not: selectedResponse.dispatchId },
           status: { in: ['sent', 'delivered', 'replied'] },
         },
-        data: { status: 'closed', closedReason: 'not_selected' } as any,
+        data: { status: 'closed', closedReason: 'not_selected' },
       });
 
       return newJob;
@@ -176,7 +176,6 @@ export async function POST(
 
       if (dispatch.channel === 'sms' && contractor.phone) {
         const smsResult = await sendRepairRequestSms(contractor.phone, confirmationMsg);
-        console.log('[SELECT] SMS sent to contractor:', contractor.name, 'SID:', smsResult?.sid || 'none');
       } else if (contractor.email) {
         const selectionSubject = replyToken
           ? `You've been selected [Ref: ${replyToken}] — ${issue.title || 'Maintenance request'}`
@@ -199,7 +198,6 @@ export async function POST(
         if (emailResult.error) {
           console.error('[SELECT] Email FAILED to contractor:', contractor.name, contractor.email, emailResult.error);
         } else {
-          console.log('[SELECT] Email sent to contractor:', contractor.name, contractor.email, 'ID:', emailResult.data?.id);
         }
       } else {
         console.warn('[SELECT] No contact method for contractor:', contractor.name, '— no phone or email');
@@ -237,10 +235,8 @@ export async function POST(
               otherContractor.phone,
               `Hi ${otherContractor.name}, thanks for your quote on "${issue.title || 'maintenance request'}". The homeowner went with another contractor for this job. We'll keep you in mind for future work.`
             );
-            console.log('[SELECT] Courtesy SMS sent to:', otherContractor.name);
           } else if (otherContractor.email) {
             await sendRepairRequestEmail(otherContractor.email, courtesySubject, courtesyHtml);
-            console.log('[SELECT] Courtesy email sent to:', otherContractor.name, otherContractor.email);
           }
         } catch (courtesyErr) {
           console.error('[SELECT] Failed to send courtesy notice to:', otherContractor.name, courtesyErr);

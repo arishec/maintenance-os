@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { IssueStatus } from '@prisma/client';
 import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { sendRepairRequestSms } from '@/lib/twilio';
@@ -175,7 +176,7 @@ export async function POST(
         if (photosWithData.length > 0) {
           photoHtml = `
             <p style="margin-top: 16px; font-weight: 600; color: #333;">Photos:</p>
-            ${photosWithData.map(p => `<div style="margin: 8px 0;"><a href="${p.fileUrl}" target="_blank"><img src="${p.fileUrl}" alt="Issue photo" style="max-width: 100%; max-height: 400px; border-radius: 8px; display: block;" /></a>${(p as any).aiDescription ? `<p style="margin: 4px 0 12px; font-size: 13px; color: #666; font-style: italic;">AI analysis: ${(p as any).aiDescription}</p>` : ''}</div>`).join('\n')}
+            ${photosWithData.map(p => `<div style="margin: 8px 0;"><a href="${p.fileUrl}" target="_blank"><img src="${p.fileUrl}" alt="Issue photo" style="max-width: 100%; max-height: 400px; border-radius: 8px; display: block;" /></a>${p.aiDescription ? `<p style="margin: 4px 0 12px; font-size: 13px; color: #666; font-style: italic;">AI analysis: ${escapeHtml(p.aiDescription)}</p>` : ''}</div>`).join('\n')}
           `;
         }
       }
@@ -185,11 +186,9 @@ export async function POST(
       let providerMessageId: string | null = null;
 
       // Send based on channel
-      console.log(`[DISPATCH] Sending via ${reqContractor.channel} to ${contractor.name} (${reqContractor.channel === 'email' ? contractor.email : contractor.phone})`);
       try {
         if (reqContractor.channel === 'sms') {
           const response = await sendRepairRequestSms(contractor.phone!, smsMessage);
-          console.log('[DISPATCH] SMS response:', JSON.stringify({ sid: response.sid }));
           if (response.sid) {
             providerMessageId = response.sid;
             smsCount++;
@@ -204,7 +203,6 @@ export async function POST(
             emailBody,
             `replies+${replyToken}@ifbids.com`
           );
-          console.log('[DISPATCH] Email response:', JSON.stringify({ data: response.data, error: response.error }));
           if (response.data?.id) {
             providerMessageId = response.data.id;
             emailCount++;
@@ -256,7 +254,7 @@ export async function POST(
     if (successfulDispatches.length > 0) {
       // Race-safe: only advance to awaiting_quotes if status hasn't moved past
       await prisma.issue.updateMany({
-        where: { id: issueId, status: { in: ['classified', 'awaiting_dispatch', 'awaiting_quotes'] as any } },
+        where: { id: issueId, status: { in: [IssueStatus.classified, IssueStatus.awaiting_dispatch, IssueStatus.awaiting_quotes] } },
         data: { status: 'awaiting_quotes' },
       });
     } else {

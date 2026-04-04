@@ -101,8 +101,8 @@ export async function POST(request: NextRequest) {
     });
 
     // Verify Resend actually sent the email
-    if ((result as any)?.error) {
-      console.error('Resend send failed:', (result as any).error);
+    if ('error' in result && result.error) {
+      console.error('Resend send failed:', result.error);
       return NextResponse.json({ error: 'Unable to send message right now.' }, { status: 500 });
     }
 

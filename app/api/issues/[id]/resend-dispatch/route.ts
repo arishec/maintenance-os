@@ -111,7 +111,7 @@ export async function POST(
         // Close the old dispatch so the old reply token won't create duplicate responses
         await tx.dispatch.update({
           where: { id: dispatch.id },
-          data: { status: 'closed', closedReason: 'resent' } as any,
+          data: { status: 'closed', closedReason: 'resent' },
         });
 
         // Create a NEW dispatch row for the resend with fresh token

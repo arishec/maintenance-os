@@ -79,16 +79,20 @@ export async function GET(request: NextRequest) {
     });
 
     if (includeStats) {
-      const contractorsWithStats = contractors.map((c: any) => {
+      type ContractorWithRelations = typeof contractors[number] & {
+        dispatches?: { id: string; status: string; createdAt: Date; replyReceivedAt: Date | null }[];
+        jobs?: { id: string; status: string }[];
+      };
+      const contractorsWithStats = (contractors as ContractorWithRelations[]).map((c) => {
         const totalDispatches = c.dispatches?.length ?? 0;
-        const replied = c.dispatches?.filter((d: any) => ['replied', 'accepted'].includes(d.status) || d.replyReceivedAt).length ?? 0;
-        const completedJobs = c.jobs?.filter((j: any) => j.status === 'completed').length ?? 0;
+        const replied = c.dispatches?.filter((d) => ['replied', 'accepted'].includes(d.status) || d.replyReceivedAt).length ?? 0;
+        const completedJobs = c.jobs?.filter((j) => j.status === 'completed').length ?? 0;
         const totalJobs = c.jobs?.length ?? 0;
 
         // Calculate average response time for dispatches that got replies
         const responseTimes = (c.dispatches ?? [])
-          .filter((d: any) => d.replyReceivedAt && d.createdAt)
-          .map((d: any) => new Date(d.replyReceivedAt).getTime() - new Date(d.createdAt).getTime());
+          .filter((d) => d.replyReceivedAt && d.createdAt)
+          .map((d) => new Date(d.replyReceivedAt!).getTime() - new Date(d.createdAt).getTime());
         const avgResponseMs = responseTimes.length > 0
           ? responseTimes.reduce((a: number, b: number) => a + b, 0) / responseTimes.length
           : null;

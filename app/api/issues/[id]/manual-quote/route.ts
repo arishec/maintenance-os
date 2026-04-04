@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { IssueStatus } from '@prisma/client';
 import { requireDbUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { logTimelineEvent } from '@/lib/timeline';
@@ -127,7 +128,7 @@ export async function POST(
       await tx.issue.updateMany({
         where: {
           id: issueId,
-          status: { in: ['awaiting_quotes', 'awaiting_dispatch', 'classified', 'new'] as any },
+          status: { in: [IssueStatus.awaiting_quotes, IssueStatus.awaiting_dispatch, IssueStatus.classified, IssueStatus.new] },
         },
         data: { status: 'quotes_received' },
       });

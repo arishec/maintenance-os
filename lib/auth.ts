@@ -28,7 +28,9 @@ export async function requireDbUser() {
 
   // Send signup alert in background (don't block the request)
   if (isNewUser) {
-    sendNewSignupAlert(email, fullName).catch(() => {});
+    sendNewSignupAlert(email, fullName).catch((err) => {
+      console.error('[requireDbUser] Signup alert failed:', err);
+    });
   }
 
   return user;
