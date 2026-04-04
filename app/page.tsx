@@ -90,7 +90,7 @@ export default async function HomePage() {
       <PublicLayout>
         <main>
           {/* ───── HERO ───── */}
-          <section className="mx-auto grid max-w-7xl gap-14 px-6 py-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-start lg:px-10 lg:py-24">
+          <section className="mx-auto grid max-w-7xl gap-10 px-6 py-14 lg:grid-cols-[1.1fr_0.9fr] lg:items-start lg:px-10 lg:py-16">
             <div className="max-w-3xl">
               <div className="mb-4 inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-sm font-medium text-rose-700">
                 Most landlords don&apos;t have a system — they have conversations
@@ -135,30 +135,30 @@ export default async function HomePage() {
             </div>
 
             {/* Old way → New way visual */}
-            <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_20px_60px_rgba(15,23,42,0.07)]">
-              <div className="rounded-[24px] bg-slate-50 p-5">
-                <div className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">The old way</div>
-                <div className="space-y-3">
+            <div className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-[0_20px_60px_rgba(15,23,42,0.07)]">
+              <div className="rounded-[20px] bg-slate-50 p-4">
+                <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">The old way</div>
+                <div className="space-y-2">
                   {painPoints.map((item, i) => (
-                    <div key={i} className="flex items-center gap-3 rounded-2xl border border-rose-200 bg-white px-4 py-3 text-sm text-slate-700">
-                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-rose-50">
-                        <svg className="h-4 w-4 text-rose-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                    <div key={i} className="flex items-center gap-2.5 rounded-xl border border-rose-200 bg-white px-3 py-2 text-sm text-slate-700">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-rose-50">
+                        <svg className="h-3.5 w-3.5 text-rose-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                       </span>
                       <span>{item}</span>
                     </div>
                   ))}
                 </div>
               </div>
-              <div className="my-4 flex items-center justify-center text-sm font-semibold uppercase tracking-[0.24em] text-blue-600">
+              <div className="my-3 flex items-center justify-center text-xs font-semibold uppercase tracking-[0.24em] text-blue-600">
                 ↓ turns into ↓
               </div>
-              <div className="rounded-[24px] bg-blue-50 p-5">
-                <div className="mb-4 text-sm font-semibold uppercase tracking-wide text-blue-700">Maintenance OS workflow</div>
-                <div className="grid gap-3">
-                  {['Issue submitted', 'AI analyzes photos', 'Contractors notified', 'Quotes compared', 'Job tracked', 'Repair history saved'].map((item, i) => (
-                    <div key={i} className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 text-sm text-slate-800 shadow-sm">
-                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100">
-                        <svg className="h-4 w-4 text-blue-700" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+              <div className="rounded-[20px] bg-blue-50 p-4">
+                <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-blue-700">Maintenance OS workflow</div>
+                <div className="grid gap-2">
+                  {['Issue submitted', 'AI analyzes photos', 'Contractors notified', 'Quotes compared', 'Job tracked', 'History saved'].map((item, i) => (
+                    <div key={i} className="flex items-center gap-2.5 rounded-xl bg-white px-3 py-2 text-sm text-slate-800 shadow-sm">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100">
+                        <svg className="h-3.5 w-3.5 text-blue-700" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
                       </span>
                       <span>{item}</span>
                     </div>
