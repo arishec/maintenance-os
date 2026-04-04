@@ -8,6 +8,7 @@ import { logTimelineEvent } from '@/lib/timeline';
 import { getReceivedEmail, sendRepairRequestEmail } from '@/lib/resend';
 import { sendOwnerNotificationEmail } from '@/lib/notifications';
 import { forwardSupportEmail } from '@/lib/support-forward';
+import { isIssueTransitionAllowed } from '@/lib/status';
 
 const REPLY_TOKEN_PATTERN = /\bMNT-[A-Z0-9]{6}\b/;
 
@@ -346,11 +347,16 @@ export async function POST(request: NextRequest) {
               dispatch: { issueId: issue.id, contractorId: { not: contractor.id } },
             },
           });
-          await prisma.issue.update({
-            where: { id: issue.id },
-            data: { status: otherResponseCount > 0 ? 'quotes_received' : 'awaiting_dispatch' },
-          });
-          console.info(`[EMAIL WEBHOOK] Contractor declined — issue reverted to ${otherResponseCount > 0 ? 'quotes_received' : 'awaiting_dispatch'}`);
+          const revertStatus = otherResponseCount > 0 ? 'quotes_received' : 'awaiting_dispatch';
+          if (isIssueTransitionAllowed(issue.status, revertStatus)) {
+            await prisma.issue.update({
+              where: { id: issue.id },
+              data: { status: revertStatus },
+            });
+            console.info(`[EMAIL WEBHOOK] Contractor declined — issue reverted to ${revertStatus}`);
+          } else {
+            console.warn(`[EMAIL WEBHOOK] Contractor declined but cannot revert issue from ${issue.status} to ${revertStatus}`);
+          }
         } else {
           // question or unclear — keep current status but add notes
           await prisma.job.update({

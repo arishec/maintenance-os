@@ -345,12 +345,12 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
 
       {/* Completion Modal — captures actual cost + notes */}
       {showCompleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto py-8">
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => setShowCompleteModal(false)}
           />
-          <div className="relative z-10 w-full max-w-sm mx-4 rounded-xl bg-white p-6 shadow-xl space-y-4">
+          <div className="relative z-10 w-full max-w-sm mx-4 rounded-xl bg-white p-6 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <h3 className="text-lg font-semibold">Mark this job complete</h3>
             <p className="text-sm text-muted-foreground">
               Record the final cost so you can track maintenance spending over time.
@@ -360,6 +360,7 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
               <input
                 id="actual-cost"
                 type="number"
+                inputMode="decimal"
                 step="0.01"
                 min="0"
                 value={actualCost}
@@ -399,12 +400,12 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
 
       {/* Cancel Job Modal */}
       {showCancelModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto py-8">
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => setShowCancelModal(false)}
           />
-          <div className="relative z-10 w-full max-w-sm mx-4 rounded-xl bg-white p-6 shadow-xl space-y-4">
+          <div className="relative z-10 w-full max-w-sm mx-4 rounded-xl bg-white p-6 shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <h3 className="text-lg font-semibold">Cancel this job?</h3>
             <p className="text-sm text-muted-foreground">
               {selfResolved

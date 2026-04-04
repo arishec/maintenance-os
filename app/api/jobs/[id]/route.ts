@@ -165,46 +165,49 @@ export async function PATCH(
     }
 
     // When a job is canceled, notify the contractor and revert (or close) the issue
+    // Wrapped in transaction to prevent race conditions between read and write
     if (body.status === 'canceled') {
-      if (body.selfResolved) {
-        // Owner fixed it themselves — close the issue as completed
-        await prisma.issue.update({
-          where: { id: job.issueId },
-          data: { status: 'completed' as IssueStatus, completedAt: new Date() },
-        });
-        console.info(`[JOB CANCEL] Issue ${job.issueId} closed as completed (self-resolved)`);
-      } else {
-        // Revert issue status so the owner can re-dispatch or pick another contractor.
-        // Only count responses from OTHER contractors whose dispatches are still usable
-        // (not closed as 'not_selected', 'resent', 'issue_canceled', etc.)
-        const otherResponses = await prisma.contractorResponse.count({
-          where: {
-            dispatch: {
-              issueId: job.issueId,
-              contractorId: { not: job.contractorId },
-              status: { in: ['sent', 'delivered', 'replied'] },
+      await prisma.$transaction(async (tx) => {
+        if (body.selfResolved) {
+          // Owner fixed it themselves — close the issue as completed
+          await tx.issue.update({
+            where: { id: job.issueId },
+            data: { status: 'completed' as IssueStatus, completedAt: new Date() },
+          });
+          console.info(`[JOB CANCEL] Issue ${job.issueId} closed as completed (self-resolved)`);
+        } else {
+          // Revert issue status so the owner can re-dispatch or pick another contractor.
+          // Only count responses from OTHER contractors whose dispatches are still usable
+          // (not closed as 'not_selected', 'resent', 'issue_canceled', etc.)
+          const otherResponses = await tx.contractorResponse.count({
+            where: {
+              dispatch: {
+                issueId: job.issueId,
+                contractorId: { not: job.contractorId },
+                status: { in: ['sent', 'delivered', 'replied'] },
+              },
             },
-          },
-        });
-        // Also check for dispatches still waiting for replies
-        const pendingDispatches = await prisma.dispatch.count({
-          where: {
-            issueId: job.issueId,
-            status: { in: ['sent', 'delivered', 'queued'] },
-          },
-        });
-        const revertStatus: IssueStatus = otherResponses > 0
-          ? 'quotes_received' as IssueStatus
-          : pendingDispatches > 0
-            ? 'awaiting_quotes' as IssueStatus
-            : 'awaiting_dispatch' as IssueStatus;
+          });
+          // Also check for dispatches still waiting for replies
+          const pendingDispatches = await tx.dispatch.count({
+            where: {
+              issueId: job.issueId,
+              status: { in: ['sent', 'delivered', 'queued'] },
+            },
+          });
+          const revertStatus: IssueStatus = otherResponses > 0
+            ? 'quotes_received' as IssueStatus
+            : pendingDispatches > 0
+              ? 'awaiting_quotes' as IssueStatus
+              : 'awaiting_dispatch' as IssueStatus;
 
-        await prisma.issue.update({
-          where: { id: job.issueId },
-          data: { status: revertStatus },
-        });
-        console.info(`[JOB CANCEL] Issue ${job.issueId} reverted to ${revertStatus}`);
-      }
+          await tx.issue.update({
+            where: { id: job.issueId },
+            data: { status: revertStatus },
+          });
+          console.info(`[JOB CANCEL] Issue ${job.issueId} reverted to ${revertStatus}`);
+        }
+      });
 
       // Close the canceled contractor's dispatch
       try {

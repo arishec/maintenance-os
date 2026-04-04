@@ -6,6 +6,7 @@ import { parseJobConfirmation } from '@/lib/ai/parse-job-confirmation';
 import { logTimelineEvent } from '@/lib/timeline';
 import { validateTwilioSignature, sendRepairRequestSms } from '@/lib/twilio';
 import { sendOwnerNotificationEmail } from '@/lib/notifications';
+import { isIssueTransitionAllowed } from '@/lib/status';
 
 const REPLY_TOKEN_PATTERN = /\bMNT-[A-Z0-9]{6}\b/;
 
@@ -238,11 +239,16 @@ export async function POST(request: NextRequest) {
               dispatch: { issueId: issue.id, contractorId: { not: contractor.id } },
             },
           });
-          await prisma.issue.update({
-            where: { id: issue.id },
-            data: { status: otherResponseCount > 0 ? 'quotes_received' : 'awaiting_dispatch' },
-          });
-          console.info(`[TWILIO WEBHOOK] Contractor declined — issue reverted to ${otherResponseCount > 0 ? 'quotes_received' : 'awaiting_dispatch'}`);
+          const revertStatus = otherResponseCount > 0 ? 'quotes_received' : 'awaiting_dispatch';
+          if (isIssueTransitionAllowed(issue.status, revertStatus)) {
+            await prisma.issue.update({
+              where: { id: issue.id },
+              data: { status: revertStatus },
+            });
+            console.info(`[TWILIO WEBHOOK] Contractor declined — issue reverted to ${revertStatus}`);
+          } else {
+            console.warn(`[TWILIO WEBHOOK] Contractor declined but cannot revert issue from ${issue.status} to ${revertStatus}`);
+          }
         } else {
           await prisma.job.update({
             where: { id: activeJob.id },
