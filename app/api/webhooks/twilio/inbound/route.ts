@@ -405,7 +405,11 @@ export async function POST(request: NextRequest) {
       let availabilityDateObj: Date | null = null;
       if (parsedReply.availabilityDate) {
         try {
-          availabilityDateObj = new Date(parsedReply.availabilityDate);
+          // Append T12:00:00 to date-only strings to avoid UTC midnight off-by-one in US timezones
+          const dateStr = parsedReply.availabilityDate.includes('T')
+            ? parsedReply.availabilityDate
+            : parsedReply.availabilityDate + 'T12:00:00';
+          availabilityDateObj = new Date(dateStr);
         } catch {
           // Invalid date, leave as null
         }

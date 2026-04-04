@@ -344,7 +344,8 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
     if (items.some((i) => i.issueId === job.issueId)) continue;
     const isToday = job.scheduledFor! >= startOfDay && job.scheduledFor! < endOfDay;
     const isFuture = job.scheduledFor! >= endOfDay;
-    const dateStr = job.scheduledFor!.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    // Format in UTC to match how dates are stored (noon UTC) — avoids timezone shift on server
+    const dateStr = job.scheduledFor!.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
     items.push({
       issueId: job.issueId,
       issueTitle: job.issue.title ?? 'Untitled issue',
@@ -356,7 +357,7 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
       actionHref: `/issues/${job.issueId}`,
       suggestedAction: isToday
         ? `Confirm access with ${job.contractor.name} and be available`
-        : `Confirm the scheduled date with ${job.contractor.name}`,
+        : `Track upcoming work with ${job.contractor.name}`,
       urgency: isToday ? 'high' : 'medium',
       timestamp: job.scheduledFor ?? now,
     });
