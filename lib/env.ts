@@ -19,6 +19,10 @@ const optional = [
   'STRIPE_WEBHOOK_SECRET',
   'STRIPE_PRO_PRICE_ID',
   'NEXT_PUBLIC_SITE_URL',
+  'CONTACT_ADMIN_EMAIL',
+  'ADMIN_SECRET',
+  'SENTRY_DSN',
+  'NEXT_PUBLIC_SENTRY_DSN',
 ] as const;
 
 export function validateEnv(): void {

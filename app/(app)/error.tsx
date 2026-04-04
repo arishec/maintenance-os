@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { LayoutShell } from '@/components/layout-shell';
+import { reportError } from '@/lib/error-reporting';
 
 export default function AppError({
   error,
@@ -13,6 +14,7 @@ export default function AppError({
 }) {
   useEffect(() => {
     console.error('App error:', error);
+    reportError(error);
   }, [error]);
 
   return (

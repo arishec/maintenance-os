@@ -823,3 +823,47 @@ Includes comparison table (manual vs AI), related feature links, CTAs.
 4. app/how-it-works/page.tsx — Updated meta title
 
 ## TypeScript: Clean compile
+
+---
+
+# Session: April 4, 2026 — Cowork Session (Hardening + Launch Prep)
+
+## What was done
+
+### 1. Homepage AI showcase section
+- Added new "Beyond photo analysis" section to homepage (app/page.tsx)
+- Purple gradient section between the photo AI section and benefits
+- Shows 6 AI capabilities: reads contractor replies, compares quotes, extracts invoices, detects multiple issues, learns history, confirms job details
+- Purple CTA button linking to /features/ai-powered-maintenance
+- Emphasizes "thinking and learning" aspects per user preference
+
+### 2. Environment variable validation wired to startup
+- lib/env.ts already existed but validateEnv() was never called
+- Created instrumentation.ts (Next.js startup hook) that calls validateEnv()
+- Added CONTACT_ADMIN_EMAIL, ADMIN_SECRET, SENTRY_DSN, NEXT_PUBLIC_SENTRY_DSN to optional vars list
+- App now validates all required env vars on startup and warns about missing optional ones
+
+### 3. Sentry error monitoring — ready to activate
+- Created lib/error-reporting.ts — safe wrapper that calls Sentry.captureException if installed, silently skips if not
+- Updated all 3 existing error boundaries to report errors via reportError()
+- Created app/global-error.tsx — catches errors in root layout itself
+- Created sentry config files (commented out, ready to uncomment after npm install)
+- To activate: npm install @sentry/nextjs, add SENTRY_DSN env var, uncomment config files
+
+### 4. Indie Hackers launch post
+- Drafted full launch post in indie-hackers-post.md
+- Rewrote to sound human/personal (not marketing-speak)
+- Account needs posting privileges first
+
+## Files Created
+1. instrumentation.ts
+2. lib/error-reporting.ts
+3. app/global-error.tsx
+4. sentry.server.config.ts, sentry.edge.config.ts, sentry.client.config.ts
+
+## Files Modified
+1. app/page.tsx — Added AI showcase section
+2. lib/env.ts — Added 4 new optional env vars
+3. app/error.tsx, app/(app)/error.tsx, app/(app)/issues/[id]/error.tsx — Added error reporting
+
+## TypeScript: Clean compile

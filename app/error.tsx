@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
+import { reportError } from '@/lib/error-reporting';
 
 export default function RootError({
   error,
@@ -12,6 +13,7 @@ export default function RootError({
 }) {
   useEffect(() => {
     console.error('Root error:', error);
+    reportError(error);
   }, [error]);
 
   return (
