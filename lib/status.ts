@@ -71,7 +71,7 @@ export const OPEN_ISSUE_STATUSES = [
 
 /** View tab → status filter mapping for the issues list */
 export const VIEW_STATUS_MAP = {
-  all: undefined,
+  all: [...OPEN_ISSUE_STATUSES, 'completed'],
   open: [...OPEN_ISSUE_STATUSES],
   awaiting_quotes: ['awaiting_quotes'],
   quotes_received: ['quotes_received'],
