@@ -53,10 +53,9 @@ const steps = [
 ];
 
 const painPoints = [
-  'Tenant texts you at 9:14 pm',
-  'Contractor doesn\u2019t respond until two days later',
-  'Another sends a vague quote by email',
-  'You forget who fixed it last time',
+  'Tenant texts you at 9 pm about a leak',
+  'You chase three contractors across texts and email',
+  'Six months later you can\u2019t remember who fixed it',
 ];
 
 const benefits = [
@@ -155,7 +154,7 @@ export default async function HomePage() {
               <div className="rounded-[20px] bg-blue-50 p-4">
                 <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-blue-700">Maintenance OS workflow</div>
                 <div className="grid gap-2">
-                  {['Issue submitted', 'AI analyzes photos', 'Contractors notified', 'Quotes compared', 'Job tracked', 'History saved'].map((item, i) => (
+                  {['Issue submitted with AI analysis', 'Contractors notified at once', 'Quotes compared side by side', 'Job tracked to completion'].map((item, i) => (
                     <div key={i} className="flex items-center gap-2.5 rounded-xl bg-white px-3 py-2 text-sm text-slate-800 shadow-sm">
                       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100">
                         <svg className="h-3.5 w-3.5 text-blue-700" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
