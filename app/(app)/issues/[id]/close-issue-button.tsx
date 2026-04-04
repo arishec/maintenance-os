@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,9 +53,13 @@ export function CloseIssueButton({ issueId, issueStatus }: { issueId: string; is
 
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => setOpen(true)} className="text-red-600 border-red-200 hover:bg-red-50">
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="inline-flex items-center rounded-full border border-red-200 bg-white px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors"
+      >
         Close Issue
-      </Button>
+      </button>
 
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent>
