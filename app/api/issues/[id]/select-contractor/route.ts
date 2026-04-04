@@ -167,6 +167,14 @@ export async function POST(
       `Reply to confirm your availability or ask any questions.`,
     ].filter(Boolean).join('\n');
 
+    // Guard: contractor must have at least one contact method
+    if (!contractor.phone && !contractor.email) {
+      return NextResponse.json(
+        { error: `${contractor.name} has no email or phone number. Add contact info before selecting them.` },
+        { status: 400 }
+      );
+    }
+
     try {
       const dispatch = selectedResponse.dispatch;
       const replyToken = dispatch.replyToken;

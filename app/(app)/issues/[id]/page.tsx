@@ -131,7 +131,22 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
     },
   });
 
-  if (!issue || issue.property.ownerUserId !== user.id) {
+  if (!issue) {
+    return (
+      <LayoutShell>
+        <Card>
+          <CardContent className="py-8 text-center">
+            <p className="text-muted-foreground mb-4">Issue not found. It may have been deleted.</p>
+            <Link href="/issues">
+              <Button variant="outline">Back to Issues</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </LayoutShell>
+    );
+  }
+
+  if (issue.property.ownerUserId !== user.id) {
     redirect('/issues');
   }
 

@@ -143,10 +143,17 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({ issue: classifiedIssue }, { status: 201 });
     } catch (classifyError) {
-      // Classification failed but issue was created — return it with a warning
+      // Classification failed but issue was created — use description prefix as fallback title
       console.error('AI classification failed:', classifyError);
+      const fallbackTitle = body.description.length > 60
+        ? body.description.substring(0, 57) + '...'
+        : body.description;
+      const fallbackIssue = await prisma.issue.update({
+        where: { id: issue.id },
+        data: { title: fallbackTitle },
+      });
       return NextResponse.json({
-        issue,
+        issue: fallbackIssue,
         warning: 'Issue created but AI classification failed. You can classify it later.',
       }, { status: 201 });
     }

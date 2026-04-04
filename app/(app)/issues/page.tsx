@@ -178,7 +178,7 @@ export default async function IssuesPage({
 
   // Only show view tabs that have issues (always show All and Open)
   const statusCountMap = new Map(viewCounts.map((v) => [v.status, v._count]));
-  const alwaysShowViews = new Set(['all', 'open']);
+  const alwaysShowViews = new Set(['all', 'open', 'canceled', 'archived']);
   const viewsWithIssues = Object.entries(VIEW_STATUS_MAP).filter(([key, statuses]) => {
     if (alwaysShowViews.has(key)) return true;
     if (key === currentView) return true; // always show the active tab

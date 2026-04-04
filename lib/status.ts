@@ -41,7 +41,14 @@ export const ISSUE_NEXT_ACTION: Record<string, string> = {
   completed: 'Job complete',
 };
 
-/** Centralized issue lifecycle — the ONLY source of truth for allowed transitions */
+/** Centralized issue lifecycle — the ONLY source of truth for allowed transitions.
+ *
+ * Notable paths:
+ * - new → quotes_received: allows manual quote entry, bypassing dispatch
+ * - active_job → awaiting_dispatch/awaiting_quotes: job was canceled, re-dispatch needed
+ * - completed → archived: mark finished work as historical
+ * - canceled → archived: dismiss canceled issues from view
+ */
 export const ISSUE_VALID_TRANSITIONS: Record<string, string[]> = {
   new: ['classified', 'quotes_received', 'canceled', 'completed'],
   classified: ['awaiting_quotes', 'quotes_received', 'canceled', 'completed'],
@@ -49,9 +56,9 @@ export const ISSUE_VALID_TRANSITIONS: Record<string, string[]> = {
   awaiting_quotes: ['quotes_received', 'canceled', 'completed'],
   quotes_received: ['active_job', 'awaiting_quotes', 'canceled', 'completed', 'archived'],
   active_job: ['completed', 'canceled', 'awaiting_dispatch', 'awaiting_quotes', 'quotes_received'],
-  completed: ['archived'],
-  canceled: ['archived'],
-  archived: [],
+  completed: ['archived'],   // mark finished work as historical
+  canceled: ['archived'],    // dismiss canceled issues from view
+  archived: [],              // terminal state — no further transitions
 };
 
 /** Check if a status transition is allowed */
@@ -71,7 +78,7 @@ export const OPEN_ISSUE_STATUSES = [
 
 /** View tab → status filter mapping for the issues list */
 export const VIEW_STATUS_MAP = {
-  all: [...OPEN_ISSUE_STATUSES, 'completed'],
+  all: [...OPEN_ISSUE_STATUSES, 'completed', 'canceled'],
   open: [...OPEN_ISSUE_STATUSES],
   awaiting_quotes: ['awaiting_quotes'],
   quotes_received: ['quotes_received'],
@@ -88,7 +95,7 @@ export const VIEW_LABELS: Record<string, string> = {
   open: 'Open',
   awaiting_quotes: 'Awaiting Quotes',
   quotes_received: 'Quotes Received',
-  active_jobs: 'Active Jobs',
+  active_jobs: 'Jobs',
   completed: 'Completed',
   canceled: 'Canceled',
   archived: 'Archived',

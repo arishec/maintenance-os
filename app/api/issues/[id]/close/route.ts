@@ -31,6 +31,14 @@ export async function POST(
       return NextResponse.json({ error: 'Issue not found.' }, { status: 404 });
     }
 
+    // Block closing an issue that has an active job — user must cancel the job first
+    if (issue.status === 'active_job') {
+      return NextResponse.json(
+        { error: 'This issue has an active job. Cancel the job first using the job panel, then close the issue.' },
+        { status: 400 }
+      );
+    }
+
     const targetStatus = body.selfResolved ? 'completed' : 'canceled';
 
     if (!isIssueTransitionAllowed(issue.status, targetStatus)) {

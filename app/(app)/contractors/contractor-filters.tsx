@@ -20,6 +20,7 @@ interface ContractorDisplay {
   isPreferred: boolean;
   contextParts: string[];
   lastUsedDate: string | null;
+  linkedProperties?: { id: string; name: string }[];
 }
 
 function tradeLabel(trade: string): string {
@@ -135,6 +136,11 @@ export function ContractorList({
                   {contractor.lastUsedDate && (
                     <p className="text-xs text-muted-foreground/70">
                       Last contacted <LocalTime date={new Date(contractor.lastUsedDate)} format="date" />
+                    </p>
+                  )}
+                  {contractor.linkedProperties && contractor.linkedProperties.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Linked to: {contractor.linkedProperties.map(p => p.name).join(', ')}
                     </p>
                   )}
                   <div className="space-y-1 text-sm">

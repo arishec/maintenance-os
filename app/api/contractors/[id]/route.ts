@@ -123,6 +123,16 @@ export async function PATCH(
       if (normalized) body.phone = normalized;
     }
 
+    // Ensure at least one contact method remains after update
+    const resultingEmail = body.email !== undefined ? body.email : contractor.email;
+    const resultingPhone = body.phone !== undefined ? body.phone : contractor.phone;
+    if (!resultingEmail && !resultingPhone) {
+      return NextResponse.json(
+        { error: 'Contractor must have at least an email or phone number.' },
+        { status: 400 }
+      );
+    }
+
     // Check for duplicate email/phone (excluding the current contractor)
     if (body.email || body.phone) {
       const existing = await prisma.contractor.findFirst({

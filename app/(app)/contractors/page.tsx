@@ -32,6 +32,9 @@ export default async function ContractorsPage({ searchParams }: { searchParams: 
           responses: { select: { id: true } },
         },
       },
+      propertyLinks: {
+        include: { property: { select: { id: true, nickname: true, addressLine1: true } } },
+      },
     },
     orderBy: { createdAt: 'desc' },
   });
@@ -114,6 +117,11 @@ export default async function ContractorsPage({ searchParams }: { searchParams: 
             );
           }
 
+          const linkedProperties = contractor.propertyLinks.map((link) => ({
+            id: link.property.id,
+            name: link.property.nickname || link.property.addressLine1 || 'Unnamed Property',
+          }));
+
           return {
             id: contractor.id,
             name: contractor.name,
@@ -124,6 +132,7 @@ export default async function ContractorsPage({ searchParams }: { searchParams: 
             isPreferred: contractor.isPreferred,
             contextParts,
             lastUsedDate: lastUsedDate?.toISOString() ?? null,
+            linkedProperties,
           };
         });
 
