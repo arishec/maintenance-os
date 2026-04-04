@@ -1,20 +1,35 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 /**
  * Renders a date/time string in the user's local timezone.
- * Use this instead of toLocaleString() in server components,
- * which would render in UTC (server timezone).
+ * Uses useEffect to avoid hydration mismatch between server (UTC)
+ * and client (local timezone).
  */
 export function LocalTime({ date, format = 'datetime' }: { date: string | Date; format?: 'date' | 'time' | 'datetime' }) {
-  if (!date) return <>—</>;
-  const d = new Date(date);
-  if (isNaN(d.getTime())) return <>—</>;
+  const [formatted, setFormatted] = useState<string>('');
 
-  if (format === 'date') {
-    return <>{d.toLocaleDateString()}</>;
-  }
-  if (format === 'time') {
-    return <>{d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</>;
-  }
-  return <>{d.toLocaleDateString()} at {d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</>;
+  useEffect(() => {
+    if (!date) {
+      setFormatted('—');
+      return;
+    }
+    const d = new Date(date);
+    if (isNaN(d.getTime())) {
+      setFormatted('—');
+      return;
+    }
+
+    if (format === 'date') {
+      setFormatted(d.toLocaleDateString());
+    } else if (format === 'time') {
+      setFormatted(d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
+    } else {
+      setFormatted(`${d.toLocaleDateString()} at ${d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`);
+    }
+  }, [date, format]);
+
+  // Render empty on server, formatted on client — avoids hydration mismatch
+  return <>{formatted}</>;
 }
