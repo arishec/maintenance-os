@@ -674,7 +674,7 @@ export default function NewIssuePage() {
           <Card>
             <CardContent className="py-12 text-center">
               <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-              <p className="font-medium">Creating {detectedIssues?.length || 0} separate issues</p>
+              <p className="font-medium">Creating {resultingIssueCount || detectedIssues?.length || 0} {resultingIssueCount === 1 ? 'issue' : 'issues'}</p>
               <p className="mt-1 text-sm text-muted-foreground">Classifying each one and preparing for contractors...</p>
             </CardContent>
           </Card>
