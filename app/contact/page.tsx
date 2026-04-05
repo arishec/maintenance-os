@@ -114,7 +114,7 @@ export default function ContactPage() {
 
         {/* ───── EMAIL FALLBACK ───── */}
         <p className="text-center text-sm text-gray-400">
-          Prefer email? support@maintenanceos.com
+          Prefer email? support@ifbids.com
         </p>
       </main>
     </PublicLayout>
