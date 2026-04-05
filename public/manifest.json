@@ -1,0 +1,16 @@
+{
+  "name": "Maintenance OS",
+  "short_name": "Maintenance OS",
+  "description": "Property maintenance made simple",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/og-image.png",
+      "sizes": "any",
+      "type": "image/png"
+    }
+  ]
+}

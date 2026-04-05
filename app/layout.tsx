@@ -22,6 +22,11 @@ export const metadata: Metadata = {
     'rental property maintenance tracking',
   ],
   applicationName: 'Maintenance OS',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Maintenance OS',
+  },
   authors: [{ name: 'Maintenance OS' }],
   creator: 'Maintenance OS',
   publisher: 'Maintenance OS',
@@ -51,6 +56,7 @@ export const metadata: Metadata = {
       'Manage property maintenance, send contractor requests, compare replies, and keep repair history organized.',
     images: ['/og-image.png'],
   },
+  manifest: '/manifest.json',
   robots: {
     index: true,
     follow: true,
