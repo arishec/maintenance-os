@@ -58,7 +58,7 @@ export default async function IssuesPage({
   const params = await searchParams;
   const rawView = params.view;
   const currentView: IssueView =
-    rawView && rawView in VIEW_STATUS_MAP ? (rawView as IssueView) : 'all';
+    rawView && rawView in VIEW_STATUS_MAP ? (rawView as IssueView) : 'open';
   const searchFilter = params.search || undefined;
 
   const properties = await prisma.property.findMany({
