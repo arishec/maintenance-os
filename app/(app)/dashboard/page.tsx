@@ -19,6 +19,7 @@ import { ScheduledTodayList } from '@/components/dashboard/scheduled-today-list'
 import { WaitingOnContractorsList } from '@/components/dashboard/waiting-on-contractors-list';
 import { RecentActivityList } from '@/components/dashboard/recent-activity-list';
 import { OverviewCards } from '@/components/dashboard/overview-cards';
+import { AutoRefresh } from '@/components/dashboard/auto-refresh';
 
 export default async function DashboardPage() {
   const user = await requireDbUserOrRedirect();
@@ -42,6 +43,7 @@ export default async function DashboardPage() {
 
   return (
     <LayoutShell>
+      <AutoRefresh intervalMs={30_000} />
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-semibold">Dashboard</h1>
