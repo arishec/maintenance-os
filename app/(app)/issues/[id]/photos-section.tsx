@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import Image from 'next/image';
 import { X } from 'lucide-react';
 import {
   AlertDialog,
@@ -84,11 +85,13 @@ export function PhotosSection({ issueId, photos: initialPhotos }: PhotosSectionP
               {photos.map((photo) => (
                 <div key={photo.id} className="space-y-1">
                   <div className="relative h-32 sm:h-48 w-full overflow-hidden rounded-xl bg-muted group">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={photo.signedUrl || ''}
                       alt="Issue photo"
-                      className="h-full w-full object-cover"
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 50vw, 33vw"
+                      loading="lazy"
                     />
                     <button
                       type="button"
