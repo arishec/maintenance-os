@@ -49,12 +49,6 @@ const locationOptions = [
   { value: 'other', label: 'Other' },
 ];
 
-const signalOptions = [
-  { value: 'safety', label: 'Safety Risk' },
-  { value: 'water', label: 'Water Damage' },
-  { value: 'heat', label: 'Heating Issue' },
-  { value: 'power', label: 'Power/Electrical' },
-];
 
 interface Property {
   id: string;
@@ -302,11 +296,6 @@ export default function NewIssuePage() {
     const form = new FormData(e.currentTarget);
 
     const signals: string[] = [];
-    signalOptions.forEach((opt) => {
-      if (form.get(`signal_${opt.value}`) === 'on') {
-        signals.push(opt.value);
-      }
-    });
 
     const propertyId = (form.get('propertyId') as string)?.trim();
     const description = (form.get('description') as string)?.trim();
@@ -1018,26 +1007,6 @@ export default function NewIssuePage() {
                   </option>
                 ))}
               </Select>
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium">Quick Tags (optional)</label>
-              <p className="text-xs text-muted-foreground mb-3">Select any that apply — helps prioritize your request</p>
-              <div className="flex flex-wrap gap-x-4 gap-y-2">
-                {signalOptions.map((opt) => (
-                  <div key={opt.value} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id={`signal_${opt.value}`}
-                      name={`signal_${opt.value}`}
-                      className="h-5 w-5 rounded border-border"
-                    />
-                    <label htmlFor={`signal_${opt.value}`} className="text-sm">
-                      {opt.label}
-                    </label>
-                  </div>
-                ))}
-              </div>
             </div>
 
             <Button type="submit" disabled={loading || propertiesLoading} className="w-full">
