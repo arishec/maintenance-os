@@ -57,8 +57,10 @@ export default async function IssuesPage({
 
   const params = await searchParams;
   const rawView = params.view;
+  // If coming from a property page (property filter set, no explicit view), show all issues for that property
+  const defaultView: IssueView = params.property && !rawView ? 'all' : 'open';
   const currentView: IssueView =
-    rawView && rawView in VIEW_STATUS_MAP ? (rawView as IssueView) : 'open';
+    rawView && rawView in VIEW_STATUS_MAP ? (rawView as IssueView) : defaultView;
   const searchFilter = params.search || undefined;
 
   const properties = await prisma.property.findMany({
