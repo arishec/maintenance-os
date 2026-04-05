@@ -20,6 +20,7 @@ import { CloseIssueButton } from './close-issue-button';
 // import { ArchiveIssueButton } from './archive-issue-button';
 import { AttachmentsSection } from './attachments-section';
 import { ReplyToContractorButton } from './reply-to-contractor-button';
+import { ActivityTimeline } from './activity-timeline';
 import { ManualQuoteButton } from './manual-quote-button';
 import { ResendDispatchButton } from './resend-dispatch-button';
 import { QuoteSummary } from './quote-summary';
@@ -38,49 +39,6 @@ import {
 } from '@/lib/status';
 
 /** Human-readable timeline event descriptions */
-function formatTimelineEvent(eventType: string, payload: Record<string, unknown> | null): string {
-  const p = payload || {};
-  switch (eventType) {
-    case 'issue_created':
-      return 'Issue reported';
-    case 'issue_classified':
-      return `AI classified as ${p.category || 'unknown'} — ${p.urgency || ''} urgency`;
-    case 'dispatch_sent': {
-      const count = p.contractorCount as number || 1;
-      return `Sent to ${count} contractor${count !== 1 ? 's' : ''}`;
-    }
-    case 'contractor_replied':
-      return `${p.contractorName || 'Contractor'} replied`;
-    case 'owner_reply_sent':
-      return `You replied to ${p.contractorName || 'contractor'} via ${p.channel === 'sms' ? 'SMS' : 'Email'}`;
-    case 'contractor_selected':
-      return `Selected ${p.contractorName || 'contractor'} for the job`;
-    case 'contractor_confirmed':
-      return `${p.contractorName || 'Contractor'} confirmed the job${p.schedulingInfo ? ` — ${p.schedulingInfo}` : ''}`;
-    case 'contractor_declined':
-      return `${p.contractorName || 'Contractor'} declined the job${p.declineReason ? ` — ${p.declineReason}` : ''}`;
-    case 'job_scheduled':
-      return 'Job scheduled';
-    case 'job_started':
-      return 'Job started';
-    case 'job_canceled':
-      if (p.selfResolved) {
-        return `Issue resolved by owner${p.reason && p.reason !== 'No reason provided' ? ` — ${p.reason}` : ''}`;
-      }
-      return `Job canceled${p.reason && p.reason !== 'No reason provided' ? ` — ${p.reason}` : ''}`;
-    case 'job_completed':
-      return 'Job marked complete';
-    case 'manual_quote_added':
-      return `Manually added quote from ${p.contractorName || 'contractor'}${p.flatEstimate ? ` — $${p.flatEstimate}` : ''}`;
-    case 'dispatch_resent':
-      return `Resent request to ${p.contractorName || 'contractor'}`;
-    case 'issue_submitted_by_tenant':
-      return 'Submitted by tenant';
-    default:
-      return eventType.replace(/_/g, ' ');
-  }
-}
-
 /** Light cleanup for contractor follow-up questions: capitalize, add punctuation */
 function tidyQuestion(raw: string): string {
   let q = raw.trim();
@@ -705,32 +663,8 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
           )}
         </div>
 
-        {/* Activity Timeline */}
-        {issue.timelineEvents && issue.timelineEvents.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Activity</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {issue.timelineEvents.map((event) => {
-                  const payload = event.eventPayloadJson as Record<string, unknown> | null;
-                  return (
-                    <div key={event.id} className="flex gap-3 text-sm">
-                      <div className="flex-shrink-0 w-1.5 rounded-full bg-muted mt-1.5 self-stretch" />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-foreground">{formatTimelineEvent(event.eventType, payload)}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          <LocalTime date={event.createdAt} />
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Activity Timeline — collapsed by default, click to expand */}
+        <ActivityTimeline events={issue.timelineEvents ?? []} />
       </div>
     </LayoutShell>
   );
