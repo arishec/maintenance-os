@@ -61,7 +61,7 @@ export default async function HistoryPage() {
           </CardContent>
         </Card>
       ) : (() => {
-        const hasCosts = completedIssues.some((i) => i.jobs.some((j) => j.selectedEstimate));
+        const hasCosts = completedIssues.some((i) => i.jobs.some((j) => j.actualCost || j.selectedEstimate));
         const hasCategories = completedIssues.some((i) => i.category);
         const completedCount = completedIssues.filter((i) => i.status === 'completed').length;
         const canceledCount = completedIssues.filter((i) => i.status === 'canceled').length;
@@ -72,7 +72,10 @@ export default async function HistoryPage() {
           const payload = closingEvent?.eventPayloadJson as Record<string, unknown> | null;
           const isSelfResolved = payload?.selfResolved === true;
           const reasonText = typeof payload?.reason === 'string' && payload.reason !== 'No reason provided' ? payload.reason : null;
-          const cost = issue.jobs.reduce((s, j) => s + (j.selectedEstimate ? parseFloat(j.selectedEstimate.toString()) : 0), 0) || null;
+          const cost = issue.jobs.reduce((s, j) => {
+            const jobCost = j.actualCost ?? j.selectedEstimate;
+            return s + (jobCost ? parseFloat(jobCost.toString()) : 0);
+          }, 0) || null;
 
           return {
             id: issue.id,
@@ -94,7 +97,10 @@ export default async function HistoryPage() {
             <p className="text-sm text-muted-foreground mb-4">
               {completedCount > 0 && `${completedCount} completed`}{completedCount > 0 && canceledCount > 0 && ', '}{canceledCount > 0 && `${canceledCount} canceled`}
               {hasCosts && (() => {
-                const total = completedIssues.reduce((sum, i) => sum + i.jobs.reduce((s, j) => s + (j.selectedEstimate ? parseFloat(j.selectedEstimate.toString()) : 0), 0), 0);
+                const total = completedIssues.reduce((sum, i) => sum + i.jobs.reduce((s, j) => {
+                  const jobCost = j.actualCost ?? j.selectedEstimate;
+                  return s + (jobCost ? parseFloat(jobCost.toString()) : 0);
+                }, 0), 0);
                 return total > 0 ? ` \u2014 ${formatCurrency(total)} total` : '';
               })()}
             </p>
