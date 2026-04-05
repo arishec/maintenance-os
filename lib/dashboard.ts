@@ -481,9 +481,13 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
     });
   }
 
-  // 8. Unread notifications — surface what the user hasn't seen
+  // 8. Unread notifications — surface what the user hasn't seen (skip completed/canceled issues)
   const unreadNotifications = await prisma.notification.findMany({
-    where: { userId, readAt: null },
+    where: {
+      userId,
+      readAt: null,
+      issue: { status: { notIn: ['completed', 'canceled', 'archived'] } },
+    },
     select: {
       id: true,
       title: true,
