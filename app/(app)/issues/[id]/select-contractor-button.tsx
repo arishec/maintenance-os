@@ -66,7 +66,7 @@ export function SelectContractorButton({
       </Button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto py-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto py-8 pb-20">
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/50"

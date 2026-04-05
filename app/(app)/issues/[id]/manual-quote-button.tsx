@@ -101,7 +101,7 @@ export function ManualQuoteButton({ issueId, existingContractors = [] }: ManualQ
       </Button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto py-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto py-8 pb-20">
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => !isLoading && (setIsOpen(false), resetForm())}

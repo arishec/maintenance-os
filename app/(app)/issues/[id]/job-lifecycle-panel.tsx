@@ -345,7 +345,7 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
 
       {/* Completion Modal — captures actual cost + notes */}
       {showCompleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto py-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto py-8 pb-20">
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => setShowCompleteModal(false)}
@@ -366,7 +366,7 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
                 value={actualCost}
                 onChange={(e) => setActualCost(e.target.value)}
                 placeholder="e.g. 450.00"
-                className="w-full rounded-lg border border-border p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-border p-3 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               {job.agreedPrice && (
                 <p className="text-xs text-muted-foreground mt-1">Pre-filled from agreed quote. Adjust if the final cost was different.</p>
@@ -400,7 +400,7 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
 
       {/* Cancel Job Modal */}
       {showCancelModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto py-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto py-8 pb-20">
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => setShowCancelModal(false)}
@@ -451,7 +451,7 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
 
       {/* Schedule Date Picker Modal */}
       {showScheduleModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center pb-20">
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => setShowScheduleModal(false)}
@@ -471,7 +471,7 @@ export function JobLifecyclePanel({ job }: { job: JobProps }) {
               value={scheduleDate}
               onChange={(e) => setScheduleDate(e.target.value)}
               min={new Date().toISOString().split('T')[0]}
-              className="w-full rounded-lg border border-border p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-lg border border-border p-3 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <div className="flex gap-3 justify-end">
               <Button

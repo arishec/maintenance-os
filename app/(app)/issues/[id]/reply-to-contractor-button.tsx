@@ -101,7 +101,7 @@ export function ReplyToContractorButton({
       )}
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto py-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto py-8 pb-20">
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => !isLoading && setIsOpen(false)}
@@ -114,7 +114,7 @@ export function ReplyToContractorButton({
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Type your message..."
-              className="w-full h-32 rounded-lg border border-border p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full h-32 rounded-lg border border-border p-3 text-base sm:text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={isLoading || success}
             />
 
