@@ -176,7 +176,7 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
   // 3. Jobs selected but not scheduled (missing scheduledFor)
   const unscheduledJobs = await prisma.job.findMany({
     where: {
-      issue: { propertyId: { in: propertyIds } },
+      issue: { propertyId: { in: propertyIds }, status: { notIn: ['completed', 'canceled', 'archived'] } },
       status: 'selected',
       scheduledFor: null,
     },
@@ -265,7 +265,7 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
   // 4b. Scheduled jobs without a date — contractor confirmed but no date set yet
   const scheduledNeedsDate = await prisma.job.findMany({
     where: {
-      issue: { propertyId: { in: propertyIds } },
+      issue: { propertyId: { in: propertyIds }, status: { notIn: ['completed', 'canceled', 'archived'] } },
       status: 'scheduled',
       scheduledFor: null,
     },
@@ -294,7 +294,7 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
   // 5. Active jobs in progress — user should monitor / confirm completion
   const activeJobs = await prisma.job.findMany({
     where: {
-      issue: { propertyId: { in: propertyIds } },
+      issue: { propertyId: { in: propertyIds }, status: { notIn: ['completed', 'canceled', 'archived'] } },
       status: 'in_progress',
     },
     select: {
@@ -329,7 +329,7 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
   const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
   const scheduledWithDate = await prisma.job.findMany({
     where: {
-      issue: { propertyId: { in: propertyIds } },
+      issue: { propertyId: { in: propertyIds }, status: { notIn: ['completed', 'canceled', 'archived'] } },
       status: 'scheduled',
       scheduledFor: { not: null },
     },
@@ -455,7 +455,7 @@ export async function getNeedsAttentionItems(userId: string): Promise<AttentionI
   // 7c. Failed dispatch alerts — issues with dispatches that failed to reach contractors
   const failedDispatches = await prisma.dispatch.findMany({
     where: {
-      issue: { propertyId: { in: propertyIds } },
+      issue: { propertyId: { in: propertyIds }, status: { notIn: ['completed', 'canceled', 'archived'] } },
       status: 'failed',
     },
     select: {
