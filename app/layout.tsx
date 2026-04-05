@@ -56,7 +56,7 @@ export const metadata: Metadata = {
       'Manage property maintenance, send contractor requests, compare replies, and keep repair history organized.',
     images: ['/og-image.png'],
   },
-  manifest: '/manifest.json',
+  manifest: '/manifest.webmanifest',  // served by app/manifest.ts
   robots: {
     index: true,
     follow: true,
