@@ -232,8 +232,8 @@ export default async function IssuesPage({
         {/* Filter bar — only show if there are filters to display */}
         {(properties.length > 1 || urgenciesWithIssues.size > 0 || categories.length > 0 || hasActiveFilters) && (
         <div className="flex flex-wrap items-center gap-2 pb-1">
-          {/* Property filter */}
-          {properties.length > 1 && (
+          {/* Property filter — show when multiple properties, or when a single property is actively filtered */}
+          {(properties.length > 1 || propertyFilter) && (
             <div className="flex items-center gap-1">
               {properties.map((p) => {
                 const isActive = propertyFilter === p.id;
