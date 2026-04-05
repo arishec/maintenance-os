@@ -16,6 +16,8 @@ import { ClassifyButton } from './classify-button';
 import { JobLifecyclePanel } from './job-lifecycle-panel';
 import { RawMessageToggle } from './raw-message-toggle';
 import { CloseIssueButton } from './close-issue-button';
+// Archive button ready to re-enable when needed:
+// import { ArchiveIssueButton } from './archive-issue-button';
 import { AttachmentsSection } from './attachments-section';
 import { ReplyToContractorButton } from './reply-to-contractor-button';
 import { ManualQuoteButton } from './manual-quote-button';
@@ -195,6 +197,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
             <Badge className={getIssueStatusColor(issue.status)}>{displayStatus}</Badge>
             {issue.urgency && <Badge className={getUrgencyColor(issue.urgency)}>{formatLabel(issue.urgency)}</Badge>}
             <CloseIssueButton issueId={issue.id} issueStatus={issue.status} />
+            {/* <ArchiveIssueButton issueId={issue.id} issueStatus={issue.status} /> */}
           </div>
         </div>
 
