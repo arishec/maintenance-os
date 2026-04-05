@@ -113,6 +113,10 @@ export default function NewIssuePage() {
   const [splitProcessing, setSplitProcessing] = useState(false);
   const [photoAssignments, setPhotoAssignments] = useState<Record<number, Set<string>>>({});
 
+  // Issue grouping in split view: each issue index maps to a group number
+  // By default each issue is its own group (group number = index)
+  const [issueGroups, setIssueGroups] = useState<Record<number, number>>({});
+
   // Inline photo state
   const [photos, setPhotos] = useState<SelectedPhoto[]>([]);
   const [photoToDelete, setPhotoToDelete] = useState<string | null>(null);
@@ -189,6 +193,48 @@ export default function NewIssuePage() {
       setPhotoAssignments(newAssignments);
     }
   };
+
+  // Initialize issue groups — each issue starts as its own group
+  const initializeIssueGroups = () => {
+    if (detectedIssues && Object.keys(issueGroups).length === 0) {
+      const groups: Record<number, number> = {};
+      detectedIssues.forEach((_, i) => { groups[i] = i; });
+      setIssueGroups(groups);
+    }
+  };
+
+  // Toggle an issue between standalone (group = own index) and combined (group = -1)
+  const toggleIssueGroup = (issueIndex: number) => {
+    setIssueGroups((prev) => {
+      const updated = { ...prev };
+      if (updated[issueIndex] === -1) {
+        // Currently grouped — ungroup it (back to its own group)
+        updated[issueIndex] = issueIndex;
+      } else {
+        // Currently standalone — add to combined group
+        updated[issueIndex] = -1;
+      }
+      return updated;
+    });
+  };
+
+  // Compute the actual issue groups for creation
+  const computeGroupedIssues = (): DetectedIssue[][] => {
+    if (!detectedIssues) return [];
+    const groupMap = new Map<number, number[]>();
+    detectedIssues.forEach((_, i) => {
+      const group = issueGroups[i] ?? i;
+      if (!groupMap.has(group)) groupMap.set(group, []);
+      groupMap.get(group)!.push(i);
+    });
+    // Sort groups by their first member index for consistent ordering
+    const sortedGroups = Array.from(groupMap.entries())
+      .sort(([, a], [, b]) => a[0] - b[0]);
+    return sortedGroups.map(([, indices]) => indices.map(i => detectedIssues[i]));
+  };
+
+  const groupedIssues = detectedIssues ? computeGroupedIssues() : [];
+  const resultingIssueCount = groupedIssues.length;
 
   const confirmDeletePhoto = () => {
     if (photoToDelete) {
@@ -398,18 +444,29 @@ export default function NewIssuePage() {
     setSplitProcessing(true);
     setError('');
     const results: CreatedIssueResult[] = [];
+    const groups = computeGroupedIssues();
 
-    for (let i = 0; i < detectedIssues.length; i++) {
-      const issue = detectedIssues[i];
+    for (const group of groups) {
+      // Merge grouped issues into one combined description
+      const description = group.map(issue => issue.description).join('. ');
+      // Use the first issue's location, or fall back to form data
+      const location = group[0].suggestedLocation || pendingFormData.locationInProperty;
+      // Merge all signals from grouped issues
+      const allSignals = new Set<string>();
+      group.forEach(issue => {
+        issue.suggestedSignals.forEach(s => allSignals.add(s));
+      });
+      const signals = allSignals.size > 0 ? Array.from(allSignals) : pendingFormData.signals;
+
       try {
         const res = await fetch('/api/issues', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             propertyId: pendingFormData.propertyId,
-            description: issue.description,
-            locationInProperty: issue.suggestedLocation || pendingFormData.locationInProperty,
-            signals: issue.suggestedSignals.length > 0 ? issue.suggestedSignals : pendingFormData.signals,
+            description,
+            locationInProperty: location,
+            signals,
           }),
         });
 
@@ -418,16 +475,21 @@ export default function NewIssuePage() {
           const created = data.issue;
           results.push({
             id: created.id,
-            title: created.title || issue.description.substring(0, 60),
+            title: created.title || description.substring(0, 60),
             category: created.category || 'unknown',
             urgency: created.urgency || 'medium',
           });
 
-          // Upload photos assigned to this issue
+          // Upload photos assigned to any issue in this group
           if (photos.length > 0) {
-            const assignedPhotos = photoAssignments[i];
-            if (assignedPhotos && assignedPhotos.size > 0) {
-              await uploadPhotos(created.id, assignedPhotos);
+            const groupPhotoIds = new Set<string>();
+            group.forEach(issue => {
+              const originalIndex = detectedIssues.indexOf(issue);
+              const assigned = photoAssignments[originalIndex];
+              if (assigned) assigned.forEach(id => groupPhotoIds.add(id));
+            });
+            if (groupPhotoIds.size > 0) {
+              await uploadPhotos(created.id, groupPhotoIds);
             }
           }
         }
@@ -448,6 +510,7 @@ export default function NewIssuePage() {
     const form = document.querySelector('form');
     const description = form?.querySelector('textarea[name="description"]') as HTMLTextAreaElement;
     setDetectedIssues(null);
+    setIssueGroups({});
     createSingleIssue({
       ...pendingFormData,
       description: description?.value || detectedIssues?.map(i => i.description).join('. ') || '',
@@ -456,8 +519,18 @@ export default function NewIssuePage() {
 
   // Multi-issue split confirmation screen
   if (detectedIssues && detectedIssues.length > 1 && !splitProcessing) {
-    // Initialize photo assignments on render if not already done
+    // Initialize photo assignments and groups on render if not already done
     initializePhotoAssignments();
+    initializeIssueGroups();
+
+    // Determine which issues are grouped together
+    const isGrouped = (idx: number) => issueGroups[idx] === -1;
+    const hasAnyGrouping = Object.values(issueGroups).some(grp => grp === -1);
+
+    // Get indices of issues in the combined group
+    const combinedIndices = Object.entries(issueGroups)
+      .filter(([, grp]) => grp === -1)
+      .map(([idx]) => Number(idx));
 
     return (
       <LayoutShell>
@@ -470,82 +543,119 @@ export default function NewIssuePage() {
             </div>
             <h1 className="text-xl font-semibold">It looks like you have {detectedIssues.length} separate issues</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              We&apos;ll create them separately so each gets the right contractor
+              {hasAnyGrouping
+                ? `Creating ${resultingIssueCount} issue${resultingIssueCount !== 1 ? 's' : ''} — grouped items will be combined`
+                : "We'll create them separately so each gets the right contractor"}
+            </p>
+          </div>
+
+          {/* Grouping hint */}
+          <div className="rounded-lg border border-blue-100 bg-blue-50/50 px-4 py-2.5">
+            <p className="text-xs text-blue-700">
+              Want one contractor to handle multiple items? Tap <strong>Group</strong> on those items to combine them into one issue.
             </p>
           </div>
 
           <div className="space-y-3">
-            {detectedIssues.map((issue, i) => (
-              <Card key={i}>
-                <CardContent className="pt-5 pb-4 space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-                      {i + 1}
-                    </div>
-                    <div className="space-y-1 flex-1">
-                      <p className="text-sm font-medium">{issue.description}</p>
-                      {issue.photoHint && (
-                        <p className="text-xs text-muted-foreground italic">Suggested photo: {issue.photoHint}</p>
-                      )}
-                      <div className="flex flex-wrap gap-1.5">
-                        {issue.suggestedLocation && (
-                          <Badge className="text-xs bg-gray-100">{formatLabel(issue.suggestedLocation)}</Badge>
+            {detectedIssues.map((issue, i) => {
+              const grouped = isGrouped(i);
+              return (
+                <Card key={i} className={grouped ? 'ring-2 ring-primary/40' : ''}>
+                  <CardContent className="pt-5 pb-4 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
+                        grouped ? 'bg-primary text-white' : 'bg-primary/10 text-primary'
+                      }`}>
+                        {grouped ? 'G' : i + 1}
+                      </div>
+                      <div className="space-y-1 flex-1">
+                        <p className="text-sm font-medium">{issue.description}</p>
+                        {issue.photoHint && (
+                          <p className="text-xs text-muted-foreground italic">Suggested photo: {issue.photoHint}</p>
                         )}
-                        {issue.suggestedSignals.map((s) => (
-                          <Badge key={s} className="text-xs">{formatLabel(s)}</Badge>
-                        ))}
+                        <div className="flex flex-wrap gap-1.5">
+                          {issue.suggestedLocation && (
+                            <Badge className="text-xs bg-gray-100">{formatLabel(issue.suggestedLocation)}</Badge>
+                          )}
+                          {issue.suggestedSignals.map((s) => (
+                            <Badge key={s} className="text-xs">{formatLabel(s)}</Badge>
+                          ))}
+                        </div>
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => toggleIssueGroup(i)}
+                        className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                          grouped
+                            ? 'bg-primary text-white hover:bg-primary/80'
+                            : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                        }`}
+                      >
+                        {grouped ? 'Grouped' : 'Group'}
+                      </button>
                     </div>
-                  </div>
 
-                  {/* Photo assignment section */}
-                  {photos.length > 0 && (
-                    <div className="pt-2 border-t">
-                      <label className="text-xs font-medium text-muted-foreground mb-2 block">
-                        Tap photos to assign or remove
-                      </label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {photos.map((photo) => {
-                          const isAssigned = photoAssignments[i]?.has(photo.id) ?? true;
-                          return (
-                            <div key={photo.id} className="relative">
-                              <button
-                                type="button"
-                                onClick={() => togglePhotoAssignment(i, photo.id)}
-                                className={`relative w-full h-20 rounded-lg overflow-hidden border-2 transition-all ${
-                                  isAssigned
-                                    ? 'border-primary bg-primary/5'
-                                    : 'border-border bg-muted/50'
-                                }`}
-                              >
-                                <Image
-                                  src={photo.preview}
-                                  alt="Photo preview"
-                                  fill
-                                  className="object-cover"
-                                />
-                                {isAssigned && (
-                                  <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                                    <svg className="h-5 w-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
-                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                    </svg>
-                                  </div>
-                                )}
-                              </button>
-                            </div>
-                          );
-                        })}
+                    {/* Photo assignment section */}
+                    {photos.length > 0 && (
+                      <div className="pt-2 border-t">
+                        <label className="text-xs font-medium text-muted-foreground mb-2 block">
+                          Tap photos to assign or remove
+                        </label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {photos.map((photo) => {
+                            const isAssigned = photoAssignments[i]?.has(photo.id) ?? true;
+                            return (
+                              <div key={photo.id} className="relative">
+                                <button
+                                  type="button"
+                                  onClick={() => togglePhotoAssignment(i, photo.id)}
+                                  className={`relative w-full h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                                    isAssigned
+                                      ? 'border-primary bg-primary/5'
+                                      : 'border-border bg-muted/50'
+                                  }`}
+                                >
+                                  <Image
+                                    src={photo.preview}
+                                    alt="Photo preview"
+                                    fill
+                                    className="object-cover"
+                                  />
+                                  {isAssigned && (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                                      <svg className="h-5 w-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                      </svg>
+                                    </div>
+                                  )}
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
+
+          {/* Summary of grouping when active */}
+          {hasAnyGrouping && combinedIndices.length > 0 && (
+            <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3">
+              <p className="text-sm font-medium text-primary">Combined issue:</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {combinedIndices.map(idx => detectedIssues[idx].description).join(' + ')}
+              </p>
+            </div>
+          )}
 
           <div className="flex flex-col gap-2 pt-2">
             <Button onClick={handleConfirmSplit} className="w-full">
-              Create {detectedIssues.length} separate issues
+              {resultingIssueCount === 1
+                ? 'Create 1 combined issue'
+                : `Create ${resultingIssueCount} issue${resultingIssueCount !== 1 ? 's' : ''}`}
             </Button>
             <Button variant="outline" onClick={handleRejectSplit} className="w-full">
               No, it&apos;s one issue — keep together
@@ -626,6 +736,7 @@ export default function NewIssuePage() {
               onClick={() => {
                 setCreatedIssues([]);
                 setDetectedIssues(null);
+                setIssueGroups({});
                 setPendingFormData(null);
                 setClassification(null);
                 setIssueId(null);
@@ -721,6 +832,7 @@ export default function NewIssuePage() {
                   onClick={() => {
                     setClassification(null);
                     setIssueId(null);
+                    setIssueGroups({});
                     setPhotoUploadError('');
                     setUploadProgress('');
                     setPhotos([]);
