@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import type { ActivityItem } from '@/lib/dashboard';
 
@@ -24,12 +25,19 @@ const eventDots: Record<string, string> = {
   issue_created: 'bg-gray-400',
 };
 
+const PREVIEW_COUNT = 3;
+
 export function RecentActivityList({ items }: { items: ActivityItem[] }) {
+  const [expanded, setExpanded] = useState(false);
+
   if (items.length === 0) return null;
+
+  const visible = expanded ? items : items.slice(0, PREVIEW_COUNT);
+  const hasMore = items.length > PREVIEW_COUNT;
 
   return (
     <div className="space-y-1">
-      {items.map((item) => {
+      {visible.map((item) => {
         const desc = item.count > 1
           ? `${item.description} (${item.count}x)`
           : item.description;
@@ -54,6 +62,15 @@ export function RecentActivityList({ items }: { items: ActivityItem[] }) {
         }
         return <div key={item.id}>{inner}</div>;
       })}
+      {hasMore && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="w-full text-center text-xs text-muted-foreground/70 hover:text-muted-foreground py-1.5 transition-colors"
+        >
+          {expanded ? 'Show less' : `Show ${items.length - PREVIEW_COUNT} more`}
+        </button>
+      )}
     </div>
   );
 }
