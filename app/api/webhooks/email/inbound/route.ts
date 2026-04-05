@@ -196,6 +196,7 @@ export async function POST(request: NextRequest) {
           channel: 'email',
           status: { in: ['sent', 'delivered', 'accepted'] },
           contractor: { email: normalizedIncomingEmail },
+          issue: { status: { notIn: ['completed', 'canceled', 'archived'] } },
         },
         include: {
           contractor: true,

@@ -16,9 +16,17 @@ export async function GET(request: NextRequest) {
     const countOnly = searchParams.get('countOnly') === 'true';
 
     // Lightweight count-only mode for polling (no data transfer)
+    // Exclude notifications for completed/canceled/archived issues
     if (countOnly) {
       const count = await prisma.notification.count({
-        where: { userId: user.id, readAt: null },
+        where: {
+          userId: user.id,
+          readAt: null,
+          OR: [
+            { issueId: null }, // non-issue notifications always count
+            { issue: { status: { notIn: ['completed', 'canceled', 'archived'] } } },
+          ],
+        },
       });
       return NextResponse.json({ count });
     }
@@ -27,6 +35,10 @@ export async function GET(request: NextRequest) {
       where: {
         userId: user.id,
         ...(unreadOnly && { readAt: null }),
+        OR: [
+          { issueId: null }, // non-issue notifications always show
+          { issue: { status: { notIn: ['completed', 'canceled', 'archived'] } } },
+        ],
       },
       orderBy: { createdAt: 'desc' },
       take: 50,

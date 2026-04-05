@@ -85,6 +85,7 @@ export async function POST(request: NextRequest) {
           channel: 'sms',
           status: { in: ['sent', 'delivered', 'accepted'] },
           createdAt: { gte: thirtyDaysAgo },
+          issue: { status: { notIn: ['completed', 'canceled', 'archived'] } },
         },
         include: {
           contractor: true,
