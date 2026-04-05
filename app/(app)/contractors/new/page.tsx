@@ -60,7 +60,7 @@ export default function NewContractorPage() {
         return;
       }
 
-      router.push('/contractors');
+      router.push('/dashboard');
       router.refresh();
     } catch (err) {
       setError('An error occurred. Please try again.');

@@ -52,7 +52,7 @@ export default function NewPropertyPage() {
         return;
       }
 
-      router.push('/properties');
+      router.push('/dashboard');
       router.refresh();
     } catch (err) {
       setError('An error occurred. Please try again.');
