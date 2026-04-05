@@ -26,7 +26,7 @@ const cards = [
   {
     key: 'quotesReady' as const,
     label: 'Quotes Ready',
-    activeLabel: (n: number) => n > 0 ? `${n} quote${n !== 1 ? 's' : ''} to review` : 'No quotes waiting',
+    activeLabel: (n: number) => n > 0 ? `${n} quote${n !== 1 ? 's' : ''} to review` : 'No quotes to review',
     icon: MessageSquareText,
     color: 'text-amber-600',
     activeColor: 'border-amber-200 bg-amber-50/50',
