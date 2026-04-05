@@ -124,7 +124,7 @@ export async function POST(
     }
 
     // Build the message — always include issue details and reply prompts
-    const propertyDisplay = issue.property.nickname || `${issue.property.addressLine1}, ${issue.property.city}`;
+    const propertyDisplay = issue.property.nickname || [issue.property.addressLine1, issue.property.city].filter(Boolean).join(', ') || 'your property';
     const baseMessage = `New repair request for ${propertyDisplay}.\nIssue: ${issue.title}\nDetails: ${issue.description}${body.customMessage ? `\n\nNote from property manager: ${body.customMessage}` : ''}\n\nPlease reply with:\n1. Availability\n2. Estimated cost\n3. Any questions`;
 
     let messageWithPhotos = baseMessage;

@@ -598,7 +598,11 @@ export default function DispatchPage() {
 
         {/* Send Button */}
         <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">{selected.length} contractor{selected.length !== 1 ? 's' : ''} selected</div>
+          <div className="text-sm text-muted-foreground">
+            {selected.length === 0
+              ? 'Select at least one contractor above'
+              : `${selected.length} contractor${selected.length !== 1 ? 's' : ''} selected`}
+          </div>
           <Button onClick={handleSendClick} disabled={selected.length === 0 || loading}>
             {loading ? 'Sending...' : `Send Request${selected.length !== 1 ? 's' : ''}`}
           </Button>
