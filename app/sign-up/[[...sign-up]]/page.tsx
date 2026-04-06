@@ -12,7 +12,7 @@ export default function SignUpPage() {
       <Script id="google-ads-conversion" strategy="afterInteractive">
         {`
           gtag('event', 'conversion', {
-            'send_to': 'AW-1002173765/vJITCK6A-pYcEMXq790D',
+            'send_to': 'AW-18068633331/vJITCK6A-pYcEMXq790D',
             'value': 1.0,
             'currency': 'USD'
           });
