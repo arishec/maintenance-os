@@ -121,6 +121,11 @@ export default async function HomePage() {
                 <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">No credit card required in beta</div>
                 <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">Works for homeowners and landlords</div>
               </div>
+              <div className="mt-6 flex justify-center">
+                <a href="https://www.producthunt.com/products/maintenance-os?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-maintenance-os" target="_blank" rel="noopener noreferrer">
+                  <img alt="Maintenance OS - Manage property repairs without chasing contractors | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1111632&theme=light&t=1775478171868" />
+                </a>
+              </div>
             </div>
           </section>
 
