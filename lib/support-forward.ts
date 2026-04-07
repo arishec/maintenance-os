@@ -16,13 +16,20 @@ export async function forwardSupportEmail(data: SupportEmailData) {
   const fromAddress = process.env.RESEND_FROM_EMAIL;
   if (!key || !fromAddress || key === 'REPLACE_ME') return;
 
-  // Fetch the full email body from Resend
+  // Fetch the full email body from Resend (with retry — body may not be available immediately)
   let bodyText = '(Could not retrieve email body)';
-  try {
-    const { data: emailContent } = await getReceivedEmail(data.emailId);
-    bodyText = emailContent?.text || emailContent?.html?.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() || bodyText;
-  } catch {
-    // Continue with fallback body
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      if (attempt > 0) await new Promise(r => setTimeout(r, 1500)); // wait 1.5s before retrying
+      const { data: emailContent } = await getReceivedEmail(data.emailId);
+      const text = emailContent?.text || emailContent?.html?.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+      if (text) {
+        bodyText = text;
+        break;
+      }
+    } catch {
+      // Retry
+    }
   }
 
   const toAddress = data.to?.join(', ') || 'unknown';
