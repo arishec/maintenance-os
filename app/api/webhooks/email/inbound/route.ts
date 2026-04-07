@@ -118,9 +118,12 @@ export async function POST(request: NextRequest) {
     const supportAddresses = ['support@ifbids.com', 'feedback@ifbids.com'];
     const isSupport = toArray?.some(addr => supportAddresses.includes(addr.toLowerCase()));
     if (isSupport) {
-      forwardSupportEmail({ emailId, from, to: toArray, subject }).catch((err) =>
-        console.error('Failed to forward support email:', err)
-      );
+      try {
+        await forwardSupportEmail({ emailId, from, to: toArray, subject });
+        console.log('Support email forwarded successfully from:', from);
+      } catch (err) {
+        console.error('Failed to forward support email:', err);
+      }
       return NextResponse.json({ success: true }, { status: 200 });
     }
 
