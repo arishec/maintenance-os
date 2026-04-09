@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PublicLayout } from '@/components/public-layout';
+import { FreeCTA } from '@/components/free-cta';
 
 export const metadata: Metadata = {
   title: 'Home Repair Tracking App | Organize Maintenance Easily',
@@ -201,19 +202,8 @@ export default function HomeRepairTrackingPage() {
         </section>
 
         {/* ───── FINAL CTA ───── */}
-        <section className="rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 p-6 sm:p-8 md:p-12 text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
-            Ready to organize your home repairs?
-          </h2>
-          <p className="text-gray-600 mb-6 text-lg">
-            Start tracking today — free for one property. No credit card required.
-          </p>
-          <Link
-            href="/sign-up"
-            className="inline-flex justify-center rounded-xl bg-blue-600 px-8 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-          >
-            Start tracking your home repairs
-          </Link>
+        <section>
+          <FreeCTA variant="dark" heading="Start tracking your home repairs" subheading="Everything you need to stay on top of home maintenance." />
         </section>
       </main>
     </PublicLayout>

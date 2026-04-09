@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PublicLayout } from '@/components/public-layout';
 import { ArticleJsonLd } from '@/components/seo/article-jsonld';
+import { FreeCTA } from '@/components/free-cta';
 
 export const metadata: Metadata = {
   title: 'How to Manage Rental Property Maintenance (Without Losing Your Mind)',
@@ -262,27 +263,8 @@ export default function HowToManageRentalPropertyMaintenancePage() {
         </div>
 
         {/* ───── FINAL CTA ───── */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 sm:p-10 text-center border border-blue-100">
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">
-            Run your maintenance like a system — not chaos
-          </h2>
-          <p className="text-gray-600 mb-6 text-lg max-w-xl mx-auto">
-            Everything in one place: intake, dispatch, tracking, and history.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/sign-up"
-              className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg"
-            >
-              Get Started Free
-            </Link>
-            <Link
-              href="/features"
-              className="inline-block border border-gray-300 text-gray-700 px-8 py-3 rounded-lg hover:bg-gray-50 transition-colors font-medium text-lg"
-            >
-              See All Features
-            </Link>
-          </div>
+        <div>
+          <FreeCTA variant="dark" heading="Put this guide into practice" subheading="Manage your rental maintenance in one system." />
         </div>
       </main>
     </PublicLayout>

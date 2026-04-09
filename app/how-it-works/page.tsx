@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PublicLayout } from '@/components/public-layout';
+import { FreeCTA } from '@/components/free-cta';
 
 export const metadata: Metadata = {
   title: 'How It Works — Property Maintenance Management Made Simple',
@@ -215,31 +216,7 @@ export default function HowItWorksPage() {
         </section>
 
         {/* ───── FINAL CTA ───── */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 sm:p-10 text-center border border-blue-100">
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">
-            Stop managing repairs the hard way
-          </h2>
-          <p className="text-gray-600 mb-6 text-lg max-w-xl mx-auto">
-            If you&apos;re texting contractors, waiting on replies, and trying to keep track of everything in your head — this fixes that.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/sign-up"
-              className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg"
-            >
-              Get started free
-            </Link>
-            <Link
-              href="/features"
-              className="inline-block border border-gray-300 text-gray-700 px-8 py-3 rounded-lg hover:bg-gray-50 transition-colors font-medium text-lg"
-            >
-              See how it works with your first repair
-            </Link>
-          </div>
-          <p className="mt-4 text-sm text-gray-500">
-            No credit card required while we&apos;re in beta.
-          </p>
-        </div>
+        <FreeCTA variant="dark" heading="Ready to try it?" subheading="Set up your first property in under 2 minutes." />
       </main>
     </PublicLayout>
   );

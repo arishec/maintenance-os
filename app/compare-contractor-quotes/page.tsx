@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PublicLayout } from '@/components/public-layout';
+import { FreeCTA } from '@/components/free-cta';
 
 export const metadata: Metadata = {
   title: 'Compare Contractor Quotes Side by Side',
@@ -320,19 +321,8 @@ export default function CompareContractorQuotesPage() {
         </section>
 
         {/* ───── CTA SECTION ───── */}
-        <section className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-8 sm:p-12 text-center border border-blue-500">
-          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">
-            Compare quotes in one system
-          </h2>
-          <p className="text-blue-100 text-lg mb-8 max-w-2xl mx-auto">
-            Stop chasing contractors across texts, emails, and PDFs. Get started free — no credit card, no limits.
-          </p>
-          <Link
-            href="/sign-up"
-            className="inline-block bg-white text-blue-600 px-8 py-3 rounded-lg hover:bg-blue-50 transition-colors font-semibold text-lg"
-          >
-            Get started free
-          </Link>
+        <section>
+          <FreeCTA variant="dark" heading="Compare quotes the smart way" subheading="Send one request, get multiple quotes, pick the best." />
         </section>
       </main>
     </PublicLayout>

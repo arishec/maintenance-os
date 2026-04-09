@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PublicLayout } from '@/components/public-layout';
 import { ArticleJsonLd } from '@/components/seo/article-jsonld';
+import { FreeCTA } from '@/components/free-cta';
 
 export const metadata: Metadata = {
   title: 'How to Track Home Repairs (Without Spreadsheets or Chaos)',
@@ -418,19 +419,8 @@ export default function HowToTrackHomeRepairsPage() {
         </section>
 
         {/* Final CTA */}
-        <section className="rounded-2xl bg-blue-50 border border-blue-100 p-6 sm:p-8 md:p-12 text-center">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">
-            Start organizing your home repairs today
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Free forever for one property. No credit card required.
-          </p>
-          <Link
-            href="/sign-up"
-            className="inline-flex justify-center rounded-xl bg-blue-600 px-8 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-          >
-            Start Tracking Repairs Free
-          </Link>
+        <section>
+          <FreeCTA variant="dark" heading="Start tracking repairs today" subheading="Put everything from this guide into practice — free." />
         </section>
       </main>
     </PublicLayout>

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PublicLayout } from '@/components/public-layout';
+import { FreeCTA } from '@/components/free-cta';
 
 export const metadata: Metadata = {
   title: 'How to Track Rental Property Repairs | Simple System',
@@ -277,19 +278,8 @@ export default function TrackRentalPropertyRepairsPage() {
         </section>
 
         {/* ───── FINAL CTA ───── */}
-        <section className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 sm:p-12 text-center text-white">
-          <h2 className="text-3xl font-bold mb-3">
-            Start tracking repairs the right way
-          </h2>
-          <p className="text-blue-100 text-lg mb-8 max-w-2xl mx-auto">
-            One system for issues, contractors, quotes, and history. Free to get started.
-          </p>
-          <Link
-            href="/sign-up"
-            className="inline-block bg-white text-blue-600 px-8 py-3 rounded-lg hover:bg-blue-50 transition-colors font-bold text-lg"
-          >
-            Get Started Free
-          </Link>
+        <section>
+          <FreeCTA variant="dark" heading="Start tracking repairs today" subheading="Every repair, contractor, and cost — organized in one place." />
         </section>
       </main>
     </PublicLayout>

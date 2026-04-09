@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PublicLayout } from '@/components/public-layout';
+import { FreeCTA } from '@/components/free-cta';
 
 export const metadata: Metadata = {
   title: 'Landlord Maintenance Software | Track Rental Property Repairs',
@@ -306,19 +307,8 @@ export default function LandlordMaintenanceSoftwarePage() {
         </section>
 
         {/* Final CTA */}
-        <section className="rounded-2xl bg-blue-50 border border-blue-100 p-6 sm:p-8 md:p-12 text-center">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">
-            Start managing maintenance across all your properties
-          </h2>
-          <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-            Get organized, reduce costs, and respond faster to tenants. Start free today.
-          </p>
-          <Link
-            href="/sign-up"
-            className="inline-flex justify-center rounded-xl bg-blue-600 px-8 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-          >
-            Start managing maintenance across all your properties
-          </Link>
+        <section>
+          <FreeCTA variant="dark" heading="Start managing maintenance across your properties" subheading="Built for landlords managing 1 to 50+ rental units." />
         </section>
       </main>
     </PublicLayout>
