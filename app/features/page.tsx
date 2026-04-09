@@ -58,44 +58,35 @@ const aiHighlights = [
       </svg>
     ),
     title: 'Multi-issue detection',
-    body: 'List multiple problems at once — AI splits them apart or groups them for one contractor',
+    body: 'List multiple problems at once — AI splits them or groups for one contractor',
   },
 ];
 
 const features = [
   {
-    headline: 'Stop losing track of repairs',
-    body: 'Know exactly what\u2019s happening at every property \u2014 without digging through texts or emails. Track every issue from the moment it\u2019s reported to final completion. See status, updates, photos, and notes all in one place. No more guessing what was fixed, when, or by who.',
-    href: '/features/property-maintenance-tracking',
+    title: 'Repair Tracking',
+    description: 'Know exactly what\'s happening at every property — without digging through texts or emails.',
   },
   {
-    headline: 'Send one request to multiple contractors at once',
-    body: 'Stop texting contractors one by one. Send the issue once and instantly reach multiple contractors. They receive the details and can respond directly with availability, pricing, or questions. Get faster responses and keep everything organized automatically.',
-    href: '/features/contractor-dispatch',
+    title: 'Contractor Dispatch',
+    description: 'Send one request to multiple contractors at once and get faster responses.',
   },
   {
-    headline: 'Compare quotes side-by-side',
-    body: 'No more juggling texts, emails, and notes. See all contractor responses in one place. Compare pricing, timelines, and details clearly so you can make a fast, confident decision. Choose the best option \u2014 without the chaos.',
-    href: '/features/quote-comparison',
+    title: 'Quote Comparison',
+    description: 'See all contractor responses in one place and choose the best option.',
   },
   {
-    headline: 'Stay on top of every job',
-    body: 'Once work begins, track progress without chasing updates. Know what\u2019s scheduled, what\u2019s in progress, and what\u2019s completed \u2014 all in real time. No more wondering if a job is actually getting done.',
-    href: '/features/job-tracking',
+    title: 'Job Tracking',
+    description: 'Track progress in real time without chasing updates.',
   },
   {
-    headline: 'Keep a complete record of everything',
-    body: 'Every repair, every cost, every update \u2014 stored automatically. Search by property, issue, contractor, or date. Use it for maintenance planning, taxes, insurance, or resale. Never lose your repair history again.',
-    href: '/features/repair-history',
+    title: 'Repair History',
+    description: 'Every repair, cost, and update stored and searchable forever.',
   },
-];
-
-const reasons = [
-  'No more chasing contractors for updates',
-  'No more scattered quotes across texts and emails',
-  'No more guessing what was fixed or when',
-  'Everything organized in one place',
-  'Make faster, better repair decisions',
+  {
+    title: 'Photo Analysis',
+    description: 'Upload photos — AI describes damage, severity, and required fixes.',
+  },
 ];
 
 export default function FeaturesPage() {
@@ -128,44 +119,26 @@ export default function FeaturesPage() {
             </Link>
           </div>
           <p className="mt-5 text-base font-medium text-emerald-600">100% free during beta — all features included</p>
-          <div className="mt-3 flex justify-center gap-3 text-sm text-gray-500">
-            <span>No credit card</span>
-            <span aria-hidden="true">·</span>
-            <span>Set up in 2 minutes</span>
-            <span aria-hidden="true">·</span>
-            <span>Works for 1 property or 100</span>
-          </div>
         </div>
 
-        {/* Core value strip */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-16 sm:mb-20">
-          {[
-            'Send one issue to multiple contractors at once',
-            'Compare quotes side-by-side',
-            'Track every repair across all properties',
-            'Never lose updates, photos, or history again',
-          ].map((item) => (
-            <div
-              key={item}
-              className="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4"
-            >
-              <svg
-                className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
+        {/* Feature Grid */}
+        <section className="mb-16 sm:mb-20">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {features.map((feature) => (
+              <div
+                key={feature.title}
+                className="rounded-xl border border-gray-200 bg-white p-6 hover:shadow-md transition-shadow"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4.5 12.75l6 6 9-13.5"
-                />
-              </svg>
-              <span className="text-sm text-gray-700">{item}</span>
-            </div>
-          ))}
-        </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {feature.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
 
         {/* AI Showcase */}
         <section className="rounded-2xl border border-purple-200 bg-gradient-to-b from-purple-50 to-white p-6 sm:p-8 lg:p-10 mb-16 sm:mb-20">
@@ -174,12 +147,9 @@ export default function FeaturesPage() {
               AI-Powered
             </span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-            AI built into every step of the repair process
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            AI built into every step
           </h2>
-          <p className="text-gray-600 mb-6">
-            Not a chatbot. Real AI that classifies issues, reads contractor replies, compares quotes, and extracts invoices &mdash; automatically.
-          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
             {aiHighlights.map((item) => (
               <div key={item.title} className="flex items-start gap-3 rounded-xl bg-white border border-purple-100 p-3.5">
@@ -195,61 +165,11 @@ export default function FeaturesPage() {
             href="/features/ai-powered-maintenance"
             className="inline-flex items-center gap-1.5 rounded-xl bg-purple-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-purple-700 transition-colors"
           >
-            See all 8 AI features
+            See all AI features
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
             </svg>
           </Link>
-        </section>
-
-        {/* Features */}
-        <div className="space-y-10 sm:space-y-14 mb-16 sm:mb-20">
-          {features.map((feature, i) => (
-            <div
-              key={i}
-              className="border border-gray-200 rounded-2xl p-6 sm:p-8 lg:p-10 hover:shadow-lg transition-shadow"
-            >
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">
-                {feature.headline}
-              </h2>
-              <p className="text-gray-600 mb-4 leading-relaxed">
-                {feature.body}
-              </p>
-              <Link
-                href={feature.href}
-                className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-              >
-                Learn more &rarr;
-              </Link>
-            </div>
-          ))}
-        </div>
-
-        {/* Why this matters */}
-        <section className="mb-16 sm:mb-20">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">
-            Why people switch to Maintenance OS
-          </h2>
-          <div className="space-y-4 max-w-2xl mx-auto">
-            {reasons.map((reason) => (
-              <div key={reason} className="flex items-start gap-3">
-                <svg
-                  className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M4.5 12.75l6 6 9-13.5"
-                  />
-                </svg>
-                <span className="text-gray-700">{reason}</span>
-              </div>
-            ))}
-          </div>
         </section>
 
         {/* CTA */}

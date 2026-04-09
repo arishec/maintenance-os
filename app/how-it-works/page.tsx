@@ -21,11 +21,8 @@ export default function HowItWorksPage() {
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6 leading-tight">
             Manage repairs without chasing contractors
           </h1>
-          <p className="text-xl text-gray-600 mb-4 max-w-2xl mx-auto">
-            Most landlords manage repairs across texts, calls, and emails. Requests get lost. Contractors don&apos;t respond. You forget what was fixed.
-          </p>
-          <p className="text-lg text-gray-700 font-medium mb-8 max-w-2xl mx-auto">
-            Maintenance OS puts everything in one place — so you can manage repairs without chasing anyone.
+          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            Stop juggling texts, calls, and emails. Put everything in one place.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -42,19 +39,12 @@ export default function HowItWorksPage() {
             </Link>
           </div>
           <p className="mt-5 text-base font-medium text-emerald-600">100% free during beta — all features included</p>
-          <div className="mt-3 flex justify-center gap-3 text-sm text-gray-500">
-            <span>No credit card</span>
-            <span aria-hidden="true">·</span>
-            <span>Set up in 2 minutes</span>
-            <span aria-hidden="true">·</span>
-            <span>Works for 1 property or 100</span>
-          </div>
         </div>
 
-        {/* ───── STEPS ───── */}
-        <div className="space-y-16 mb-20">
+        {/* ───── 4-STEP FLOW ───── */}
+        <div className="space-y-12 mb-20">
 
-          {/* Step 1 */}
+          {/* Step 1: Report */}
           <div className="flex gap-5 sm:gap-8 items-start">
             <div className="flex-shrink-0">
               <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-blue-600 text-white text-lg font-bold">
@@ -62,20 +52,14 @@ export default function HowItWorksPage() {
               </div>
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">Report the issue</h2>
-              <p className="text-gray-600 mb-3">
-                Start with the problem. Add a title, description, and photos if you have them.
-              </p>
-              <p className="text-gray-600 mb-3">
-                Whether it&apos;s a leaking sink, broken AC, or roof issue, everything gets captured in one place so you have a clear record from the start.
-              </p>
-              <p className="text-gray-500 text-sm">
-                No more scattered notes or trying to remember what happened later.
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Report the issue</h2>
+              <p className="text-gray-600">
+                Add title, description, and photos. Everything captured in one place.
               </p>
             </div>
           </div>
 
-          {/* Step 2 */}
+          {/* Step 2: Dispatch */}
           <div className="flex gap-5 sm:gap-8 items-start">
             <div className="flex-shrink-0">
               <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-blue-600 text-white text-lg font-bold">
@@ -83,31 +67,14 @@ export default function HowItWorksPage() {
               </div>
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">Turn messy requests into clear jobs</h2>
-              <p className="text-gray-600 mb-3">
-                Maintenance OS takes whatever the tenant sends — photos, text, details — and turns it into a structured repair request.
-              </p>
-              <div className="space-y-2 mb-3">
-                <div className="flex gap-3">
-                  <svg className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                  <p className="text-gray-600">Categorized automatically</p>
-                </div>
-                <div className="flex gap-3">
-                  <svg className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                  <p className="text-gray-600">Prioritized by urgency</p>
-                </div>
-                <div className="flex gap-3">
-                  <svg className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                  <p className="text-gray-600">Routed to the right type of contractor</p>
-                </div>
-              </div>
-              <p className="text-gray-500 text-sm">
-                No guessing what&apos;s wrong or who to call.
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Dispatch to contractors</h2>
+              <p className="text-gray-600">
+                Send one request to multiple contractors. They respond with pricing, availability, and questions.
               </p>
             </div>
           </div>
 
-          {/* Step 3 */}
+          {/* Step 3: Compare */}
           <div className="flex gap-5 sm:gap-8 items-start">
             <div className="flex-shrink-0">
               <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-blue-600 text-white text-lg font-bold">
@@ -115,32 +82,14 @@ export default function HowItWorksPage() {
               </div>
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">Send one request. Reach every contractor.</h2>
-              <p className="text-gray-600 mb-3">
-                Instead of texting contractors one by one, send the job once and notify multiple contractors instantly.
-              </p>
-              <p className="text-gray-600 mb-3">They respond with:</p>
-              <div className="space-y-2 mb-3">
-                <div className="flex gap-3">
-                  <svg className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                  <p className="text-gray-600">Pricing</p>
-                </div>
-                <div className="flex gap-3">
-                  <svg className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                  <p className="text-gray-600">Availability</p>
-                </div>
-                <div className="flex gap-3">
-                  <svg className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                  <p className="text-gray-600">Questions</p>
-                </div>
-              </div>
-              <p className="text-gray-500 text-sm">
-                All tied to the same job — in one place. No chasing. No repeating yourself.
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Compare side by side</h2>
+              <p className="text-gray-600">
+                See all quotes, timelines, and details in one view. Pick the best option in minutes.
               </p>
             </div>
           </div>
 
-          {/* Step 4 */}
+          {/* Step 4: Track */}
           <div className="flex gap-5 sm:gap-8 items-start">
             <div className="flex-shrink-0">
               <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-blue-600 text-white text-lg font-bold">
@@ -148,80 +97,14 @@ export default function HowItWorksPage() {
               </div>
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">Compare everything side by side</h2>
-              <p className="text-gray-600 mb-3">
-                See all contractor responses in one view: price, timeline, and details.
-              </p>
-              <p className="text-gray-600 mb-3">
-                No scrolling through messages or trying to remember who said what.
-              </p>
-              <p className="text-gray-700 font-medium">
-                Pick the best option in minutes, not days.
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Track to completion</h2>
+              <p className="text-gray-600">
+                Keep a complete history: who did the work, what it cost, and when it was finished.
               </p>
             </div>
           </div>
 
-          {/* Step 5 */}
-          <div className="flex gap-5 sm:gap-8 items-start">
-            <div className="flex-shrink-0">
-              <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-blue-600 text-white text-lg font-bold">
-                5
-              </div>
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">Never lose track of a repair again</h2>
-              <p className="text-gray-600 mb-3">
-                Every job is tracked from start to finish:
-              </p>
-              <div className="space-y-2 mb-3">
-                <div className="flex gap-3">
-                  <svg className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                  <p className="text-gray-600">Who did the work</p>
-                </div>
-                <div className="flex gap-3">
-                  <svg className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                  <p className="text-gray-600">What it cost</p>
-                </div>
-                <div className="flex gap-3">
-                  <svg className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                  <p className="text-gray-600">When it was completed</p>
-                </div>
-              </div>
-              <p className="text-gray-700 font-medium">
-                So you always have a complete history — for every property.
-              </p>
-            </div>
-          </div>
         </div>
-
-        {/* ───── WHY THIS WORKS ───── */}
-        <section className="rounded-2xl bg-gray-50 border border-gray-200 p-6 sm:p-8 lg:p-10 mb-20">
-          <p className="text-gray-800 text-lg font-medium mb-2">
-            Most landlords don&apos;t have a system — they have conversations.
-          </p>
-          <p className="text-gray-600 mb-6">
-            Texts, emails, calls. Maintenance OS turns all of that into a system.
-          </p>
-
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">Why this works better</h2>
-          <div className="space-y-4">
-            {[
-              { title: 'Stop chasing contractors', desc: 'Send one request instead of following up across texts and emails.' },
-              { title: 'Make faster decisions', desc: 'Compare quotes and availability in one place.' },
-              { title: 'Stay organized', desc: 'Keep a complete repair history for every property.' },
-              { title: 'Reduce back-and-forth', desc: 'Everything lives in one thread tied to the issue.' },
-              { title: 'Works as you scale', desc: 'Use it for one home or multiple properties.' },
-            ].map((item) => (
-              <div key={item.title} className="flex gap-3">
-                <svg className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                <div>
-                  <span className="font-medium text-gray-900">{item.title}:</span>{' '}
-                  <span className="text-gray-600">{item.desc}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
 
         {/* ───── FINAL CTA ───── */}
         <FreeCTA variant="dark" heading="Ready to try it?" subheading="Set up your first property in under 2 minutes." />

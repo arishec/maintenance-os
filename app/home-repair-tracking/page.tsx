@@ -14,23 +14,27 @@ export const metadata: Metadata = {
 const features = [
   {
     title: 'Never lose track of a repair',
-    description: 'Every repair is recorded with photos, cost, contractor info, and notes. No more digging through old texts or trying to remember when the roof was last patched.',
-    icon: 'history',
+    description: 'Every repair recorded with photos, cost, contractor info, and notes — searchable anytime.',
   },
   {
-    title: 'Know who fixed what — and when',
-    description: 'Quickly look up past repairs instead of guessing. See the full timeline of work done on your home, organized by date, contractor, and cost.',
-    icon: 'timeline',
+    title: 'Know who fixed what and when',
+    description: 'Quick lookup of past repairs organized by date, contractor, and cost.',
   },
   {
-    title: 'Make smarter decisions on contractors',
-    description: 'Compare quotes and timelines before choosing a contractor. See side-by-side pricing so you\'re not just going with whoever answers first.',
-    icon: 'compare',
+    title: 'Compare contractor quotes',
+    description: 'Side-by-side pricing to make smarter decisions before choosing.',
   },
   {
     title: 'Everything in one place',
-    description: 'Your home\'s complete maintenance record — accessible anytime. Photos, invoices, contractor details, costs, and notes all tied together.',
-    icon: 'organize',
+    description: 'Complete maintenance record with photos, invoices, and contractor details.',
+  },
+  {
+    title: 'Proof for home sales or claims',
+    description: 'Organized repair history ready when you need documentation.',
+  },
+  {
+    title: 'Works for 1 property or 100',
+    description: 'Scale from a single home to managing multiple properties effortlessly.',
   },
 ];
 
@@ -39,12 +43,12 @@ export default function HomeRepairTrackingPage() {
     <PublicLayout>
       <main className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
         {/* ───── HERO ───── */}
-        <div className="mb-14 sm:mb-20 text-center">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Track Home Repairs and Maintenance in One Place
+        <div className="mb-16 sm:mb-20 text-center">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-4">
+            Track Home Repairs in One Place
           </h1>
-          <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Maintenance OS helps homeowners organize repairs, compare contractor quotes, and keep a complete history of every job done on their home — so you always know what was fixed, when, and by whom.
+          <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto mb-8">
+            Organize repairs, compare quotes, and keep a complete history of every job.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
@@ -60,159 +64,34 @@ export default function HomeRepairTrackingPage() {
               See how it works
             </Link>
           </div>
-          <p className="mt-5 text-base font-medium text-emerald-600">100% free during beta — all features included</p>
-          <div className="mt-3 flex justify-center gap-3 text-sm text-gray-500">
-            <span>No credit card</span>
-            <span aria-hidden="true">·</span>
-            <span>Set up in 2 minutes</span>
-            <span aria-hidden="true">·</span>
-            <span>Works for 1 property or 100</span>
-          </div>
+          <p className="mt-6 text-sm text-gray-500">
+            <span className="font-medium text-emerald-600">100% free during beta</span>
+            {' • '}
+            No credit card
+            {' • '}
+            Set up in 2 minutes
+          </p>
         </div>
 
-        {/* ───── FEATURES ───── */}
-        <div className="space-y-6 sm:space-y-8 mb-14 sm:mb-20">
+        {/* ───── FEATURES GRID ───── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
           {features.map((feature) => (
             <div
               key={feature.title}
-              className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 hover:shadow-lg transition-shadow"
+              className="rounded-xl border border-gray-200 bg-white p-6 hover:shadow-md transition-shadow"
             >
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">
+              <h2 className="text-lg font-bold text-gray-900 mb-2">
                 {feature.title}
               </h2>
-              <p className="text-gray-600 text-base sm:text-lg">
+              <p className="text-sm text-gray-600">
                 {feature.description}
               </p>
             </div>
           ))}
         </div>
 
-        {/* ───── INTERNAL LINKS SECTION ───── */}
-        <section className="mb-14 sm:mb-20">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">
-            Learn more
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Link
-              href="/property-maintenance-software"
-              className="rounded-2xl border border-gray-200 bg-white p-6 hover:shadow-lg transition-shadow"
-            >
-              <h3 className="font-bold text-gray-900 mb-2">Property Maintenance Software</h3>
-              <p className="text-gray-600 text-sm">Complete overview of maintenance management tools.</p>
-            </Link>
-            <Link
-              href="/compare-contractor-quotes"
-              className="rounded-2xl border border-gray-200 bg-white p-6 hover:shadow-lg transition-shadow"
-            >
-              <h3 className="font-bold text-gray-900 mb-2">Compare Contractor Quotes</h3>
-              <p className="text-gray-600 text-sm">Make smarter decisions when choosing contractors.</p>
-            </Link>
-            <Link
-              href="/guides/how-to-track-home-repairs"
-              className="rounded-2xl border border-gray-200 bg-white p-6 hover:shadow-lg transition-shadow"
-            >
-              <h3 className="font-bold text-gray-900 mb-2">How to Track Home Repairs</h3>
-              <p className="text-gray-600 text-sm">Best practices for organizing your maintenance records.</p>
-            </Link>
-            <Link
-              href="/features"
-              className="rounded-2xl border border-gray-200 bg-white p-6 hover:shadow-lg transition-shadow"
-            >
-              <h3 className="font-bold text-gray-900 mb-2">Full Features</h3>
-              <p className="text-gray-600 text-sm">Explore everything Maintenance OS can do.</p>
-            </Link>
-          </div>
-        </section>
-
-        {/* ───── BENEFITS ───── */}
-        <section className="rounded-2xl border border-blue-100 bg-blue-50 p-6 sm:p-8 lg:p-10 mb-14 sm:mb-20">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">
-            Why track repairs with Maintenance OS
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
-            <div className="flex items-start gap-3">
-              <svg
-                className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4.5 12.75l6 6 9-13.5"
-                />
-              </svg>
-              <div>
-                <span className="font-bold text-gray-900">Never lose documentation</span>
-                <p className="text-gray-600 text-sm mt-1">Keep receipts, photos, and contractor info forever.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <svg
-                className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4.5 12.75l6 6 9-13.5"
-                />
-              </svg>
-              <div>
-                <span className="font-bold text-gray-900">Make better contractor decisions</span>
-                <p className="text-gray-600 text-sm mt-1">Compare quotes and timelines side-by-side.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <svg
-                className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4.5 12.75l6 6 9-13.5"
-                />
-              </svg>
-              <div>
-                <span className="font-bold text-gray-900">Proof for home sales or claims</span>
-                <p className="text-gray-600 text-sm mt-1">Organized repair history when you need it.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <svg
-                className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4.5 12.75l6 6 9-13.5"
-                />
-              </svg>
-              <div>
-                <span className="font-bold text-gray-900">One dashboard, zero spreadsheets</span>
-                <p className="text-gray-600 text-sm mt-1">Everything accessible in one place, anytime.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* ───── FINAL CTA ───── */}
-        <section>
-          <FreeCTA variant="dark" heading="Start tracking your home repairs" subheading="Everything you need to stay on top of home maintenance." />
-        </section>
+        <FreeCTA variant="dark" heading="Start tracking your home repairs" subheading="Everything you need to stay on top of home maintenance." />
       </main>
     </PublicLayout>
   );
