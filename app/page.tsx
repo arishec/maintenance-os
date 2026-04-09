@@ -6,9 +6,9 @@ import { PublicLayout } from '@/components/public-layout';
 import { AIDemoHero } from '@/components/ai-demo-hero';
 
 export const metadata: Metadata = {
-  title: 'Maintenance OS — Manage Repairs Without Chasing Contractors',
+  title: 'Property Maintenance Software for Landlords & Homeowners | Maintenance OS',
   description:
-    'Upload a photo or describe a repair. AI classifies urgency, recommends the right trade, and dispatches to contractors — all in one click.',
+    'Send one repair request, get multiple contractor quotes, and track every job from start to finish. Replace texts, calls, and spreadsheets with one simple system.',
   alternates: {
     canonical: '/',
   },
@@ -25,23 +25,20 @@ export default async function HomePage() {
       <SoftwareJsonLd />
       <PublicLayout>
         <main>
-          {/* ───── HERO WITH AI DEMO ───── */}
-          <section className="mx-auto max-w-7xl px-6 pt-10 pb-6 lg:px-10 lg:pt-14 lg:pb-8">
-            <div className="mx-auto max-w-3xl text-center mb-10">
+          {/* ───── HERO: PROBLEM + SOLUTION ───── */}
+          <section className="mx-auto max-w-7xl px-6 pt-12 pb-8 lg:px-10 lg:pt-20 lg:pb-12">
+            <div className="mx-auto max-w-3xl text-center">
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-slate-950 md:leading-[1.08]">
-                Upload a photo. AI diagnoses the repair <br className="hidden sm:block" />before the contractor arrives.
+                Property Maintenance Software<br className="hidden sm:block" /> for Landlords &amp; Homeowners
               </h1>
-              <p className="mt-4 text-lg leading-7 text-slate-600 max-w-2xl mx-auto">
-                Snap a photo or describe the issue. AI analyzes the image, classifies urgency, recommends the right trade, and dispatches to contractors — all in one click.
+              <p className="mt-5 text-lg leading-7 text-slate-600 max-w-2xl mx-auto">
+                Send one repair request, get multiple contractor quotes, and track every job from start to finish.
               </p>
-            </div>
+              <p className="mt-2 text-base text-slate-500">
+                Replace texts, calls, and spreadsheets with one simple system for managing repairs.
+              </p>
 
-            {/* Live AI Demo */}
-            <AIDemoHero />
-
-            {/* CTA below demo */}
-            <div className="mt-10 text-center">
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link
                   href={ctaHref}
                   className="rounded-2xl bg-blue-600 px-7 py-4 text-lg font-semibold text-white shadow-md transition hover:bg-blue-700 hover:shadow-lg w-full sm:w-auto text-center"
@@ -55,18 +52,17 @@ export default async function HomePage() {
                   See how it works
                 </Link>
               </div>
-              <p className="mt-5 text-base font-medium text-emerald-600">100% free during beta — all features included</p>
+
+              <p className="mt-4 text-sm text-slate-500">
+                Send once → reach multiple contractors → compare quotes → track the job
+              </p>
+              <p className="mt-3 text-base font-medium text-emerald-600">100% free during beta — all features included</p>
               <div className="mt-3 flex justify-center gap-3 text-sm text-slate-500">
                 <span>No credit card</span>
                 <span aria-hidden="true">·</span>
                 <span>Set up in 2 minutes</span>
                 <span aria-hidden="true">·</span>
                 <span>Works for 1 property or 100</span>
-              </div>
-              <div className="mt-6 flex justify-center">
-                <a href="https://www.producthunt.com/products/maintenance-os?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-maintenance-os" target="_blank" rel="noopener noreferrer">
-                  <img alt="Maintenance OS - Manage property repairs without chasing contractors | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1111632&theme=light&t=1775478171868" />
-                </a>
               </div>
             </div>
           </section>
@@ -79,7 +75,7 @@ export default async function HomePage() {
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                  { step: '1', title: 'Report', desc: 'Upload a photo or describe the issue. AI classifies it instantly.' },
+                  { step: '1', title: 'Report', desc: 'Describe the issue or upload a photo. AI classifies it instantly.' },
                   { step: '2', title: 'Dispatch', desc: 'Send to multiple contractors at once via SMS and email.' },
                   { step: '3', title: 'Compare', desc: 'See quotes, timelines, and scope side by side.' },
                   { step: '4', title: 'Track', desc: 'Follow every job from scheduled to completed.' },
@@ -96,33 +92,48 @@ export default async function HomePage() {
             </div>
           </section>
 
-          {/* ───── AI FEATURES — TIGHT GRID ───── */}
-          <section className="mx-auto max-w-5xl px-6 py-16 lg:px-10">
-            <h2 className="text-center text-2xl sm:text-3xl font-semibold tracking-tight text-slate-950 mb-10">
-              AI at every step
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[
-                { title: 'Photo diagnosis', desc: 'AI sees what you see — damage type, severity, recommended trade.' },
-                { title: 'Smart classification', desc: 'Category, urgency, and the right contractor type — automatically.' },
-                { title: 'Quote comparison', desc: 'Multiple bids analyzed side by side. Best value highlighted.' },
-                { title: 'Reply parsing', desc: '"Thursday at $450" → price, date, and availability extracted.' },
-                { title: 'Invoice extraction', desc: 'Upload a receipt. AI pulls amounts, line items, and details.' },
-                { title: 'Repair history', desc: 'Every job builds a searchable record of costs, contractors, and outcomes.' },
-              ].map((item) => (
-                <div key={item.title} className="rounded-xl border border-slate-200 bg-white p-5">
-                  <h3 className="text-sm font-semibold text-slate-900 mb-1">{item.title}</h3>
-                  <p className="text-sm text-slate-500 leading-relaxed">{item.desc}</p>
-                </div>
-              ))}
+          {/* ───── AI DEMO — THE "WOW" MOMENT ───── */}
+          <section className="mx-auto max-w-7xl px-6 py-16 lg:px-10">
+            <div className="mx-auto max-w-3xl text-center mb-10">
+              <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-950">
+                AI does the heavy lifting
+              </h2>
+              <p className="mt-3 text-base text-slate-600">
+                Upload a photo of any repair. AI diagnoses the issue, classifies urgency, and recommends the right trade — before the contractor arrives.
+              </p>
             </div>
-            <div className="mt-8 text-center">
-              <Link
-                href="/features"
-                className="text-sm font-medium text-blue-600 hover:underline"
-              >
-                See all features →
-              </Link>
+            <AIDemoHero />
+          </section>
+
+          {/* ───── AI FEATURES — TIGHT GRID ───── */}
+          <section className="border-t border-slate-200 bg-slate-50">
+            <div className="mx-auto max-w-5xl px-6 py-16 lg:px-10">
+              <h2 className="text-center text-2xl sm:text-3xl font-semibold tracking-tight text-slate-950 mb-10">
+                AI at every step
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[
+                  { title: 'Photo diagnosis', desc: 'AI sees what you see — damage type, severity, recommended trade.' },
+                  { title: 'Smart classification', desc: 'Category, urgency, and the right contractor type — automatically.' },
+                  { title: 'Quote comparison', desc: 'Multiple bids analyzed side by side. Best value highlighted.' },
+                  { title: 'Reply parsing', desc: '"Thursday at $450" → price, date, and availability extracted.' },
+                  { title: 'Invoice extraction', desc: 'Upload a receipt. AI pulls amounts, line items, and details.' },
+                  { title: 'Repair history', desc: 'Every job builds a searchable record of costs, contractors, and outcomes.' },
+                ].map((item) => (
+                  <div key={item.title} className="rounded-xl border border-slate-200 bg-white p-5">
+                    <h3 className="text-sm font-semibold text-slate-900 mb-1">{item.title}</h3>
+                    <p className="text-sm text-slate-500 leading-relaxed">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-8 text-center">
+                <Link
+                  href="/features"
+                  className="text-sm font-medium text-blue-600 hover:underline"
+                >
+                  See all features →
+                </Link>
+              </div>
             </div>
           </section>
 
@@ -141,12 +152,6 @@ export default async function HomePage() {
                   className="rounded-2xl bg-blue-500 px-7 py-4 text-lg font-semibold text-white transition hover:bg-blue-400 hover:shadow-lg w-full sm:w-auto text-center"
                 >
                   {ctaLabel}
-                </Link>
-                <Link
-                  href="/pricing"
-                  className="rounded-2xl border border-white/20 px-6 py-4 text-base font-semibold text-white/90 transition hover:bg-white/5 w-full sm:w-auto text-center"
-                >
-                  View pricing
                 </Link>
               </div>
               <p className="mt-5 text-sm font-medium text-emerald-400">100% free during beta — every feature, no limits</p>
