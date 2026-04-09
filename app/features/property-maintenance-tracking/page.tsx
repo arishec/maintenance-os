@@ -4,9 +4,9 @@ import { PublicLayout } from '@/components/public-layout';
 import { FreeCTA } from '@/components/free-cta';
 
 export const metadata: Metadata = {
-  title: 'Property Maintenance Tracking — Never Lose Track of a Repair',
+  title: 'Property Maintenance Tracking -- Never Lose Track of a Repair',
   description:
-    'Track every maintenance issue, contractor, and update across your properties — all in one place. Free forever.',
+    'Track every maintenance issue, contractor, and update across your properties -- all in one place. Free forever.',
   alternates: {
     canonical: '/features/property-maintenance-tracking',
   },
@@ -21,7 +21,7 @@ const capabilities = [
 
 const benefits = [
   { title: 'Never lose an issue', body: 'Everything stays in one system.' },
-  { title: 'Instant visibility', body: 'See what's open, in progress, and done.' },
+  { title: 'Instant visibility', body: "See what's open, in progress, and done." },
   { title: 'Build repair history', body: 'Perfect for resale, insurance, and planning.' },
 ];
 
@@ -35,14 +35,14 @@ export default function PropertyMaintenanceTrackingPage() {
             Never Lose Track of a Repair Again
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
-            Track every maintenance issue, contractor, and update across your properties — all in one place.
+            Track every maintenance issue, contractor, and update across your properties -- all in one place.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               href="/sign-up"
               className="inline-flex justify-center rounded-xl bg-blue-600 px-7 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-md w-full sm:w-auto"
             >
-              Start free — no credit card
+              Start free -- no credit card
             </Link>
             <Link
               href="#features"
@@ -111,7 +111,7 @@ export default function PropertyMaintenanceTrackingPage() {
 
         {/* CTA */}
         <section>
-          <FreeCTA variant="dark" heading="Start tracking maintenance" subheading="Every repair, every property — one system." />
+          <FreeCTA variant="dark" heading="Start tracking maintenance" subheading="Every repair, every property -- one system." />
         </section>
       </main>
     </PublicLayout>

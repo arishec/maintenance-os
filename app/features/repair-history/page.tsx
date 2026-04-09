@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { PublicLayout } from '@/components/public-layout';
 
 export const metadata: Metadata = {
-  title: 'Repair History — Never Lose Track of What's Been Done',
+  title: "Repair History -- Never Lose Track of What's Been Done",
   description:
     'Every repair, cost, and contractor in one searchable timeline. Perfect for resale, insurance claims, tenant disputes, and long-term planning.',
   alternates: {
@@ -44,7 +44,7 @@ export default function RepairHistoryPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
             <div className="border border-gray-200 rounded p-3"><p className="font-bold text-gray-900">Everything in one place</p><p className="text-gray-600 text-xs">All repairs, costs, contractors, photos organized</p></div>
             <div className="border border-gray-200 rounded p-3"><p className="font-bold text-gray-900">Find anything instantly</p><p className="text-gray-600 text-xs">Search by date, type, contractor, or cost</p></div>
-            <div className="border border-gray-200 rounded p-3"><p className="font-bold text-gray-900">Always have proof</p><p className="text-gray-600 text-xs">For buyers, insurance, disputes — at your fingertips</p></div>
+            <div className="border border-gray-200 rounded p-3"><p className="font-bold text-gray-900">Always have proof</p><p className="text-gray-600 text-xs">For buyers, insurance, disputes -- at your fingertips</p></div>
             <div className="border border-gray-200 rounded p-3"><p className="font-bold text-gray-900">Plan better repairs</p><p className="text-gray-600 text-xs">See patterns. Know what to replace vs patch.</p></div>
           </div>
         </div>
@@ -67,7 +67,7 @@ export default function RepairHistoryPage() {
             <li>Avoid costly surprises by knowing what's been done</li>
             <li>Increase property value with documented maintenance</li>
             <li>Protect yourself legally with proof</li>
-            <li>Get peace of mind — never wonder "did we fix that?"</li>
+            <li>Get peace of mind -- never wonder "did we fix that?"</li>
           </ul>
         </div>
 
@@ -90,7 +90,7 @@ export default function RepairHistoryPage() {
         {/* CTA */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
           <h2 className="text-xl font-bold text-gray-900 mb-1">Stop Losing Track</h2>
-          <p className="text-gray-600 text-sm mb-3">Know your property inside and out — without digging through emails.</p>
+          <p className="text-gray-600 text-sm mb-3">Know your property inside and out -- without digging through emails.</p>
           <Link href="/sign-up" className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium text-sm">Start Free</Link>
         </div>
       </main>

@@ -3,9 +3,9 @@ import Link from 'next/link';
 import { PublicLayout } from '@/components/public-layout';
 
 export const metadata: Metadata = {
-  title: 'Job Tracking — Know What's Happening With Every Job',
+  title: "Job Tracking -- Know What's Happening With Every Job",
   description:
-    'No more chasing contractors. See what's scheduled, in progress, and completed across all your properties in real time.',
+    "No more chasing contractors. See what's scheduled, in progress, and completed across all your properties in real time.",
   alternates: {
     canonical: '/features/job-tracking',
   },

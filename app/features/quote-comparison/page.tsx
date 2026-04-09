@@ -4,7 +4,7 @@ import { PublicLayout } from '@/components/public-layout';
 import { FreeCTA } from '@/components/free-cta';
 
 export const metadata: Metadata = {
-  title: 'Quote Comparison — Compare Contractor Quotes Without the Mess',
+  title: 'Quote Comparison -- Compare Contractor Quotes Without the Mess',
   description:
     'No spreadsheets. No copying and pasting. Get multiple bids organized instantly so you can choose the right contractor with confidence.',
   alternates: {
@@ -13,8 +13,8 @@ export const metadata: Metadata = {
 };
 
 const features = [
-  { title: 'See prices side by side', body: 'Instantly know who's cheapest and fastest.' },
-  { title: 'Compare scope & details', body: 'Understand what you're actually getting.' },
+  { title: 'See prices side by side', body: "Instantly know who's cheapest and fastest." },
+  { title: 'Compare scope & details', body: "Understand what you're actually getting." },
   { title: 'Avoid bad decisions', body: 'Spot red flags before you hire.' },
   { title: 'Save hundreds per job', body: 'Multiple bids often reduce costs significantly.' },
 ];
@@ -36,7 +36,7 @@ export default function QuoteComparisonPage() {
               href="/sign-up"
               className="inline-flex justify-center rounded-xl bg-blue-600 px-7 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-md w-full sm:w-auto"
             >
-              Start free — no credit card
+              Start free -- no credit card
             </Link>
             <Link
               href="#example"
@@ -82,17 +82,17 @@ export default function QuoteComparisonPage() {
                   <tr className="border-b border-gray-100">
                     <td className="py-3 px-4 font-medium text-gray-900">Smith Roofing</td>
                     <td className="py-3 px-4 text-right font-medium">$2,800</td>
-                    <td className="py-3 px-4 text-gray-600">5–7 days</td>
+                    <td className="py-3 px-4 text-gray-600">5-7 days</td>
                   </tr>
                   <tr className="border-b border-gray-100">
                     <td className="py-3 px-4 font-medium text-gray-900">Peak Repairs</td>
                     <td className="py-3 px-4 text-right font-medium">$2,200</td>
-                    <td className="py-3 px-4 text-gray-600">10–14 days</td>
+                    <td className="py-3 px-4 text-gray-600">10-14 days</td>
                   </tr>
                   <tr>
                     <td className="py-3 px-4 font-medium text-gray-900">Honest Contractors</td>
                     <td className="py-3 px-4 text-right font-medium">$2,500</td>
-                    <td className="py-3 px-4 text-gray-600">7–10 days</td>
+                    <td className="py-3 px-4 text-gray-600">7-10 days</td>
                   </tr>
                 </tbody>
               </table>
