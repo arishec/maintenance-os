@@ -25,10 +25,18 @@ export default function TrackRentalPropertyRepairsPage() {
           </p>
           <Link
             href="/sign-up"
-            className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg"
+            className="inline-block bg-blue-600 text-white px-7 py-4 rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg shadow-md"
           >
-            Start Tracking Repairs the Right Way
+            Start free — no credit card
           </Link>
+          <p className="mt-5 text-base font-medium text-emerald-600">100% free during beta — all features included</p>
+          <div className="mt-3 flex justify-center gap-3 text-sm text-gray-500">
+            <span>No credit card</span>
+            <span aria-hidden="true">·</span>
+            <span>Set up in 2 minutes</span>
+            <span aria-hidden="true">·</span>
+            <span>Works for 1 property or 100</span>
+          </div>
         </div>
 
         {/* ───── SECTION: THE PROBLEM ───── */}
