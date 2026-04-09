@@ -103,16 +103,16 @@ export default async function HomePage() {
               <p className="mt-5 text-xl leading-8 text-slate-600">
                 Turn messy texts, calls, and scattered quotes into one clear system — intake, dispatch, compare, track, and history.
               </p>
-              <div className="mt-8 flex flex-wrap justify-center gap-4">
+              <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link
                   href={ctaHref}
-                  className="rounded-2xl bg-blue-600 px-7 py-4 text-lg font-semibold text-white shadow-md transition hover:bg-blue-700 hover:shadow-lg"
+                  className="rounded-2xl bg-blue-600 px-7 py-4 text-lg font-semibold text-white shadow-md transition hover:bg-blue-700 hover:shadow-lg w-full sm:w-auto text-center"
                 >
                   {ctaLabel}
                 </Link>
                 <Link
                   href="/how-it-works"
-                  className="rounded-2xl border border-slate-300 bg-white px-6 py-4 text-base font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-50"
+                  className="rounded-2xl border border-slate-300 bg-white px-6 py-4 text-base font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-50 w-full sm:w-auto text-center"
                 >
                   See how it works
                 </Link>
