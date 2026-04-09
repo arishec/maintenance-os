@@ -93,10 +93,10 @@ export default async function HomePage() {
           <section className="mx-auto max-w-7xl px-6 pt-10 pb-6 lg:px-10 lg:pt-14 lg:pb-8">
             <div className="mx-auto max-w-3xl text-center mb-10">
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-slate-950 md:leading-[1.08]">
-                AI that diagnoses repairs <br className="hidden sm:block" />before the contractor arrives
+                Upload a photo. AI diagnoses the repair <br className="hidden sm:block" />before the contractor arrives.
               </h1>
               <p className="mt-4 text-lg leading-7 text-slate-600 max-w-2xl mx-auto">
-                Describe a repair issue. AI classifies it instantly — urgency, trade, category, and a full assessment. Then dispatch to contractors in one click.
+                Snap a photo or describe the issue. AI analyzes the image, classifies urgency, recommends the right trade, and dispatches to contractors — all in one click.
               </p>
             </div>
 
