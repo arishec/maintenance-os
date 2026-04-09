@@ -96,21 +96,29 @@ export default function PropertyMaintenanceSoftwarePage() {
             <br className="hidden sm:block" /> Keeps Repairs Organized
           </h1>
           <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Maintenance OS is property maintenance software that helps landlords and homeowners track repairs, manage contractor communication, compare quotes, and maintain a complete history of every job — without spreadsheets, scattered texts, or guesswork.
+            Track repairs, manage contractor communication, compare quotes, and maintain a complete history of every job — without spreadsheets, scattered texts, or guesswork.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               href="/sign-up"
-              className="inline-flex justify-center rounded-xl bg-blue-600 px-8 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors w-full sm:w-auto"
+              className="inline-flex justify-center rounded-2xl bg-blue-600 px-8 py-4 text-lg font-semibold text-white shadow-md hover:bg-blue-700 hover:shadow-lg transition w-full sm:w-auto"
             >
-              Start Managing Your Properties
+              Start free — no credit card
             </Link>
             <Link
               href="/how-it-works"
-              className="inline-flex justify-center rounded-xl border border-gray-300 bg-white px-8 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors w-full sm:w-auto"
+              className="inline-flex justify-center rounded-2xl border border-gray-300 bg-white px-8 py-4 text-base font-semibold text-gray-700 hover:bg-gray-50 transition w-full sm:w-auto"
             >
               See How It Works
             </Link>
+          </div>
+          <p className="mt-5 text-base font-medium text-emerald-600">100% free during beta — all features included</p>
+          <div className="mt-3 flex justify-center gap-3 text-sm text-gray-500">
+            <span>No credit card</span>
+            <span aria-hidden="true">·</span>
+            <span>Set up in 2 minutes</span>
+            <span aria-hidden="true">·</span>
+            <span>Works for 1 property or 100</span>
           </div>
         </div>
 
@@ -293,19 +301,20 @@ export default function PropertyMaintenanceSoftwarePage() {
         </section>
 
         {/* Final CTA */}
-        <section className="rounded-2xl bg-blue-50 border border-blue-100 p-6 sm:p-8 md:p-12 text-center">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">
-            Start managing your property maintenance in one system
+        <section className="rounded-2xl bg-slate-950 p-6 sm:p-8 md:p-12 text-center">
+          <h2 className="text-xl sm:text-2xl font-bold text-white mb-3">
+            Stop chasing contractors. Start managing repairs.
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-slate-300 mb-6">
             Built for landlords and homeowners managing 1 to 50+ properties.
           </p>
           <Link
             href="/sign-up"
-            className="inline-flex justify-center rounded-xl bg-blue-600 px-8 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+            className="inline-flex justify-center rounded-2xl bg-blue-500 px-8 py-4 text-lg font-semibold text-white hover:bg-blue-400 hover:shadow-lg transition"
           >
-            Get Started Free
+            Start free — no credit card
           </Link>
+          <p className="mt-4 text-sm font-medium text-emerald-400">100% free during beta — every feature, no limits</p>
         </section>
       </main>
     </PublicLayout>
