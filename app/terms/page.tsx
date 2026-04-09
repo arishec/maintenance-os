@@ -130,12 +130,54 @@ export default function TermsPage() {
             You are solely responsible for evaluating contractors, negotiating terms, and resolving disputes.
           </p>
 
-          <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">10. SMS Communications</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4" id="sms">10. SMS Communications and Consent</h2>
+
+          <h3 className="text-xl font-bold text-gray-900 mt-6 mb-3">10.1 How SMS Consent Is Collected</h3>
           <p className="text-gray-700 mb-4">
-            By using SMS dispatch, you consent to receive SMS messages from Maintenance OS and our contractors.
-            You acknowledge that SMS carriers may charge standard message and data rates. You can opt out of
-            marketing SMS by contacting support, but dispatch confirmations are necessary to operate the
-            Service.
+            Maintenance OS sends transactional SMS notifications to contractors on behalf of property owners.
+            Contractors consent to receive SMS messages when a property owner adds them to the Maintenance OS
+            platform. The contractor add form at ifbids.com displays clear SMS consent language stating that by
+            being added, the contractor agrees to receive repair request notifications via SMS, that message and
+            data rates may apply, and that they can opt out by replying STOP.
+          </p>
+
+          <h3 className="text-xl font-bold text-gray-900 mt-6 mb-3">10.2 Types of SMS Messages</h3>
+          <p className="text-gray-700 mb-4">
+            Maintenance OS sends transactional (non-marketing) SMS messages only. These include:
+          </p>
+          <ul className="list-disc list-inside space-y-2 text-gray-700 mb-4">
+            <li>Repair request notifications dispatched by property owners</li>
+            <li>Job details including property address, issue description, and photos</li>
+            <li>Request confirmations and status updates</li>
+          </ul>
+          <p className="text-gray-700 mb-4">
+            We do not send marketing, promotional, or advertising messages via SMS. Message frequency varies
+            based on repair request volume and is typically 1-5 messages per month per contractor.
+          </p>
+
+          <h3 className="text-xl font-bold text-gray-900 mt-6 mb-3">10.3 Message and Data Rates</h3>
+          <p className="text-gray-700 mb-4">
+            Standard message and data rates may apply depending on your mobile carrier and plan. Maintenance OS
+            is not responsible for any charges imposed by your wireless carrier.
+          </p>
+
+          <h3 className="text-xl font-bold text-gray-900 mt-6 mb-3">10.4 Opting Out</h3>
+          <p className="text-gray-700 mb-4">
+            You can opt out of SMS messages at any time by replying <strong>STOP</strong> to any SMS message
+            from Maintenance OS. After opting out, you will receive a one-time confirmation message and no
+            further SMS messages will be sent. You may also contact us at support@ifbids.com to opt out.
+          </p>
+
+          <h3 className="text-xl font-bold text-gray-900 mt-6 mb-3">10.5 Help</h3>
+          <p className="text-gray-700 mb-4">
+            For help with SMS messages, reply <strong>HELP</strong> to any message or contact
+            support@ifbids.com.
+          </p>
+
+          <h3 className="text-xl font-bold text-gray-900 mt-6 mb-3">10.6 No Sharing of Consent</h3>
+          <p className="text-gray-700 mb-4">
+            Consent to receive SMS messages is not shared with or sold to third parties. SMS consent data is
+            used solely by Maintenance OS to deliver the requested repair dispatch notifications.
           </p>
 
           <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">11. Intellectual Property</h2>

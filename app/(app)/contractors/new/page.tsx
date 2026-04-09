@@ -142,19 +142,26 @@ export default function NewContractorPage() {
               </div>
               <p className="text-xs text-muted-foreground ml-6 mt-1">Preferred contractors appear first when dispatching repair requests</p>
             </div>
-            <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+              <p className="text-xs font-semibold text-gray-900 mb-2">SMS Consent Notice</p>
+              <p className="text-xs text-muted-foreground mb-2">
+                By adding this contractor, you confirm that the contractor has agreed to receive repair
+                request notifications via SMS from Maintenance OS (ifbids.com). Message and data rates
+                may apply. Message frequency varies (typically 1-5 per month). The contractor can opt out
+                at any time by replying <strong>STOP</strong> to any SMS message, or by contacting
+                support@ifbids.com. Reply <strong>HELP</strong> for help.
+              </p>
               <p className="text-xs text-muted-foreground">
-                By adding this contractor, you confirm they have agreed to receive SMS and/or email
-                notifications about repair requests from Maintenance OS. Message &amp; data rates may
-                apply. Contractors can opt out at any time by replying STOP to any SMS message.
-                See our{' '}
-                <a href="/privacy" target="_blank" className="underline hover:text-foreground">
+                No mobile information will be shared with third parties or affiliates for
+                marketing or promotional purposes. See our{' '}
+                <a href="/privacy" target="_blank" className="text-blue-600 underline hover:text-blue-700">
                   Privacy Policy
                 </a>{' '}
                 and{' '}
-                <a href="/terms" target="_blank" className="underline hover:text-foreground">
+                <a href="/terms#sms" target="_blank" className="text-blue-600 underline hover:text-blue-700">
                   Terms of Service
-                </a>.
+                </a>{' '}
+                for full details on our SMS messaging practices.
               </p>
             </div>
             <Button type="submit" disabled={loading}>

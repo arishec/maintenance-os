@@ -63,10 +63,24 @@ export default function PrivacyPage() {
 
           <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">3. SMS and Email Communications</h2>
           <p className="text-gray-700 mb-4">
-            When you use our contractor dispatch feature, we send SMS and email messages on your behalf. We
-            store records of these communications for your reference and to improve our service. You can opt
-            out of marketing communications at any time, but service-related messages (dispatch confirmations,
-            contractor responses) are necessary to operate the platform.
+            When you use our contractor dispatch feature, we send transactional SMS and email messages to
+            contractors on your behalf. These messages contain repair request details such as property address,
+            issue description, urgency level, and photos.
+          </p>
+          <p className="text-gray-700 mb-4">
+            <strong>SMS consent:</strong> Contractors consent to receive SMS messages when a property owner adds
+            them to the Maintenance OS platform. The contractor add form displays clear consent language. We do
+            not send marketing or promotional SMS messages. Consent is not shared with or sold to third parties.
+          </p>
+          <p className="text-gray-700 mb-4">
+            <strong>Opting out:</strong> Contractors can opt out of SMS at any time by replying STOP to any
+            message. They can also contact support@ifbids.com. After opting out, no further SMS messages will
+            be sent. Standard message and data rates may apply.
+          </p>
+          <p className="text-gray-700 mb-4">
+            We store records of SMS and email communications for your reference, legal compliance, and to
+            improve our service. For full details on our SMS practices, see Section 10 of
+            our <a href="/terms#sms" className="text-blue-600 underline hover:text-blue-700">Terms of Service</a>.
           </p>
 
           <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">4. Data Sharing and Third Parties</h2>
