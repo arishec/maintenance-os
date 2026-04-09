@@ -15,315 +15,75 @@ export const metadata: Metadata = {
 export default function CompareContractorQuotesPage() {
   return (
     <PublicLayout>
-      <main className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-10 py-20 sm:py-24">
-        {/* ───── HEADER ───── */}
-        <div className="mb-16 sm:mb-20">
-          <h1 className="text-4xl sm:text-5xl font-bold text-slate-950 mb-6">
-            Compare Contractor Quotes Without the Mess
-          </h1>
-          <p className="text-lg sm:text-xl text-slate-600 max-w-3xl leading-relaxed">
-            Comparing contractor quotes manually is messy — different formats, unclear pricing, inconsistent timelines. One contractor texts a number, another emails a PDF, a third gives a verbal estimate. Maintenance OS organizes everything into one clean comparison view so you can make smarter decisions faster.
-          </p>
+      <main className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+        {/* HERO */}
+        <div className="text-center mb-14">
+          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-3">Compare Quotes Without the Mess</h1>
+          <p className="text-base text-gray-600 mb-5">One contractor texts a number. Another emails a PDF. A third gives a verbal estimate. Maintenance OS puts them all in one comparison view.</p>
+          <Link href="/sign-up" className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 font-medium text-sm">Get Started Free</Link>
         </div>
 
-        {/* ───── SECTION: Why Comparing is Hard ───── */}
-        <section className="mb-16 sm:mb-20">
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-950 mb-8">
-            Why comparing quotes is so hard
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
-              <h3 className="font-semibold text-slate-900 mb-2">Different formats</h3>
-              <p className="text-slate-600">
-                Texts, emails, PDFs, verbal estimates — nothing is in the same place
-              </p>
-            </div>
+        {/* THE PROBLEM */}
+        <div className="mb-14">
+          <h2 className="text-lg font-bold text-gray-900 mb-3">Why It's Hard</h2>
+          <div className="text-xs text-gray-700 space-y-1">
+            <p><span className="font-bold">Formats:</span> Texts, emails, PDFs, verbal — nothing in same place</p>
+            <p><span className="font-bold">Scope:</span> Is labor included? Materials? Permits? Guessing.</p>
+            <p><span className="font-bold">Timelines:</span> One says tomorrow, another next week. Can't compare.</p>
+            <p><span className="font-bold">No single view:</span> Dig through messages trying to remember who quoted what</p>
+            <p><span className="font-bold">Easy to lose:</span> Delete a text and quote is gone. No record.</p>
+            <p><span className="font-bold">Decision fatigue:</span> Pick whoever responds first, not who's best</p>
+          </div>
+        </div>
 
-            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
-              <h3 className="font-semibold text-slate-900 mb-2">Unclear what&apos;s included</h3>
-              <p className="text-slate-600">
-                Is labor included? Materials? Permits? You&apos;re left guessing at the scope
-              </p>
-            </div>
+        {/* HOW IT WORKS */}
+        <div className="mb-14">
+          <h2 className="text-lg font-bold text-gray-900 mb-3">The Fix (4 Steps)</h2>
+          <div className="space-y-2 text-xs">
+            <div className="border border-gray-200 rounded p-3"><p className="font-bold text-gray-900">1. Send one request to multiple contractors</p><p className="text-gray-600">Describe job once with photos, location, urgency. Click send.</p></div>
+            <div className="border border-gray-200 rounded p-3"><p className="font-bold text-gray-900">2. Quotes arrive in one place</p><p className="text-gray-600">Replies auto-organize. No hunting through texts.</p></div>
+            <div className="border border-gray-200 rounded p-3"><p className="font-bold text-gray-900">3. See them side by side</p><p className="text-gray-600">Price, timeline, scope, notes line up for comparison.</p></div>
+            <div className="border border-gray-200 rounded p-3"><p className="font-bold text-gray-900">4. Choose the best option</p><p className="text-gray-600">Pick the contractor that makes sense. Accept and schedule.</p></div>
+          </div>
+        </div>
 
-            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
-              <h3 className="font-semibold text-slate-900 mb-2">Inconsistent timelines</h3>
-              <p className="text-slate-600">
-                One contractor says tomorrow, another says next week — hard to compare apples to apples
-              </p>
-            </div>
-
-            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
-              <h3 className="font-semibold text-slate-900 mb-2">No single view</h3>
-              <p className="text-slate-600">
-                You&apos;re digging through messages trying to remember who quoted what and for how much
-              </p>
-            </div>
-
-            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
-              <h3 className="font-semibold text-slate-900 mb-2">Easy to lose information</h3>
-              <p className="text-slate-600">
-                Delete a text by accident, and you lose a quote. No record of what you decided and why
-              </p>
-            </div>
-
-            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
-              <h3 className="font-semibold text-slate-900 mb-2">Decision fatigue</h3>
-              <p className="text-slate-600">
-                You end up choosing whoever responds first, not who&apos;s actually the best option
-              </p>
+        {/* EXAMPLE TABLE */}
+        <div className="mb-14">
+          <h2 className="text-lg font-bold text-gray-900 mb-3">What It Looks Like</h2>
+          <div className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden text-xs">
+            <div className="grid grid-cols-3 gap-2 bg-gray-100 p-2 font-bold text-gray-900"><div>Contractor</div><div>Price</div><div>Timeline</div></div>
+            <div className="divide-y divide-gray-200">
+              <div className="grid grid-cols-3 gap-2 p-2"><div><p className="font-bold text-gray-900">Mike's Plumbing</p><p className="text-gray-500 text-xs">Same-day</p></div><div><p className="font-bold">$180</p></div><div><p className="text-gray-700">Tomorrow</p></div></div>
+              <div className="grid grid-cols-3 gap-2 p-2"><div><p className="font-bold text-gray-900">QuickFix Pro</p><p className="text-gray-500 text-xs">24h</p></div><div><p className="font-bold">$140</p><p className="text-gray-600 text-xs">Cheapest</p></div><div><p className="text-gray-700">3 days</p></div></div>
+              <div className="grid grid-cols-3 gap-2 p-2"><div><p className="font-bold text-gray-900">Elite Plumbing</p><p className="text-gray-500 text-xs">Premium</p></div><div><p className="font-bold">$220</p></div><div><p className="text-gray-700">Next week</p></div></div>
             </div>
           </div>
-        </section>
+          <p className="text-gray-700 text-xs mt-2 font-medium">All visible at once — price, timeline, notes. No switching.</p>
+        </div>
 
-        {/* ───── SECTION: How Maintenance OS Fixes This ───── */}
-        <section className="mb-16 sm:mb-20">
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-950 mb-8">
-            How Maintenance OS fixes this
-          </h2>
-          <div className="space-y-8">
-            <div className="flex gap-6">
-              <div className="flex-shrink-0">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white font-semibold">
-                  1
-                </div>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                  Send one repair request to multiple contractors at once
-                </h3>
-                <p className="text-slate-600">
-                  Describe the job once — with photos, location, urgency, and notes. Then select the contractors you want to reach and send it out with a single click.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-6">
-              <div className="flex-shrink-0">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white font-semibold">
-                  2
-                </div>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                  Quotes come back into the same workflow
-                </h3>
-                <p className="text-slate-600">
-                  As contractors reply via email, their quotes are automatically organized in one place. No more hunting through your inbox or texts.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-6">
-              <div className="flex-shrink-0">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white font-semibold">
-                  3
-                </div>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                  See pricing, timeline, scope, and notes side by side
-                </h3>
-                <p className="text-slate-600">
-                  Compare what matters: price, availability, what&apos;s included, and contractor notes. Everything lines up so you can make a real comparison.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-6">
-              <div className="flex-shrink-0">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white font-semibold">
-                  4
-                </div>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                  Choose the best option — not just the first one who responded
-                </h3>
-                <p className="text-slate-600">
-                  Select the contractor that makes the most sense for your job, budget, and timeline. Accept their quote and move to scheduling.
-                </p>
-              </div>
-            </div>
+        {/* WHY IT MATTERS */}
+        <div className="mb-14">
+          <h2 className="text-lg font-bold text-gray-900 mb-3">The Impact</h2>
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="border border-gray-200 rounded p-3"><p className="text-xl font-bold text-blue-600">💰</p><p className="font-bold text-gray-900">Save money</p><p className="text-gray-600">Proper comparison finds better options</p></div>
+            <div className="border border-gray-200 rounded p-3"><p className="text-xl font-bold text-blue-600">⚡</p><p className="font-bold text-gray-900">Faster</p><p className="text-gray-600">Everything in one place</p></div>
+            <div className="border border-gray-200 rounded p-3"><p className="text-xl font-bold text-blue-600">📋</p><p className="font-bold text-gray-900">Keep record</p><p className="text-gray-600">Every quote saved and tied to job</p></div>
           </div>
-        </section>
+        </div>
 
-        {/* ───── SECTION: Visual Example ───── */}
-        <section className="mb-16 sm:mb-20">
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-950 mb-8">
-            See it in action
-          </h2>
-          <div className="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden">
-            {/* Table Header */}
-            <div className="grid grid-cols-4 gap-4 bg-slate-100 px-6 py-4 font-semibold text-slate-900 text-sm">
-              <div>Contractor</div>
-              <div>Price</div>
-              <div>Timeline</div>
-              <div>Status</div>
-            </div>
-
-            {/* Table Rows */}
-            <div className="divide-y divide-slate-200">
-              {/* Row 1 */}
-              <div className="grid grid-cols-4 gap-4 px-6 py-5 items-center hover:bg-slate-100 transition-colors">
-                <div>
-                  <p className="font-medium text-slate-900">Mike&apos;s Plumbing</p>
-                  <p className="text-xs text-slate-500">Responds same-day</p>
-                </div>
-                <div>
-                  <p className="font-semibold text-slate-900">$180</p>
-                </div>
-                <div>
-                  <p className="text-slate-700">Tomorrow</p>
-                </div>
-                <div>
-                  <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
-                    Accepted
-                  </span>
-                </div>
-              </div>
-
-              {/* Row 2 */}
-              <div className="grid grid-cols-4 gap-4 px-6 py-5 items-center hover:bg-slate-100 transition-colors">
-                <div>
-                  <p className="font-medium text-slate-900">QuickFix Pro</p>
-                  <p className="text-xs text-slate-500">24h response time</p>
-                </div>
-                <div>
-                  <p className="font-semibold text-slate-900">$140</p>
-                  <p className="text-xs text-slate-500">Cheapest option</p>
-                </div>
-                <div>
-                  <p className="text-slate-700">3 days</p>
-                </div>
-                <div>
-                  <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
-                    Accepted
-                  </span>
-                </div>
-              </div>
-
-              {/* Row 3 */}
-              <div className="grid grid-cols-4 gap-4 px-6 py-5 items-center hover:bg-slate-100 transition-colors">
-                <div>
-                  <p className="font-medium text-slate-900">Elite Plumbing</p>
-                  <p className="text-xs text-slate-500">Premium service</p>
-                </div>
-                <div>
-                  <p className="font-semibold text-slate-900">$220</p>
-                </div>
-                <div>
-                  <p className="text-slate-700">Next week</p>
-                </div>
-                <div>
-                  <span className="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-700">
-                    Pending
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer Note */}
-            <div className="px-6 py-4 bg-blue-50 border-t border-slate-200">
-              <p className="text-sm text-slate-700">
-                <span className="font-semibold">Notice:</span> All quotes visible at once with price, timeline, and contractor notes — no more context switching between emails and texts.
-              </p>
-            </div>
+        {/* RELATED */}
+        <div className="mb-12">
+          <h2 className="text-lg font-bold text-gray-900 mb-3">Works With</h2>
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <Link href="/features/tenant-intake" className="border border-gray-200 rounded p-2 hover:shadow transition-shadow"><p className="font-bold text-gray-900">Intake</p><p className="text-gray-600">Get detailed requests</p></Link>
+            <Link href="/features/job-tracking" className="border border-gray-200 rounded p-2 hover:shadow transition-shadow"><p className="font-bold text-gray-900">Tracking</p><p className="text-gray-600">Track work start to finish</p></Link>
+            <Link href="/features/repair-history" className="border border-gray-200 rounded p-2 hover:shadow transition-shadow"><p className="font-bold text-gray-900">History</p><p className="text-gray-600">Keep costs on record</p></Link>
+            <Link href="/property-maintenance-software" className="border border-gray-200 rounded p-2 hover:shadow transition-shadow"><p className="font-bold text-gray-900">Platform</p><p className="text-gray-600">See full workflow</p></Link>
           </div>
-        </section>
+        </div>
 
-        {/* ───── SECTION: The Impact ───── */}
-        <section className="mb-16 sm:mb-20">
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-950 mb-8">
-            Stop guessing. Start comparing.
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 border border-blue-200">
-              <div className="text-3xl font-bold text-blue-600 mb-3">💰</div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">Save money</h3>
-              <p className="text-slate-700">
-                When you compare quotes properly, you find better options and avoid overpaying for the first response.
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-8 border border-slate-200">
-              <div className="text-3xl font-bold text-slate-600 mb-3">⚡</div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">Make faster decisions</h3>
-              <p className="text-slate-700">
-                With everything in one place, you spend less time searching and more time deciding what matters.
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-8 border border-slate-200">
-              <div className="text-3xl font-bold text-slate-600 mb-3">📋</div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">Keep a record</h3>
-              <p className="text-slate-700">
-                Every quote is saved and tied to the job, so you always know what you chose and why.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* ───── RELATED FEATURES ───── */}
-        <section className="mb-16 sm:mb-20">
-          <h2 className="text-2xl font-bold text-slate-950 mb-8">
-            Works with every part of your workflow
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Link
-              href="/property-maintenance-software"
-              className="group block bg-white rounded-2xl p-8 border border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all"
-            >
-              <h3 className="text-lg font-semibold text-slate-900 group-hover:text-blue-600 mb-2">
-                Maintenance OS hub →
-              </h3>
-              <p className="text-slate-600">
-                See how quote comparison fits into the full repair management system.
-              </p>
-            </Link>
-
-            <Link
-              href="/track-rental-property-repairs"
-              className="group block bg-white rounded-2xl p-8 border border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all"
-            >
-              <h3 className="text-lg font-semibold text-slate-900 group-hover:text-blue-600 mb-2">
-                Track repairs →
-              </h3>
-              <p className="text-slate-600">
-                Once you choose a contractor, track the work from start to finish.
-              </p>
-            </Link>
-
-            <Link
-              href="/features/quote-comparison"
-              className="group block bg-white rounded-2xl p-8 border border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all"
-            >
-              <h3 className="text-lg font-semibold text-slate-900 group-hover:text-blue-600 mb-2">
-                Quote comparison features →
-              </h3>
-              <p className="text-slate-600">
-                Dive deep into how the comparison tool works and what you can do with it.
-              </p>
-            </Link>
-
-            <Link
-              href="/how-it-works"
-              className="group block bg-white rounded-2xl p-8 border border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all"
-            >
-              <h3 className="text-lg font-semibold text-slate-900 group-hover:text-blue-600 mb-2">
-                How it works →
-              </h3>
-              <p className="text-slate-600">
-                Learn the full intake-to-completion workflow at a glance.
-              </p>
-            </Link>
-          </div>
-        </section>
-
-        {/* ───── CTA SECTION ───── */}
-        <section>
-          <FreeCTA variant="dark" heading="Compare quotes the smart way" subheading="Send one request, get multiple quotes, pick the best." />
-        </section>
+        {/* FINAL CTA - FreeCTA COMPONENT */}
+        <FreeCTA variant="dark" heading="Compare quotes the smart way" subheading="Send one request, get multiple quotes, pick the best." />
       </main>
     </PublicLayout>
   );
