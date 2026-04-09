@@ -113,6 +113,47 @@ export default function PropertyMaintenanceSoftwarePage() {
             </Link>
           </div>
           <p className="mt-5 text-base font-medium text-emerald-600">100% free during beta — all features included</p>
+
+          {/* Static AI Analysis Card */}
+          <div className="mt-10 mx-auto max-w-xl">
+            <div className="rounded-2xl border border-slate-200 bg-white shadow-lg overflow-hidden text-left">
+              <div className="border-b border-slate-100 p-4 flex items-start gap-3">
+                <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br from-blue-100 to-blue-300 flex items-center justify-center text-2xl">
+                  💧
+                </div>
+                <div>
+                  <div className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1">Repair issue + photo</div>
+                  <p className="text-sm text-slate-800">Water stain on ceiling, spreading fast — about 2 feet wide now</p>
+                </div>
+              </div>
+              <div className="p-4 bg-slate-50/50">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">AI Analysis Complete — photo + text</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  <div className="rounded-lg border border-slate-200 bg-white p-2.5">
+                    <div className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Category</div>
+                    <div className="text-xs font-semibold text-slate-800">Water Damage</div>
+                  </div>
+                  <div className="rounded-lg border border-red-200 bg-red-50 p-2.5">
+                    <div className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Urgency</div>
+                    <div className="text-xs font-bold text-red-600">High</div>
+                  </div>
+                  <div className="rounded-lg border border-slate-200 bg-white p-2.5">
+                    <div className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Trade</div>
+                    <div className="text-xs font-semibold text-slate-800">Plumbing</div>
+                  </div>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-white p-3">
+                  <div className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1">AI Assessment</div>
+                  <p className="text-xs text-slate-600 leading-relaxed">Photo shows active water damage on ceiling drywall with brownish staining. Pattern indicates a slow leak — likely a supply line or roof penetration. Immediate inspection recommended.</p>
+                </div>
+              </div>
+            </div>
+            <p className="mt-3 text-xs text-slate-400 text-center">AI analyzes photos and text to classify every repair automatically</p>
+          </div>
+
           <div className="mt-3 flex justify-center gap-3 text-sm text-gray-500">
             <span>No credit card</span>
             <span aria-hidden="true">·</span>
