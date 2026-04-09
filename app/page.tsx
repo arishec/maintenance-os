@@ -17,8 +17,6 @@ export const metadata: Metadata = {
 export default async function HomePage() {
   const { userId } = await auth();
   const isSignedIn = !!userId;
-  const ctaHref = isSignedIn ? '/dashboard' : '/sign-up';
-  const ctaLabel = isSignedIn ? 'Go to dashboard' : 'Run your next repair through this — free';
 
   return (
     <>
@@ -26,7 +24,7 @@ export default async function HomePage() {
       <PublicLayout>
         <main>
           {/* ───── HERO: PROBLEM + SOLUTION ───── */}
-          <section className="mx-auto max-w-7xl px-6 pt-12 pb-8 lg:px-10 lg:pt-20 lg:pb-12">
+          <section className="mx-auto max-w-7xl px-6 pt-12 pb-4 lg:px-10 lg:pt-20 lg:pb-6">
             <div className="mx-auto max-w-3xl text-center">
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-slate-950 md:leading-[1.08]">
                 Property Maintenance Software<br className="hidden sm:block" /> for Landlords &amp; Homeowners
@@ -40,10 +38,10 @@ export default async function HomePage() {
 
               <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link
-                  href={ctaHref}
+                  href={isSignedIn ? '/dashboard' : '/sign-up'}
                   className="rounded-2xl bg-blue-600 px-7 py-4 text-lg font-semibold text-white shadow-md transition hover:bg-blue-700 hover:shadow-lg w-full sm:w-auto text-center"
                 >
-                  {ctaLabel}
+                  Run your next repair through this — free
                 </Link>
                 <Link
                   href="/how-it-works"
@@ -57,14 +55,20 @@ export default async function HomePage() {
                 Send once → reach multiple contractors → compare quotes → track the job
               </p>
               <p className="mt-3 text-base font-medium text-emerald-600">100% free during beta — all features included</p>
-              <div className="mt-3 flex justify-center gap-3 text-sm text-slate-500">
-                <span>No credit card</span>
-                <span aria-hidden="true">·</span>
-                <span>Set up in 2 minutes</span>
-                <span aria-hidden="true">·</span>
-                <span>Works for 1 property or 100</span>
-              </div>
             </div>
+          </section>
+
+          {/* ───── AI DEMO — RIGHT AFTER HERO ───── */}
+          <section className="mx-auto max-w-7xl px-6 pb-8 lg:px-10">
+            <div className="mx-auto max-w-3xl text-center mb-6">
+              <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-slate-950">
+                AI does the heavy lifting
+              </h2>
+              <p className="mt-2 text-sm text-slate-500">
+                Upload a photo. AI diagnoses the issue, classifies urgency, and recommends the right trade.
+              </p>
+            </div>
+            <AIDemoHero />
           </section>
 
           {/* ───── HOW IT WORKS — 4 STEPS ───── */}
@@ -92,48 +96,30 @@ export default async function HomePage() {
             </div>
           </section>
 
-          {/* ───── AI DEMO — THE "WOW" MOMENT ───── */}
-          <section className="mx-auto max-w-7xl px-6 py-16 lg:px-10">
-            <div className="mx-auto max-w-3xl text-center mb-10">
-              <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-950">
-                AI does the heavy lifting
-              </h2>
-              <p className="mt-3 text-base text-slate-600">
-                Upload a photo of any repair. AI diagnoses the issue, classifies urgency, and recommends the right trade — before the contractor arrives.
-              </p>
-            </div>
-            <AIDemoHero />
-          </section>
-
           {/* ───── AI FEATURES — TIGHT GRID ───── */}
-          <section className="border-t border-slate-200 bg-slate-50">
-            <div className="mx-auto max-w-5xl px-6 py-16 lg:px-10">
-              <h2 className="text-center text-2xl sm:text-3xl font-semibold tracking-tight text-slate-950 mb-10">
-                AI at every step
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[
-                  { title: 'Photo diagnosis', desc: 'AI sees what you see — damage type, severity, recommended trade.' },
-                  { title: 'Smart classification', desc: 'Category, urgency, and the right contractor type — automatically.' },
-                  { title: 'Quote comparison', desc: 'Multiple bids analyzed side by side. Best value highlighted.' },
-                  { title: 'Reply parsing', desc: '"Thursday at $450" → price, date, and availability extracted.' },
-                  { title: 'Invoice extraction', desc: 'Upload a receipt. AI pulls amounts, line items, and details.' },
-                  { title: 'Repair history', desc: 'Every job builds a searchable record of costs, contractors, and outcomes.' },
-                ].map((item) => (
-                  <div key={item.title} className="rounded-xl border border-slate-200 bg-white p-5">
-                    <h3 className="text-sm font-semibold text-slate-900 mb-1">{item.title}</h3>
-                    <p className="text-sm text-slate-500 leading-relaxed">{item.desc}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-8 text-center">
-                <Link
-                  href="/features"
-                  className="text-sm font-medium text-blue-600 hover:underline"
-                >
-                  See all features →
-                </Link>
-              </div>
+          <section className="mx-auto max-w-5xl px-6 py-16 lg:px-10">
+            <h2 className="text-center text-2xl sm:text-3xl font-semibold tracking-tight text-slate-950 mb-10">
+              AI at every step
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[
+                { title: 'Photo diagnosis', desc: 'AI sees what you see — damage type, severity, recommended trade.' },
+                { title: 'Smart classification', desc: 'Category, urgency, and the right contractor type — automatically.' },
+                { title: 'Quote comparison', desc: 'Multiple bids analyzed side by side. Best value highlighted.' },
+                { title: 'Reply parsing', desc: '"Thursday at $450" → price, date, and availability extracted.' },
+                { title: 'Invoice extraction', desc: 'Upload a receipt. AI pulls amounts, line items, and details.' },
+                { title: 'Repair history', desc: 'Every job builds a searchable record of costs, contractors, and outcomes.' },
+              ].map((item) => (
+                <div key={item.title} className="rounded-xl border border-slate-200 bg-white p-5">
+                  <h3 className="text-sm font-semibold text-slate-900 mb-1">{item.title}</h3>
+                  <p className="text-sm text-slate-500 leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-8 text-center">
+              <Link href="/features" className="text-sm font-medium text-blue-600 hover:underline">
+                See all features →
+              </Link>
             </div>
           </section>
 
@@ -146,12 +132,12 @@ export default async function HomePage() {
               <p className="mt-4 text-lg text-slate-300">
                 One system for intake, dispatch, quotes, tracking, and history.
               </p>
-              <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <div className="mt-8">
                 <Link
-                  href={ctaHref}
-                  className="rounded-2xl bg-blue-500 px-7 py-4 text-lg font-semibold text-white transition hover:bg-blue-400 hover:shadow-lg w-full sm:w-auto text-center"
+                  href={isSignedIn ? '/dashboard' : '/sign-up'}
+                  className="rounded-2xl bg-blue-500 px-7 py-4 text-lg font-semibold text-white transition hover:bg-blue-400 hover:shadow-lg"
                 >
-                  {ctaLabel}
+                  Run your next repair through this — free
                 </Link>
               </div>
               <p className="mt-5 text-sm font-medium text-emerald-400">100% free during beta — every feature, no limits</p>
