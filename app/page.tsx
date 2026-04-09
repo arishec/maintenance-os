@@ -81,7 +81,7 @@ export default async function HomePage() {
   const { userId } = await auth();
   const isSignedIn = !!userId;
   const ctaHref = isSignedIn ? '/dashboard' : '/sign-up';
-  const ctaLabel = isSignedIn ? 'Go to dashboard' : 'Get started for free';
+  const ctaLabel = isSignedIn ? 'Go to dashboard' : 'Start free — no credit card';
 
   return (
     <>
@@ -106,7 +106,7 @@ export default async function HomePage() {
               <div className="mt-8 flex flex-wrap justify-center gap-4">
                 <Link
                   href={ctaHref}
-                  className="rounded-2xl bg-blue-600 px-6 py-4 text-base font-semibold text-white shadow-sm transition hover:bg-blue-700"
+                  className="rounded-2xl bg-blue-600 px-7 py-4 text-lg font-semibold text-white shadow-md transition hover:bg-blue-700 hover:shadow-lg"
                 >
                   {ctaLabel}
                 </Link>
@@ -117,9 +117,13 @@ export default async function HomePage() {
                   See how it works
                 </Link>
               </div>
-              <div className="mt-6 flex justify-center gap-3 text-sm text-slate-600">
-                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">No credit card required in beta</div>
-                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">Works for homeowners and landlords</div>
+              <p className="mt-5 text-base font-medium text-emerald-600">100% free during beta — all features included</p>
+              <div className="mt-3 flex justify-center gap-3 text-sm text-slate-500">
+                <span>No credit card</span>
+                <span aria-hidden="true">·</span>
+                <span>Set up in 2 minutes</span>
+                <span aria-hidden="true">·</span>
+                <span>Works for 1 property or 100</span>
               </div>
               <div className="mt-6 flex justify-center">
                 <a href="https://www.producthunt.com/products/maintenance-os?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-maintenance-os" target="_blank" rel="noopener noreferrer">
@@ -440,7 +444,7 @@ export default async function HomePage() {
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
                   <Link
                     href={ctaHref}
-                    className="rounded-2xl bg-blue-500 px-6 py-4 text-base font-semibold text-white transition hover:bg-blue-400"
+                    className="rounded-2xl bg-blue-500 px-7 py-4 text-lg font-semibold text-white transition hover:bg-blue-400 hover:shadow-lg"
                   >
                     {ctaLabel}
                   </Link>
@@ -451,7 +455,7 @@ export default async function HomePage() {
                     View pricing
                   </Link>
                 </div>
-                <p className="mt-5 text-sm text-slate-400">No credit card required while in beta.</p>
+                <p className="mt-5 text-sm font-medium text-emerald-400">100% free during beta — every feature, no limits</p>
               </div>
             </div>
           </section>
