@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { auth } from '@clerk/nextjs/server';
 import { SoftwareJsonLd } from '@/components/seo/software-jsonld';
 import { PublicLayout } from '@/components/public-layout';
+import { AIDemoHero } from '@/components/ai-demo-hero';
 
 export const metadata: Metadata = {
   title: 'Maintenance OS — Manage Repairs Without Chasing Contractors',
@@ -88,22 +89,23 @@ export default async function HomePage() {
       <SoftwareJsonLd />
       <PublicLayout>
         <main>
-          {/* ───── HERO ───── */}
-          <section className="mx-auto max-w-7xl px-6 py-14 lg:px-10 lg:py-16">
-            <div className="mx-auto max-w-3xl text-center">
-              <div className="mb-4 inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-sm font-medium text-rose-700">
-                Most landlords don&apos;t have a system — they have conversations
-              </div>
-              <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight text-slate-950 md:text-6xl md:leading-[1.02]">
-                Manage repairs without chasing contractors
+          {/* ───── HERO WITH AI DEMO ───── */}
+          <section className="mx-auto max-w-7xl px-6 pt-10 pb-6 lg:px-10 lg:pt-14 lg:pb-8">
+            <div className="mx-auto max-w-3xl text-center mb-10">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-slate-950 md:leading-[1.08]">
+                AI that diagnoses repairs <br className="hidden sm:block" />before the contractor arrives
               </h1>
-              <p className="mt-2 text-lg font-medium text-slate-500">
-                Property maintenance software for landlords and homeowners
+              <p className="mt-4 text-lg leading-7 text-slate-600 max-w-2xl mx-auto">
+                Describe a repair issue. AI classifies it instantly — urgency, trade, category, and a full assessment. Then dispatch to contractors in one click.
               </p>
-              <p className="mt-5 text-xl leading-8 text-slate-600">
-                Turn messy texts, calls, and scattered quotes into one clear system — intake, dispatch, compare, track, and history.
-              </p>
-              <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+            </div>
+
+            {/* Live AI Demo */}
+            <AIDemoHero />
+
+            {/* CTA below demo */}
+            <div className="mt-10 text-center">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link
                   href={ctaHref}
                   className="rounded-2xl bg-blue-600 px-7 py-4 text-lg font-semibold text-white shadow-md transition hover:bg-blue-700 hover:shadow-lg w-full sm:w-auto text-center"
