@@ -20,7 +20,7 @@ export default function CompareContractorQuotesPage() {
         <div className="text-center mb-14">
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-3">Compare Quotes Without the Mess</h1>
           <p className="text-base text-gray-600 mb-5">One contractor texts a number. Another emails a PDF. A third gives a verbal estimate. Maintenance OS puts them all in one comparison view.</p>
-          <Link href="/sign-up" className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 font-medium text-sm">Get Started Free</Link>
+          <Link href="/sign-up" className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 font-medium text-sm">Run your next repair through this — free</Link>
         </div>
 
         {/* THE PROBLEM */}

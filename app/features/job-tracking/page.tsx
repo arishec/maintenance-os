@@ -19,7 +19,7 @@ export default function JobTrackingPage() {
         <div className="text-center mb-14">
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-3">Know What's Happening With Every Job</h1>
           <p className="text-base text-gray-600 mb-5">See scheduled, in progress, and completed work across all properties in real time. No more chasing contractors.</p>
-          <Link href="/sign-up" className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 font-medium text-sm">Start Tracking Free</Link>
+          <Link href="/sign-up" className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 font-medium text-sm">Run your next repair through this — free</Link>
         </div>
 
         {/* PROBLEM & SOLUTION */}
@@ -80,7 +80,7 @@ export default function JobTrackingPage() {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
           <h2 className="text-xl font-bold text-gray-900 mb-1">Stop Wondering</h2>
           <p className="text-gray-600 text-sm mb-3">See everything. Catch issues early. Stay in control.</p>
-          <Link href="/sign-up" className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium text-sm">Start Free</Link>
+          <Link href="/sign-up" className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium text-sm">Run your next repair through this — free</Link>
         </div>
       </main>
     </PublicLayout>

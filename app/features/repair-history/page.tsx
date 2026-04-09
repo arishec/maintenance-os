@@ -19,7 +19,7 @@ export default function RepairHistoryPage() {
         <div className="text-center mb-14">
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-3">Never Lose Track of What's Been Done</h1>
           <p className="text-base text-gray-600 mb-5">Every repair, cost, and contractor in one searchable timeline. Know what was done, when, and why.</p>
-          <Link href="/sign-up" className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 font-medium text-sm">Start Tracking Free</Link>
+          <Link href="/sign-up" className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 font-medium text-sm">Run your next repair through this — free</Link>
         </div>
 
         {/* PROBLEM */}
@@ -91,7 +91,7 @@ export default function RepairHistoryPage() {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
           <h2 className="text-xl font-bold text-gray-900 mb-1">Stop Losing Track</h2>
           <p className="text-gray-600 text-sm mb-3">Know your property inside and out -- without digging through emails.</p>
-          <Link href="/sign-up" className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium text-sm">Start Free</Link>
+          <Link href="/sign-up" className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium text-sm">Run your next repair through this — free</Link>
         </div>
       </main>
     </PublicLayout>

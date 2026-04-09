@@ -18,7 +18,7 @@ export default function HowToManageRentalPropertyMaintenancePage() {
         <div className="mb-12 text-center">
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">How to Manage Rental Property Maintenance (Without Losing Your Mind)</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">The system landlords use to stay organized, reduce costs, and keep tenants happy.</p>
-          <Link href="/sign-up" className="inline-flex rounded-xl bg-blue-600 px-7 py-4 text-lg font-medium text-white hover:bg-blue-700 transition-colors shadow-md">Start free -- no credit card</Link>
+          <Link href="/sign-up" className="inline-flex rounded-xl bg-blue-600 px-7 py-4 text-lg font-medium text-white hover:bg-blue-700 transition-colors shadow-md">Run your next repair through this — free</Link>
           <p className="mt-4 text-sm text-gray-500">No credit card · 2 min setup · Works for 1 or 100 properties</p>
         </div>
         <section className="mb-12 rounded-2xl bg-red-50 border border-red-100 p-6">

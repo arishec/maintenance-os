@@ -72,7 +72,7 @@ export default function PropertyMaintenanceSoftwarePage() {
               href="/sign-up"
               className="inline-flex justify-center rounded-2xl bg-blue-600 px-8 py-4 text-lg font-semibold text-white shadow-md hover:bg-blue-700 hover:shadow-lg transition w-full sm:w-auto"
             >
-              Start free — no credit card
+              Run your next repair through this — free
             </Link>
             <Link
               href="/how-it-works"

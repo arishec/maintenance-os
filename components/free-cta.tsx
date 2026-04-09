@@ -46,7 +46,7 @@ export function FreeCTA({
       {heading && <h2 className={headingClass}>{heading}</h2>}
       {subheading && <p className={subClass}>{subheading}</p>}
       <Link href="/sign-up" className={btnClass}>
-        Start free — no credit card
+        Run your next repair through this — free
       </Link>
       <p className={freeClass}>
         {isDark

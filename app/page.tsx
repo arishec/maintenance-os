@@ -18,7 +18,7 @@ export default async function HomePage() {
   const { userId } = await auth();
   const isSignedIn = !!userId;
   const ctaHref = isSignedIn ? '/dashboard' : '/sign-up';
-  const ctaLabel = isSignedIn ? 'Go to dashboard' : 'Start free — no credit card';
+  const ctaLabel = isSignedIn ? 'Go to dashboard' : 'Run your next repair through this — free';
 
   return (
     <>

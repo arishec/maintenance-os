@@ -56,7 +56,7 @@ export default function LandlordMaintenanceSoftwarePage() {
               href="/sign-up"
               className="inline-flex justify-center rounded-xl bg-blue-600 px-7 py-4 text-lg font-medium text-white hover:bg-blue-700 transition-colors shadow-md w-full sm:w-auto"
             >
-              Start free — no credit card
+              Run your next repair through this — free
             </Link>
             <Link
               href="/how-it-works"

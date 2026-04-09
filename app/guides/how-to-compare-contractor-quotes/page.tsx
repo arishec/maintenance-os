@@ -18,7 +18,7 @@ export default function HowToCompareContractorQuotesPage() {
         <div className="mb-12 text-center">
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">How to Compare Contractor Quotes (Without Getting Ripped Off)</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">Get multiple bids, evaluate strategically, choose the best value — not just the lowest price.</p>
-          <Link href="/sign-up" className="inline-flex rounded-xl bg-blue-600 px-7 py-4 text-lg font-medium text-white hover:bg-blue-700 transition-colors shadow-md">Start free — no credit card</Link>
+          <Link href="/sign-up" className="inline-flex rounded-xl bg-blue-600 px-7 py-4 text-lg font-medium text-white hover:bg-blue-700 transition-colors shadow-md">Run your next repair through this — free</Link>
           <p className="mt-4 text-sm text-gray-500">No credit card · 2 min setup · Works for 1 or 100 properties</p>
         </div>
         <section className="mb-12">

@@ -29,7 +29,7 @@ export default function HowItWorksPage() {
               href="/sign-up"
               className="inline-block bg-blue-600 text-white px-7 py-4 rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg shadow-md"
             >
-              Start free — no credit card
+              Run your next repair through this — free
             </Link>
             <Link
               href="/features"
