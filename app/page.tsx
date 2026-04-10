@@ -135,7 +135,7 @@ export default async function HomePage() {
               <div className="mt-8">
                 <Link
                   href={isSignedIn ? '/dashboard' : '/sign-up'}
-                  className="rounded-2xl bg-blue-500 px-7 py-4 text-lg font-semibold text-white transition hover:bg-blue-400 hover:shadow-lg"
+                  className="inline-block w-full sm:w-auto rounded-2xl bg-blue-500 px-7 py-4 text-lg font-semibold text-white transition hover:bg-blue-400 hover:shadow-lg text-center"
                 >
                   Run your next repair through this — free
                 </Link>
