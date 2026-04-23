@@ -52,7 +52,7 @@ export default async function HomePage() {
               </div>
 
               <p className="mt-4 text-sm text-slate-500">
-                Send once → reach multiple contractors → compare quotes → track the job
+                2 minutes to set up. No credit card. No commitment.
               </p>
               <p className="mt-3 text-base font-medium text-emerald-600">100% free — every feature, no limits</p>
             </div>
@@ -62,10 +62,10 @@ export default async function HomePage() {
           <section className="mx-auto max-w-7xl px-6 pb-8 lg:px-10">
             <div className="mx-auto max-w-3xl text-center mb-6">
               <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-slate-950">
-                AI handles classification, quotes, and tracking automatically
+                Upload a photo → get the issue, urgency, and contractor instantly
               </h2>
               <p className="mt-2 text-sm text-slate-500">
-                Upload a photo. AI diagnoses the issue, classifies urgency, and recommends the right trade.
+                AI diagnoses the problem, classifies urgency, and recommends the right trade — in seconds.
               </p>
             </div>
             <AIDemoHero />
