@@ -25,7 +25,7 @@ export async function PublicLayout({ children }: { children: React.ReactNode }) 
           {/* Logo */}
           <Link href="/" className="text-xl sm:text-2xl font-bold text-gray-900 hover:opacity-80 cursor-pointer transition-opacity flex items-center gap-2">
             Maintenance OS
-            <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">Beta</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">Free</span>
           </Link>
 
           {/* Nav Links — desktop only */}

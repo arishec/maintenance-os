@@ -75,11 +75,12 @@ const PHASE_ORDER: Phase[] = ['photo', 'scanning', 'typing', 'analyzing', 'categ
 
 export function AIDemoHero() {
   const [scenarioIdx, setScenarioIdx] = useState(0);
-  const [phase, setPhase] = useState<Phase>('photo');
-  const [typedChars, setTypedChars] = useState(0);
-  const [descChars, setDescChars] = useState(0);
+  // Start with first scenario fully visible so visitors see the result immediately
+  const [phase, setPhase] = useState<Phase>('done');
+  const [typedChars, setTypedChars] = useState(scenarios[0].issue.length);
+  const [descChars, setDescChars] = useState(scenarios[0].analysis.description.length);
   const [fading, setFading] = useState(false);
-  const [scanProgress, setScanProgress] = useState(0);
+  const [scanProgress, setScanProgress] = useState(100);
 
   const scenario = scenarios[scenarioIdx];
 

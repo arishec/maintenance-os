@@ -27,13 +27,13 @@ export default async function HomePage() {
           <section className="mx-auto max-w-7xl px-6 pt-12 pb-4 lg:px-10 lg:pt-20 lg:pb-6">
             <div className="mx-auto max-w-3xl text-center">
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-slate-950 md:leading-[1.08]">
-                Property Maintenance Software<br className="hidden sm:block" /> for Landlords &amp; Homeowners
+                Stop Chasing Contractors<br className="hidden sm:block" /> for Repairs
               </h1>
               <p className="mt-5 text-lg leading-7 text-slate-600 max-w-2xl mx-auto">
-                Send one repair request, get multiple contractor quotes, and track every job from start to finish.
+                Get quotes, assign jobs, and track every repair in one place — without the calls, texts, or spreadsheets.
               </p>
-              <p className="mt-2 text-base text-slate-500">
-                Replace texts, calls, and spreadsheets with one simple system for managing repairs.
+              <p className="mt-3 text-sm text-slate-500 italic">
+                Built by a property owner who was tired of chasing vendors and losing quotes.
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -41,7 +41,7 @@ export default async function HomePage() {
                   href={isSignedIn ? '/dashboard' : '/sign-up'}
                   className="rounded-2xl bg-blue-600 px-7 py-4 text-lg font-semibold text-white shadow-md transition hover:bg-blue-700 hover:shadow-lg w-full sm:w-auto text-center"
                 >
-                  Run your next repair through this — free
+                  Try it free — start with one repair
                 </Link>
                 <Link
                   href="/how-it-works"
@@ -54,7 +54,7 @@ export default async function HomePage() {
               <p className="mt-4 text-sm text-slate-500">
                 Send once → reach multiple contractors → compare quotes → track the job
               </p>
-              <p className="mt-3 text-base font-medium text-emerald-600">100% free during beta — all features included</p>
+              <p className="mt-3 text-base font-medium text-emerald-600">100% free — every feature, no limits</p>
             </div>
           </section>
 
@@ -81,8 +81,8 @@ export default async function HomePage() {
                 {[
                   { step: '1', title: 'Report', desc: 'Describe the issue or upload a photo. AI classifies it instantly.' },
                   { step: '2', title: 'Dispatch', desc: 'Send to multiple contractors at once via SMS and email.' },
-                  { step: '3', title: 'Compare', desc: 'See quotes, timelines, and scope side by side.' },
-                  { step: '4', title: 'Track', desc: 'Follow every job from scheduled to completed.' },
+                  { step: '3', title: 'Compare', desc: 'See 3 contractor quotes side by side — price, timeline, and scope.' },
+                  { step: '4', title: 'Track', desc: 'Follow every repair from request to completion in one place.' },
                 ].map((item) => (
                   <div key={item.step} className="text-center">
                     <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-lg font-bold text-white">
@@ -137,10 +137,10 @@ export default async function HomePage() {
                   href={isSignedIn ? '/dashboard' : '/sign-up'}
                   className="inline-block w-full sm:w-auto rounded-2xl bg-blue-500 px-7 py-4 text-lg font-semibold text-white transition hover:bg-blue-400 hover:shadow-lg text-center"
                 >
-                  Run your next repair through this — free
+                  Try it free — start with one repair
                 </Link>
               </div>
-              <p className="mt-5 text-sm font-medium text-emerald-400">100% free during beta — every feature, no limits</p>
+              <p className="mt-5 text-sm font-medium text-emerald-400">100% free — every feature, no limits</p>
             </div>
           </section>
         </main>
