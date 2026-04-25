@@ -55,6 +55,19 @@ export default async function HomePage() {
                 2 minutes to set up. No credit card. No commitment.
               </p>
               <p className="mt-3 text-base font-medium text-emerald-600">100% free — every feature, no limits</p>
+
+              {/* Trust badge */}
+              <div className="mt-6 flex items-center justify-center">
+                <a
+                  href="https://betalist.com/startups/maintenance-os"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-500 shadow-sm transition hover:border-slate-300 hover:shadow-md"
+                >
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white">β</span>
+                  Featured on BetaList
+                </a>
+              </div>
             </div>
           </section>
 
