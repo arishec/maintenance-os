@@ -28,6 +28,7 @@ const isPublicRoute = createRouteMatcher([
   '/contact',
   '/privacy',
   '/terms',
+  '/sms-consent',
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
