@@ -59,13 +59,17 @@ export default async function HomePage() {
               {/* Trust badge */}
               <div className="mt-6 flex items-center justify-center">
                 <a
-                  href="https://betalist.com/startups/maintenance-os"
+                  href="https://betalist.com/startups/maintenance-os?utm_campaign=badge-maintenance-os&utm_medium=badge&utm_source=badge-featured"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-500 shadow-sm transition hover:border-slate-300 hover:shadow-md"
                 >
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white">β</span>
-                  Featured on BetaList
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    alt="Maintenance OS - Manage repairs without chasing contractors | BetaList"
+                    width={156}
+                    height={54}
+                    src="https://betalist.com/badges/featured?id=157768&theme=color"
+                  />
                 </a>
               </div>
             </div>
